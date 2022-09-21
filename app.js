@@ -8,17 +8,23 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-let departingFlights = [];
-let pageCounter = 0;
-
 app.use(bodyParser.urlencoded({
     extended: true
 }));
 
+// define variables
+let departingFlights = [];
+let pageCounter = 0;
+let departureAirport = "vtbs";
+const url = "https://aeroapi.flightaware.com/aeroapi/airports/" + departureAirport + "/flights/scheduled_departures?type=Airline"
+// vtse = chumphon
+// vtbs = suvarnabhumi
+// vtsm = samui
 
-// setup the departure database 
+// setup the database 
 mongoose.connect("mongodb://localhost:27017/flightsDB", { useNewUrlParser: true }); //?retryWrites=true&w=majority
 
+// setup departure collection
 const flightSchema = new mongoose.Schema({
     departureAirport: String,
     arrivalAirport: String,
@@ -29,19 +35,12 @@ const flightSchema = new mongoose.Schema({
 
 const Flight = mongoose.model('Flight', flightSchema);
 
-// Flight.deleteMany({});
+Flight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("all good")}});
+// Flight.findByIdAndDelete("632a68429dda98635b2b74d1",function(err){if(err){console.log(err)} else if (!err){console.log("all good")}})
 
 
-// setup the arrivals database 
+// setup arrivals collection 
 
-// vtse = chumphon
-// vtbs = suvarnabhumi
-// vtsm = samui
-
-let departureAirport = "vtbs";
-const url = "https://aeroapi.flightaware.com/aeroapi/airports/" + departureAirport + "/flights/scheduled_departures?type=Airline"
-//&start=2022-09-05" 
-//&end=2022-09-10"
 
 // Initial API Call
 fetchDepartureData(url);
