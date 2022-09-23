@@ -16,7 +16,8 @@ app.use(bodyParser.urlencoded({
 let pageCounter = 0;
 let originLocation = "Bangkok";
 let originAirport = "vtbs"
-const url = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_departures?type=Airline"
+const departureUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_departures?type=Airline"
+const returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_arrivals?type=Airline"
 // vtse = chumphon
 // vtbs = suvarnabhumi
 // vtsm = samui
@@ -46,13 +47,17 @@ const Departingflight = mongoose.model('Departingflight', departingFlightSchema)
 const Returnflight = mongoose.model('Returnflight',returnFlightSchema);
 
 // for now, delete the db when we rerun the query
-Departingflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("all good")}});
+Departingflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("departures db deleted before start")}});
+Returnflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("return db deleted before start")}});
+
 
 // Initial API Call
-fetchDepartureData(url);
+// fetchDepartureData(departureUrl, "departure");
+fetchDepartureData(returnUrl, "return");
+
 
 // Create the function for API Call 
-function fetchDepartureData(url) {
+function fetchDepartureData(url, direction) {
     fetch(url, {
         method: 'GET',
         headers: {
@@ -63,52 +68,67 @@ function fetchDepartureData(url) {
             return response.json();
         })
         .then(function (data) {
+            if (direction === "departure"){
+                for (let i = 0; i < data.scheduled_departures.length; i++) {
+                    if (data.scheduled_departures[i].destination === null) {} else {
 
-            for (let i = 0; i < data.scheduled_departures.length; i++) {
-                if (data.scheduled_departures[i].destination === null) {
-                } else {
-                    
-                    // for arrivals
-                    // departureAirport: String,
-                    // arrivalAirport: String,
-                    // arrivalTimeZulu: Date,
-                    // arrivalTimeLocal: String,
-                    // flightNumber: String
+                        // define variables with data from api
+                        let arrivalAirport = data.scheduled_departures[i].destination.code_iata;
+                        let departureTimeZulu = new Date(data.scheduled_departures[i].scheduled_out);
+                        let departureTimeLocal = departureTimeZulu.toLocaleString('en-GB', {timeZone: 'Asia/Bangkok'});
+                        let flightNumber = data.scheduled_departures[i].ident_iata;
 
-                    // define variables 
-                    let arrivalAirport = data.scheduled_departures[i].destination.code_iata;
-                    let departureTimeZulu = new Date(data.scheduled_departures[i].scheduled_out);
-                    let departureTimeLocal = departureTimeZulu.toLocaleString('en-GB', {timeZone: 'Asia/Bangkok'});
-                    let flightNumber = data.scheduled_departures[i].ident_iata;
-
-                    const newFlightEntry = new Departingflight({
-                        departureAirport:   originAirport ,
-                        arrivalAirport:     arrivalAirport,
-                        departureTimeZulu:  departureTimeZulu,
-                        departureTimeLocal: departureTimeLocal,
-                        flightNumber:       flightNumber
-                    })
-
-                    newFlightEntry.save();
+                        // put data in database
+                        const newDepartingFlightEntry = new Departingflight({
+                            departureAirport:   originAirport ,
+                            arrivalAirport:     arrivalAirport,
+                            departureTimeZulu:  departureTimeZulu,
+                            departureTimeLocal: departureTimeLocal,
+                            flightNumber:       flightNumber
+                        })
+                        newDepartingFlightEntry.save();
+                    }
                 }
-            }
+            } else if (direction === "return"){
+                for (let i = 0; i < data.scheduled_arrivals.length; i++) {
+                    if (data.scheduled_arrivals[i].destination === null) {} else {
+
+                        // define variables with data from api
+                        let departureAirport = data.scheduled_arrivals[i].origin.code_iata;
+                        let arrivalTimeZulu = new Date(data.scheduled_arrivals[i].scheduled_in);
+                        let arrivalTimeLocal = arrivalTimeZulu.toLocaleString('en-GB', {timeZone: 'Asia/Bangkok'});
+                        let flightNumber = data.scheduled_arrivals[i].ident_iata;
+
+                        // put data in database
+                        const newReturnFlightEntry = new Returnflight({
+                            departureAirport:   departureAirport ,
+                            arrivalAirport:     originAirport,
+                            arrivalTimeZulu:  arrivalTimeZulu,
+                            arrivalTimeLocal: arrivalTimeLocal,
+                            flightNumber:       flightNumber
+                        })
+                        newReturnFlightEntry.save();
+                    }
+                }
+
+            } else {console.log("direction error")}
              
             pageCounter++;
             console.log("pageCounter: " + pageCounter)
 
             // Fetch the next page from the API
             if (data.links != null & pageCounter < 2) {
+                // create URL of next page
                 url_page_extension = data.links.next;
                 url = "https://aeroapi.flightaware.com/aeroapi" + url_page_extension;
 
                 if (url_page_extension != '' & url_page_extension != null
                 ) {
-                    // Delay the requests to not pass the api rate limit 
-                    // and call the function again to fetch the next page 
+                    // Delay the requests to not pass the api rate limit and call the function again to fetch the next page 
                     const delayForRateLimitAndCallNextPage = async () => {
                         await setTimeout(1500);
                         console.log("Waited 15s");
-                        fetchDepartureData(url);
+                        fetchDepartureData(url, direction);
                     }
                     delayForRateLimitAndCallNextPage();
                 }
@@ -117,16 +137,12 @@ function fetchDepartureData(url) {
                 
                 // display the last flight in the query
                 // console.log(departingFlights[departingFlights.length - 1])
-                
-                // count the number of db entries 
 
                 // final message
-
                 const delayForCheckingIfDbisUpdated = async () => {
                     await setTimeout(5000);
                     console.log("Waited 5s");
                     countDocuments();
-
                 }
                 delayForCheckingIfDbisUpdated();
             }
