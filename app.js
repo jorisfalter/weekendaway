@@ -13,10 +13,10 @@ app.use(bodyParser.urlencoded({
 }));
 
 // define variables
-let departingFlights = [];
 let pageCounter = 0;
-let departureAirport = "vtbs";
-const url = "https://aeroapi.flightaware.com/aeroapi/airports/" + departureAirport + "/flights/scheduled_departures?type=Airline"
+let originLocation = "Bangkok";
+let originAirport = "vtbs"
+const url = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_departures?type=Airline"
 // vtse = chumphon
 // vtbs = suvarnabhumi
 // vtsm = samui
@@ -25,7 +25,7 @@ const url = "https://aeroapi.flightaware.com/aeroapi/airports/" + departureAirpo
 mongoose.connect("mongodb://localhost:27017/flightsDB", { useNewUrlParser: true }); //?retryWrites=true&w=majority
 
 // setup departure collection
-const flightSchema = new mongoose.Schema({
+const departingFlightSchema = new mongoose.Schema({
     departureAirport: String,
     arrivalAirport: String,
     departureTimeZulu: Date,
@@ -33,14 +33,20 @@ const flightSchema = new mongoose.Schema({
     flightNumber: String
 });
 
-const Flight = mongoose.model('Flight', flightSchema);
+// setup return collection
+const returnFlightSchema = new mongoose.Schema({
+    departureAirport: String,
+    arrivalAirport: String,
+    arrivalTimeZulu: Date,
+    arrivalTimeLocal: String,
+    flightNumber: String
+})
 
-Flight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("all good")}});
-// Flight.findByIdAndDelete("632a68429dda98635b2b74d1",function(err){if(err){console.log(err)} else if (!err){console.log("all good")}})
+const Departingflight = mongoose.model('Departingflight', departingFlightSchema);
+const Returnflight = mongoose.model('Returnflight',returnFlightSchema);
 
-
-// setup arrivals collection 
-
+// for now, delete the db when we rerun the query
+Departingflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("all good")}});
 
 // Initial API Call
 fetchDepartureData(url);
@@ -62,64 +68,76 @@ function fetchDepartureData(url) {
                 if (data.scheduled_departures[i].destination === null) {
                 } else {
                     
+                    // for arrivals
+                    // departureAirport: String,
+                    // arrivalAirport: String,
+                    // arrivalTimeZulu: Date,
+                    // arrivalTimeLocal: String,
+                    // flightNumber: String
+
+                    // define variables 
+                    let arrivalAirport = data.scheduled_departures[i].destination.code_iata;
                     let departureTimeZulu = new Date(data.scheduled_departures[i].scheduled_out);
                     let departureTimeLocal = departureTimeZulu.toLocaleString('en-GB', {timeZone: 'Asia/Bangkok'});
-                    // console.log(departureTimeZulu)
-                    // console.log(departureTimeLocal)
+                    let flightNumber = data.scheduled_departures[i].ident_iata;
 
-                    departingFlightsLength = departingFlights.length;
-
-                    departingFlights[departingFlightsLength] = {
-                        // FlightNumber: data.scheduled_departures[i].ident,
-                        FlightNumber_iata: data.scheduled_departures[i].ident_iata,
-                        DepartureTimeZulu: departureTimeZulu,
-                        // DepartureTimeLocal: departureTimeLocal,
-                        // Destination: data.scheduled_departures[i].destination.code
-                        Destination_iata: data.scheduled_departures[i].destination.code_iata
-                        // Destination: data.scheduled_departures[i].destination
-                    }
-
-                    const newFlightEntry = new Flight({
-                        departureAirport: departureAirport ,
-                        arrivalAirport: data.scheduled_departures[i].destination.code_iata,
-                        departureTimeZulu: departureTimeZulu,
+                    const newFlightEntry = new Departingflight({
+                        departureAirport:   originAirport ,
+                        arrivalAirport:     arrivalAirport,
+                        departureTimeZulu:  departureTimeZulu,
                         departureTimeLocal: departureTimeLocal,
-                        flightNumber: data.scheduled_departures[i].ident_iata
+                        flightNumber:       flightNumber
                     })
+
                     newFlightEntry.save();
                 }
             }
-
-            console.log("length of departingFlights: " + departingFlights.length)
+             
             pageCounter++;
             console.log("pageCounter: " + pageCounter)
 
-            // Go fetch the next page from the API
-            if (data.links != null & pageCounter < 0) {
+            // Fetch the next page from the API
+            if (data.links != null & pageCounter < 2) {
                 url_page_extension = data.links.next;
                 url = "https://aeroapi.flightaware.com/aeroapi" + url_page_extension;
 
                 if (url_page_extension != '' & url_page_extension != null
                 ) {
-                    // Delay the requests to not pass the api rate limit. 
-                    const myFunction = async () => {
+                    // Delay the requests to not pass the api rate limit 
+                    // and call the function again to fetch the next page 
+                    const delayForRateLimitAndCallNextPage = async () => {
                         await setTimeout(1500);
                         console.log("Waited 15s");
                         fetchDepartureData(url);
                     }
-                    myFunction();
+                    delayForRateLimitAndCallNextPage();
                 }
             } else {
                 // when we have all the information from all pages. We end up here.
                 
                 // display the last flight in the query
                 // console.log(departingFlights[departingFlights.length - 1])
+                
+                // count the number of db entries 
+
+                // final message
+
+                const delayForCheckingIfDbisUpdated = async () => {
+                    await setTimeout(5000);
+                    console.log("Waited 5s");
+                    countDocuments();
+
+                }
+                delayForCheckingIfDbisUpdated();
             }
         })
         .catch(function (error) {
             console.log('Request failed', error);
         });
-
 }
 
+const countDocuments = async () => {
+    console.log("number of entries " + await Departingflight.countDocuments({}));
+    console.log("end of execution")
+}
 
