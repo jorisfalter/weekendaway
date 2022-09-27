@@ -22,138 +22,149 @@ const returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAi
 // vtbs = suvarnabhumi
 // vtsm = samui
 
-// setup the database 
-mongoose.connect("mongodb://localhost:27017/flightsDB", { useNewUrlParser: true }); //?retryWrites=true&w=majority
 
-// setup departure collection
-const departingFlightSchema = new mongoose.Schema({
-    departureAirport: String,
-    arrivalAirport: String,
-    departureTimeZulu: Date,
-    departureTimeLocal: String,
-    flightNumber: String
-});
-
-// setup return collection
-const returnFlightSchema = new mongoose.Schema({
-    departureAirport: String,
-    arrivalAirport: String,
-    arrivalTimeZulu: Date,
-    arrivalTimeLocal: String,
-    flightNumber: String
-})
-
-const Departingflight = mongoose.model('Departingflight', departingFlightSchema);
-const Returnflight = mongoose.model('Returnflight',returnFlightSchema);
-
-// for now, delete the db when we rerun the query
-// Departingflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("departures db deleted before start")}});
-Returnflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("return db deleted before start")}});
+const fireItAllUp = async () => {
+    await mongoose.connect("mongodb+srv://joris-mongo:" + process.env.ATLAS_KEY + "@cluster1.dkcnhgi.mongodb.net/flightsDB", { useNewUrlParser: true, useUnifiedTopology: true }); 
+    console.log("mongoose fired up");
 
 
-// Initial API Call
-// fetchAirportData(departureUrl, "departure");
-fetchAirportData(returnUrl, "return");
+    // setup the database 
+    // mongoose.connect("mongodb://localhost:27017/flightsDB", { useNewUrlParser: true }); //?retryWrites=true&w=majority
 
 
-// Create the function for API Call 
-function fetchAirportData(url, direction) {
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            "x-apikey": process.env.API_KEY
-        },
+    // setup departure collection
+    const departingFlightSchema = new mongoose.Schema({
+        departureAirport: String,
+        arrivalAirport: String,
+        departureTimeZulu: Date,
+        departureTimeLocal: String,
+        flightNumber: String
+    });
+
+    // setup return collection
+    const returnFlightSchema = new mongoose.Schema({
+        departureAirport: String,
+        arrivalAirport: String,
+        arrivalTimeZulu: Date,
+        arrivalTimeLocal: String,
+        flightNumber: String
     })
-        .then(function (response) {
-            return response.json();
+
+    const Departingflight = mongoose.model('Departingflight', departingFlightSchema);
+    const Returnflight = mongoose.model('Returnflight',returnFlightSchema);
+
+    // for now, delete the db when we rerun the query
+    // Departingflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("departures db deleted before start")}});
+    Returnflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("return db deleted before start")}});
+
+
+    // Initial API Call
+    // fetchAirportData(departureUrl, "departure");
+    fetchAirportData(returnUrl, "return");
+
+
+    // Create the function for API Call 
+    function fetchAirportData(url, direction) {
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                "x-apikey": process.env.API_KEY
+            },
         })
-        .then(function (data) {
-            if (direction === "departure"){
-                for (let i = 0; i < data.scheduled_departures.length; i++) {
-                    if (data.scheduled_departures[i].destination === null) {} else {
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (data) {
+                if (direction === "departure"){
+                    for (let i = 0; i < data.scheduled_departures.length; i++) {
+                        if (data.scheduled_departures[i].destination === null) {} else {
 
-                        // define variables with data from api
-                        let arrivalAirport = data.scheduled_departures[i].destination.code_iata;
-                        let departureTimeZulu = new Date(data.scheduled_departures[i].scheduled_out);
-                        let departureTimeLocal = departureTimeZulu.toLocaleString('en-GB', {timeZone: 'Asia/Bangkok'});
-                        let flightNumber = data.scheduled_departures[i].ident_iata;
+                            // define variables with data from api
+                            let arrivalAirport = data.scheduled_departures[i].destination.code_iata;
+                            let departureTimeZulu = new Date(data.scheduled_departures[i].scheduled_out);
+                            let departureTimeLocal = departureTimeZulu.toLocaleString('en-GB', {timeZone: 'Asia/Bangkok'});
+                            let flightNumber = data.scheduled_departures[i].ident_iata;
 
-                        // put data in database
-                        const newDepartingFlightEntry = new Departingflight({
-                            departureAirport:   originAirport ,
-                            arrivalAirport:     arrivalAirport,
-                            departureTimeZulu:  departureTimeZulu,
-                            departureTimeLocal: departureTimeLocal,
-                            flightNumber:       flightNumber
-                        })
-                        newDepartingFlightEntry.save();
+                            // put data in database
+                            const newDepartingFlightEntry = new Departingflight({
+                                departureAirport:   originAirport ,
+                                arrivalAirport:     arrivalAirport,
+                                departureTimeZulu:  departureTimeZulu,
+                                departureTimeLocal: departureTimeLocal,
+                                flightNumber:       flightNumber
+                            })
+                            newDepartingFlightEntry.save();
+                        }
                     }
-                }
-            } else if (direction === "return"){
-                for (let i = 0; i < data.scheduled_arrivals.length; i++) {
-                    if (data.scheduled_arrivals[i].destination === null) {} else {
+                } else if (direction === "return"){
+                    for (let i = 0; i < data.scheduled_arrivals.length; i++) {
+                        if (data.scheduled_arrivals[i].destination === null) {} else {
 
-                        // define variables with data from api
-                        let departureAirport = data.scheduled_arrivals[i].origin.code_iata;
-                        let arrivalTimeZulu = new Date(data.scheduled_arrivals[i].scheduled_in);
-                        let arrivalTimeLocal = arrivalTimeZulu.toLocaleString('en-GB', {timeZone: 'Asia/Bangkok'});
-                        let flightNumber = data.scheduled_arrivals[i].ident_iata;
+                            // define variables with data from api
+                            let departureAirport = data.scheduled_arrivals[i].origin.code_iata;
+                            let arrivalTimeZulu = new Date(data.scheduled_arrivals[i].scheduled_in);
+                            let arrivalTimeLocal = arrivalTimeZulu.toLocaleString('en-GB', {timeZone: 'Asia/Bangkok'});
+                            let flightNumber = data.scheduled_arrivals[i].ident_iata;
 
-                        // put data in database
-                        const newReturnFlightEntry = new Returnflight({
-                            departureAirport:   departureAirport ,
-                            arrivalAirport:     originAirport,
-                            arrivalTimeZulu:  arrivalTimeZulu,
-                            arrivalTimeLocal: arrivalTimeLocal,
-                            flightNumber:       flightNumber
-                        })
-                        newReturnFlightEntry.save();
+                            // put data in database
+                            const newReturnFlightEntry = new Returnflight({
+                                departureAirport:   departureAirport ,
+                                arrivalAirport:     originAirport,
+                                arrivalTimeZulu:  arrivalTimeZulu,
+                                arrivalTimeLocal: arrivalTimeLocal,
+                                flightNumber:       flightNumber
+                            })
+                            newReturnFlightEntry.save();
+                        }
                     }
-                }
 
-            } else {console.log("direction error")}
-             
-            pageCounter++;
-            console.log("pageCounter: " + pageCounter)
-
-            // Fetch the next page from the API
-            if (data.links != null & pageCounter < 2) {
-                // create URL of next page
-                url_page_extension = data.links.next;
-                url = "https://aeroapi.flightaware.com/aeroapi" + url_page_extension;
-
-                if (url_page_extension != '' & url_page_extension != null
-                ) {
-                    // Delay the requests to not pass the api rate limit and call the function again to fetch the next page 
-                    const delayForRateLimitAndCallNextPage = async () => {
-                        await setTimeout(1500);
-                        console.log("Waited 15s");
-                        fetchAirportData(url, direction);
-                    }
-                    delayForRateLimitAndCallNextPage();
-                }
-            } else {
-                // when we have all the information from all pages. We end up here.
+                } else {console.log("direction error")}
                 
-                // display the last flight in the query
-                // console.log(departingFlights[departingFlights.length - 1])
+                pageCounter++;
+                console.log("pageCounter: " + pageCounter)
 
-                // final message
-                const delayForCheckingIfDbisUpdated = async () => {
-                    await setTimeout(5000);
-                    console.log("Waited 5s");
-                    countDocuments();
+                // Fetch the next page from the API
+                if (data.links != null & pageCounter < 2) {
+                    // create URL of next page
+                    url_page_extension = data.links.next;
+                    url = "https://aeroapi.flightaware.com/aeroapi" + url_page_extension;
+
+                    if (url_page_extension != '' & url_page_extension != null
+                    ) {
+                        // Delay the requests to not pass the api rate limit and call the function again to fetch the next page 
+                        const delayForRateLimitAndCallNextPage = async () => {
+                            await setTimeout(1500);
+                            console.log("Waited 15s");
+                            fetchAirportData(url, direction);
+                        }
+                        delayForRateLimitAndCallNextPage();
+                    }
+                } else {
+                    // when we have all the information from all pages. We end up here.
+                    
+                    // display the last flight in the query
+                    // console.log(departingFlights[departingFlights.length - 1])
+
+                    // final message
+                    const delayForCheckingIfDbisUpdated = async () => {
+                        await setTimeout(5000);
+                        console.log("Waited 5s");
+                        countDocuments();
+                    }
+                    delayForCheckingIfDbisUpdated();
                 }
-                delayForCheckingIfDbisUpdated();
-            }
-        })
-        .catch(function (error) {
-            console.log('Request failed', error);
-        });
+            })
+            .catch(function (error) {
+                console.log('Request failed', error);
+            });
+    }
+    const countDocuments = async () => {
+        // console.log("number of entries " + await Departingflight.countDocuments({}));
+        console.log("number of entries " + await Returnflight.countDocuments({}));
+        console.log("end of execution")
+    }
 }
+fireItAllUp();
 
-const countDocuments = async () => {
-    console.log("number of entries " + await Departingflight.countDocuments({}));
-    console.log("end of execution")
-}
+
 
