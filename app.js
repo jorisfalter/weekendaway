@@ -47,17 +47,17 @@ const Departingflight = mongoose.model('Departingflight', departingFlightSchema)
 const Returnflight = mongoose.model('Returnflight',returnFlightSchema);
 
 // for now, delete the db when we rerun the query
-Departingflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("departures db deleted before start")}});
+// Departingflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("departures db deleted before start")}});
 Returnflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("return db deleted before start")}});
 
 
 // Initial API Call
-// fetchDepartureData(departureUrl, "departure");
-fetchDepartureData(returnUrl, "return");
+// fetchAirportData(departureUrl, "departure");
+fetchAirportData(returnUrl, "return");
 
 
 // Create the function for API Call 
-function fetchDepartureData(url, direction) {
+function fetchAirportData(url, direction) {
     fetch(url, {
         method: 'GET',
         headers: {
@@ -128,7 +128,7 @@ function fetchDepartureData(url, direction) {
                     const delayForRateLimitAndCallNextPage = async () => {
                         await setTimeout(1500);
                         console.log("Waited 15s");
-                        fetchDepartureData(url, direction);
+                        fetchAirportData(url, direction);
                     }
                     delayForRateLimitAndCallNextPage();
                 }
