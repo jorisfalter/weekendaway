@@ -156,7 +156,10 @@ const fireItAllUp = async () => {
                     // If we checked for departures, we will now check for returns
                     if (direction === "departure"){
                         fetchAirportData(returnUrl, "return", 0);
-                    } else {console.log("end of execution")}
+                    } else {
+                        console.log("end of execution")
+                        process.exit(0);
+                    }
 
 
                     // display the last flight in the query
