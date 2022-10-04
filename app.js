@@ -37,6 +37,7 @@ const fireItAllUp = async () => {
 
     // setup departure collection
     const departingFlightSchema = new mongoose.Schema({
+        TimeOfEntry: Date,
         departureAirport: String,
         arrivalAirport: String,
         departureTimeZulu: Date,
@@ -46,6 +47,7 @@ const fireItAllUp = async () => {
 
     // setup return collection
     const returnFlightSchema = new mongoose.Schema({
+        TimeOfEntry: Date,
         departureAirport: String,
         arrivalAirport: String,
         arrivalTimeZulu: Date,
@@ -98,6 +100,7 @@ const fireItAllUp = async () => {
 
                             // put data in database
                             const newDepartingFlightEntry = new Departingflight({
+                                TimeOfEntry:        new Date(),
                                 departureAirport:   originAirport ,
                                 arrivalAirport:     arrivalAirport,
                                 departureTimeZulu:  departureTimeZulu,
@@ -119,6 +122,7 @@ const fireItAllUp = async () => {
 
                             // put data in database
                             const newReturnFlightEntry = new Returnflight({
+                                TimeOfEntry:        new Date(),
                                 departureAirport:   departureAirport ,
                                 arrivalAirport:     originAirport,
                                 arrivalTimeZulu:  arrivalTimeZulu,
@@ -154,24 +158,26 @@ const fireItAllUp = async () => {
                     // when we have all the information from all pages. We end up here.
                     
                     // If we checked for departures, we will now check for returns
-                    if (direction === "departure"){
-                        fetchAirportData(returnUrl, "return", 0);
-                    } else {
-                        console.log("end of execution")
-                        process.exit(0);
-                    }
-
-
-                    // display the last flight in the query
-                    // console.log(departingFlights[departingFlights.length - 1])
-
-                    // final message
+                   
                     const delayForCheckingIfDbisUpdated = async () => {
                         await setTimeout(10000);
                         console.log("Waited 10s to make sure db is updated");
                         countDocuments();
                     }
                     delayForCheckingIfDbisUpdated();
+                   
+                    if (direction === "departure"){
+                        fetchAirportData(returnUrl, "return", 0);
+                    } else {
+                        console.log("end of execution")
+                        // process.exit(0);
+                    }
+
+
+                    // display the last flight in the query
+                    // console.log(departingFlights[departingFlights.length - 1])
+
+                    
                 }
             })
             .catch(function (error) {
