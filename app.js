@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const fetch = require("node-fetch");
 const { setTimeout } = require("timers/promises");
 const mongoose = require("mongoose");
+const internal = require('stream');
 
 const app = express();
 
@@ -42,6 +43,7 @@ const fireItAllUp = async () => {
         arrivalAirport: String,
         departureTimeZulu: Date,
         departureTimeLocal: String,
+        departureTimeDayOfWeek: Number,
         flightNumber: String
     });
 
@@ -52,6 +54,7 @@ const fireItAllUp = async () => {
         arrivalAirport: String,
         arrivalTimeZulu: Date,
         arrivalTimeLocal: String,
+        arrivalTimeDayOfWeek: Number,
         flightNumber: String
     })
 
@@ -90,22 +93,30 @@ const fireItAllUp = async () => {
             .then(function (data) {
                 if (direction === "departure"){
                     for (let i = 0; i < data.scheduled_departures.length; i++) {
+                        
                         if (data.scheduled_departures[i].destination === null) {} else {
 
                             // define variables with data from api
                             let arrivalAirport = data.scheduled_departures[i].destination.code_iata;
                             let departureTimeZulu = new Date(data.scheduled_departures[i].scheduled_out);
                             let departureTimeLocal = departureTimeZulu.toLocaleString('en-GB', {timeZone: originTimeZone});
+                            let departureTimeDayOfWeek = departureTimeZulu.getDay(); // has to be zulu time because local time is a string, not a date
                             let flightNumber = data.scheduled_departures[i].ident_iata;
+                            
+                            // go check first if the entry already exists
+                                // fetch each existing item and compare to current > not a good solution
+                                // fetch the last date in the current database and check if the one you add it later!
+
 
                             // put data in database
                             const newDepartingFlightEntry = new Departingflight({
-                                TimeOfEntry:        new Date(),
-                                departureAirport:   originAirport ,
-                                arrivalAirport:     arrivalAirport,
-                                departureTimeZulu:  departureTimeZulu,
-                                departureTimeLocal: departureTimeLocal,
-                                flightNumber:       flightNumber
+                                TimeOfEntry:            new Date(),
+                                departureAirport:       originAirport ,
+                                arrivalAirport:         arrivalAirport,
+                                departureTimeZulu:      departureTimeZulu,
+                                departureTimeLocal:     departureTimeLocal,
+                                departureTimeDayOfWeek: departureTimeDayOfWeek,
+                                flightNumber:           flightNumber
                             })
                             newDepartingFlightEntry.save();
                         }
@@ -118,16 +129,18 @@ const fireItAllUp = async () => {
                             let departureAirport = data.scheduled_arrivals[i].origin.code_iata;
                             let arrivalTimeZulu = new Date(data.scheduled_arrivals[i].scheduled_in);
                             let arrivalTimeLocal = arrivalTimeZulu.toLocaleString('en-GB', {timeZone: originTimeZone});
+                            let arrivalTimeDayOfWeek = arrivalTimeZulu.getDay();
                             let flightNumber = data.scheduled_arrivals[i].ident_iata;
 
                             // put data in database
                             const newReturnFlightEntry = new Returnflight({
-                                TimeOfEntry:        new Date(),
-                                departureAirport:   departureAirport ,
-                                arrivalAirport:     originAirport,
-                                arrivalTimeZulu:  arrivalTimeZulu,
-                                arrivalTimeLocal: arrivalTimeLocal,
-                                flightNumber:       flightNumber
+                                TimeOfEntry:            new Date(),
+                                departureAirport:       departureAirport ,
+                                arrivalAirport:         originAirport,
+                                arrivalTimeZulu:        arrivalTimeZulu,
+                                arrivalTimeLocal:       arrivalTimeLocal,
+                                arrivalTimeDayOfWeek:   arrivalTimeDayOfWeek,
+                                flightNumber:           flightNumber
                             })
                             newReturnFlightEntry.save();
                         }
@@ -135,6 +148,8 @@ const fireItAllUp = async () => {
 
                 } else {console.log("direction error")}
                 
+
+
                 pageCounter++;
                 console.log("pageCounter: " + pageCounter)
 
