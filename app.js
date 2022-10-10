@@ -27,7 +27,7 @@ const returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAi
 // lexj = santander
 
 // testing variables
-let deleteDbAtStart = true;
+let deleteDbAtStart = false;
 let pageCounterLimit = 100; // set to a high number when you don't want a limit on the number of pages fetched.
 
 const fireItAllUp = async () => {
@@ -71,10 +71,19 @@ const fireItAllUp = async () => {
 
     // Initial API Call
     fetchAirportData(departureUrl, "departure", 0);
+    deleteOldData();
 
+    // WIP
+    // problem is that it doesn't remove exactly one week ago. And do I actually want that? Or will I filter in the matching engine?
     // clean database
-    // remove all the flights older than 1 week
-    
+    // remove all the flights older than 1 week 
+    function deleteOldData(){
+        // let todaysDate = new Date();
+        // // Departingflight.deleteMany( { departureTimeZulu : {"$lt" : new Date(new Date().getFullYear, new Date().getMonth, new Date().getDate - 7) } })
+        // console.log(todaysDate.getDate())
+        // console.log(todaysDate)
+        // console.log(new Date(todaysDate.getFullYear(), todaysDate.getMonth(), todaysDate.getDate() - 7))
+    }
 
     // Create the function for API Call 
     // direction is either "departure" or "return"; url is either "departureUrl" or "returnUrl"
@@ -120,10 +129,10 @@ const fireItAllUp = async () => {
                                                 flightNumber:           flightNumber
                                             })
                                             newDepartingFlightEntry.save();
-                                            console.log("no duplicate found, new departing flight saved")
+                                            // console.log("no duplicate found, new departing flight saved")
                                         }
                                         else {
-                                            console.log("duplicate found - no departing flight logged")
+                                            // console.log("duplicate found - no departing flight logged")
                                         }
                                     }
                                 })     
@@ -159,23 +168,20 @@ const fireItAllUp = async () => {
                                                 flightNumber:           flightNumber
                                             })
                                             newReturnFlightEntry.save();
-                                            console.log("no duplicate found, new return flight saved")
+                                            // console.log("no duplicate found, new return flight saved")
                                         }
                                         else {
-                                            console.log("duplicate found - no return flight logged")
+                                            // console.log("duplicate found - no return flight logged")
                                         }
                                     }
-                                })     
-
-
-                            
+                                })      
                         }
                     }
 
                 } else {console.log("direction error")}
                 
                 pageCounter++;
-                let numberOfPages = pageCounter+1;
+                let numberOfPages = pageCounter;
                 console.log("number of pages: " + numberOfPages)
 
                 // Fetch the next page from the API
@@ -196,20 +202,18 @@ const fireItAllUp = async () => {
                     }
                 } else {
                     // when we have all the information from all pages. We end up here.
-                    
-                    // If we checked for departures, we will now check for returns
-                    const delayForCheckingIfDbisUpdated = async () => {
-                        await setTimeout(10000);
-                        console.log("Waited 10s to make sure db is updated");
-                        countDocuments();
-                    }
-                    delayForCheckingIfDbisUpdated();
                    
+                    // If we checked for departures, we will now check for returns
                     if (direction === "departure"){
                         fetchAirportData(returnUrl, "return", 0);
                     } else {
-                        console.log("end of execution")
-                        // process.exit(0);
+                        console.log("finished departures and returns")
+                        const delayForCheckingIfDbisUpdated = async () => {
+                            await setTimeout(10000);
+                            console.log("Waited 10s to make sure db is updated");
+                            countDocuments();
+                        }
+                        delayForCheckingIfDbisUpdated();
                     }
                 }
             })
