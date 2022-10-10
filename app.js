@@ -13,19 +13,22 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-// define variables
-// let pageCounter = 0;
-// let originLocation = "Bangkok";
-// let originAirport = "lexj"
-// let originTimeZone = 'Europe/Madrid'
-let originAirport = "vtbs"
-let originTimeZone = 'Asia/Bangkok';
+////// define variables
+let originAirport = "lexj"
+let originTimeZone = 'Europe/Madrid'
+//// let originLocation = "Bangkok";
+// let originAirport = "vtbs"
+// let originTimeZone = 'Asia/Bangkok';
 const departureUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_departures?type=Airline"
 const returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_arrivals?type=Airline"
 // vtse = chumphon
 // vtbs = suvarnabhumi
 // vtsm = samui
 // lexj = santander
+
+// testing variables
+let deleteDbAtStart = true;
+let pageCounterLimit = 100; // set to a high number when you don't want a limit on the number of pages fetched.
 
 const fireItAllUp = async () => {
     await mongoose.connect("mongodb+srv://joris-mongo:" + process.env.ATLAS_KEY + "@cluster1.dkcnhgi.mongodb.net/flightsDB", { useNewUrlParser: true, useUnifiedTopology: true }); 
@@ -34,7 +37,6 @@ const fireItAllUp = async () => {
 
     // setup the database 
     // mongoose.connect("mongodb://localhost:27017/flightsDB", { useNewUrlParser: true }); //?retryWrites=true&w=majority
-
 
     // setup departure collection
     const departingFlightSchema = new mongoose.Schema({
@@ -61,21 +63,18 @@ const fireItAllUp = async () => {
     const Departingflight = mongoose.model('Departingflight', departingFlightSchema);
     const Returnflight = mongoose.model('Returnflight',returnFlightSchema);
 
-    // for now, delete the db when we rerun the query
-    // Departingflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("departures db deleted before start")}});
-    Returnflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("return db deleted before start")}});
-
+    // Delete the db when we rerun the query - for testing purposes only
+    if (deleteDbAtStart){
+        Departingflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("departures db deleted before start")}});
+        Returnflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("return db deleted before start")}});
+    }
 
     // Initial API Call
     fetchAirportData(departureUrl, "departure", 0);
-    // 
 
-    // const fetchDepartureAndArrival = async() => {
-        //await 
-        // fetchAirportData(departureUrl, "departure");
-        // fetchAirportData(returnUrl, "return");
-    // }
-    // fetchDepartureAndArrival();
+    // clean database
+    // remove all the flights older than 1 week
+    
 
     // Create the function for API Call 
     // direction is either "departure" or "return"; url is either "departureUrl" or "returnUrl"
@@ -92,8 +91,7 @@ const fireItAllUp = async () => {
             })
             .then(function (data) {
                 if (direction === "departure"){
-                    for (let i = 0; i < data.scheduled_departures.length; i++) {
-                        
+                    for (let i = 0; i < data.scheduled_departures.length; i++) {    
                         if (data.scheduled_departures[i].destination === null) {} else {
 
                             // define variables with data from api
@@ -102,34 +100,14 @@ const fireItAllUp = async () => {
                             let departureTimeLocal = departureTimeZulu.toLocaleString('en-GB', {timeZone: originTimeZone});
                             let departureTimeDayOfWeek = departureTimeZulu.getDay(); // has to be zulu time because local time is a string, not a date
                             let flightNumber = data.scheduled_departures[i].ident_iata;
-                            
-                            // go check first if the entry already exists
-                            // fetch each existing item and compare to current > not a good solution
-                            // countDocuments only takes one argument
-                            // const countSimilar = async () => {
-                            //     console.log(await Departingflight.countDocuments({departureTimeZulu:{$gt:departureTimeZulu}}));
-                            // }
-                            // countSimilar();
-                            
-                            // fetch the last date in the current database and check if the one you add is later!
-                            // > not sure if this is a waterproof approach
-                            // >> not really because even the API returns them not in chronological order 
-                            // const countLaterThanLastDate = async () => {
-                            //     console.log(await Departingflight.countDocuments({departureTimeZulu:{$gt:departureTimeZulu}}));
-                            // }
-                            // countLaterThanLastDate();
 
                             // use findOne instead on date and flight number
                             Departingflight
                                 .findOne({departureTimeZulu: departureTimeZulu, flightNumber: flightNumber})
                                 .exec(function(err,flight){
-                                    console.log("what we found: " + flight)
-                                    console.log(typeof flight)
                                     if (err){console.log(err)
                                     } else {
                                         if (flight == null) {
-                                            console.log("no duplicate found")
-                                            console.log(flight)
 
                                             // put data in database
                                             const newDepartingFlightEntry = new Departingflight({
@@ -142,16 +120,13 @@ const fireItAllUp = async () => {
                                                 flightNumber:           flightNumber
                                             })
                                             newDepartingFlightEntry.save();
-                                            console.log("newflightsaved")
+                                            console.log("no duplicate found, new departing flight saved")
                                         }
                                         else {
-                                            console.log("duplicate found - no logging")
-                                            console.log(flight)
+                                            console.log("duplicate found - no departing flight logged")
                                         }
                                     }
-                                })  
-                            
-                            
+                                })     
                         }
                     }
                 } else if (direction === "return"){
@@ -165,29 +140,46 @@ const fireItAllUp = async () => {
                             let arrivalTimeDayOfWeek = arrivalTimeZulu.getDay();
                             let flightNumber = data.scheduled_arrivals[i].ident_iata;
 
-                            // put data in database
-                            const newReturnFlightEntry = new Returnflight({
-                                TimeOfEntry:            new Date(),
-                                departureAirport:       departureAirport ,
-                                arrivalAirport:         originAirport,
-                                arrivalTimeZulu:        arrivalTimeZulu,
-                                arrivalTimeLocal:       arrivalTimeLocal,
-                                arrivalTimeDayOfWeek:   arrivalTimeDayOfWeek,
-                                flightNumber:           flightNumber
-                            })
-                            newReturnFlightEntry.save();
+                            // use findOne instead on date and flight number
+                            Returnflight
+                                .findOne({arrivalTimeZulu: arrivalTimeZulu, flightNumber: flightNumber})
+                                .exec(function(err,flight){
+                                    if (err){console.log(err)
+                                    } else {
+                                        if (flight == null) {
+
+                                            // put data in database
+                                            const newReturnFlightEntry = new Returnflight({
+                                                TimeOfEntry:            new Date(),
+                                                departureAirport:       departureAirport ,
+                                                arrivalAirport:         originAirport,
+                                                arrivalTimeZulu:        arrivalTimeZulu,
+                                                arrivalTimeLocal:       arrivalTimeLocal,
+                                                arrivalTimeDayOfWeek:   arrivalTimeDayOfWeek,
+                                                flightNumber:           flightNumber
+                                            })
+                                            newReturnFlightEntry.save();
+                                            console.log("no duplicate found, new return flight saved")
+                                        }
+                                        else {
+                                            console.log("duplicate found - no return flight logged")
+                                        }
+                                    }
+                                })     
+
+
+                            
                         }
                     }
 
                 } else {console.log("direction error")}
                 
-
-
                 pageCounter++;
-                console.log("pageCounter: " + pageCounter)
+                let numberOfPages = pageCounter+1;
+                console.log("number of pages: " + numberOfPages)
 
                 // Fetch the next page from the API
-                if (data.links != null & pageCounter < 2) {
+                if (data.links != null & pageCounter < pageCounterLimit ) {
                     // create URL of next page
                     url_page_extension = data.links.next;
                     url = "https://aeroapi.flightaware.com/aeroapi" + url_page_extension;
@@ -196,7 +188,7 @@ const fireItAllUp = async () => {
                     ) {
                         // Delay the requests to not pass the api rate limit and call the function again to fetch the next page 
                         const delayForRateLimitAndCallNextPage = async () => {
-                            await setTimeout(1500);
+                            await setTimeout(15000);
                             console.log("Waited 15s");
                             fetchAirportData(url, direction, pageCounter);
                         }
@@ -206,7 +198,6 @@ const fireItAllUp = async () => {
                     // when we have all the information from all pages. We end up here.
                     
                     // If we checked for departures, we will now check for returns
-                   
                     const delayForCheckingIfDbisUpdated = async () => {
                         await setTimeout(10000);
                         console.log("Waited 10s to make sure db is updated");
@@ -220,12 +211,6 @@ const fireItAllUp = async () => {
                         console.log("end of execution")
                         // process.exit(0);
                     }
-
-
-                    // display the last flight in the query
-                    // console.log(departingFlights[departingFlights.length - 1])
-
-                    
                 }
             })
             .catch(function (error) {
