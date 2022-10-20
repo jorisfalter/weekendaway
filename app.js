@@ -14,11 +14,11 @@ app.use(bodyParser.urlencoded({
 }));
 
 ////// define variables
-let originAirport = "lexj"
-let originTimeZone = 'Europe/Madrid'
+// let originAirport = "lexj"
+// let originTimeZone = 'Europe/Madrid'
 //// let originLocation = "Bangkok";
-// let originAirport = "vtbs"
-// let originTimeZone = 'Asia/Bangkok';
+let originAirport = "vtbs"
+let originTimeZone = 'Asia/Bangkok';
 const departureUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_departures?type=Airline"
 const returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_arrivals?type=Airline"
 // vtse = chumphon
@@ -28,7 +28,7 @@ const returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAi
 
 // testing variables
 let deleteDbAtStart = false;
-let pageCounterLimit = 100; // set to a high number when you don't want a limit on the number of pages fetched.
+let pageCounterLimit = 3; // set to a high number when you don't want a limit on the number of pages fetched.
 
 const fireItAllUp = async () => {
     await mongoose.connect("mongodb+srv://joris-mongo:" + process.env.ATLAS_KEY + "@cluster1.dkcnhgi.mongodb.net/flightsDB", { useNewUrlParser: true, useUnifiedTopology: true }); 
@@ -129,10 +129,10 @@ const fireItAllUp = async () => {
                                                 flightNumber:           flightNumber
                                             })
                                             newDepartingFlightEntry.save();
-                                            // console.log("no duplicate found, new departing flight saved")
+                                            console.log("no duplicate found, new departing flight saved")
                                         }
                                         else {
-                                            // console.log("duplicate found - no departing flight logged")
+                                            console.log("duplicate found - no departing flight logged")
                                         }
                                     }
                                 })     
@@ -168,10 +168,10 @@ const fireItAllUp = async () => {
                                                 flightNumber:           flightNumber
                                             })
                                             newReturnFlightEntry.save();
-                                            // console.log("no duplicate found, new return flight saved")
+                                            console.log("no duplicate found, new return flight saved")
                                         }
                                         else {
-                                            // console.log("duplicate found - no return flight logged")
+                                            console.log("duplicate found - no return flight logged")
                                         }
                                     }
                                 })      
@@ -224,6 +224,8 @@ const fireItAllUp = async () => {
     const countDocuments = async () => {
         console.log("number of departing entries " + await Departingflight.countDocuments({}));
         console.log("number of returning entries " + await Returnflight.countDocuments({}));
+        mongoose.disconnect();
+        console.log("db disconnected")
     }
 }
 
