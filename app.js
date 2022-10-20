@@ -16,24 +16,37 @@ app.use(bodyParser.urlencoded({
 ////// define variables
 // let originAirport = "lexj"
 // let originTimeZone = 'Europe/Madrid'
-//// let originLocation = "Bangkok";
-let originAirport = "vtbs"
-let originTimeZone = 'Asia/Bangkok';
-const departureUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_departures?type=Airline"
-const returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + originAirport + "/flights/scheduled_arrivals?type=Airline"
+// let originAirport = "vtbs"
+// let originTimeZone = 'Asia/Bangkok';
+
 // vtse = chumphon
 // vtbs = suvarnabhumi
 // vtsm = samui
 // lexj = santander
 
+// 
+const airportsList = 
+    [{
+        originAirport: "vtbs",          // suvarnabhumi
+        originTimeZone: 'Asia/Bangkok'
+    },{
+        originAirport: "vtbd",          // don mueang
+        originTimeZone: 'Asia/Bangkok'
+    },{
+        originAirport: "wadd",          // bali
+        originTimeZone: 'Asia/Denpasar'
+    },{
+        originAirport: "lppt",          // lisbon
+        originTimeZone: 'Europe/Lisbon'
+    }];
+
 // testing variables
 let deleteDbAtStart = false;
-let pageCounterLimit = 3; // set to a high number when you don't want a limit on the number of pages fetched.
+let pageCounterLimit = 2; // set to a high number when you don't want a limit on the number of pages fetched.
 
 const fireItAllUp = async () => {
     await mongoose.connect("mongodb+srv://joris-mongo:" + process.env.ATLAS_KEY + "@cluster1.dkcnhgi.mongodb.net/flightsDB", { useNewUrlParser: true, useUnifiedTopology: true }); 
     console.log("mongoose fired up");
-
 
     // setup the database 
     // mongoose.connect("mongodb://localhost:27017/flightsDB", { useNewUrlParser: true }); //?retryWrites=true&w=majority
@@ -69,25 +82,35 @@ const fireItAllUp = async () => {
         Returnflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("return db deleted before start")}});
     }
 
-    // Initial API Call
-    fetchAirportData(departureUrl, "departure", 0);
-    deleteOldData();
-
-    // WIP
-    // problem is that it doesn't remove exactly one week ago. And do I actually want that? Or will I filter in the matching engine?
-    // clean database
-    // remove all the flights older than 1 week 
-    function deleteOldData(){
-        // let todaysDate = new Date();
-        // // Departingflight.deleteMany( { departureTimeZulu : {"$lt" : new Date(new Date().getFullYear, new Date().getMonth, new Date().getDate - 7) } })
-        // console.log(todaysDate.getDate())
-        // console.log(todaysDate)
-        // console.log(new Date(todaysDate.getFullYear(), todaysDate.getMonth(), todaysDate.getDate() - 7))
+    async function multiAirport(){
+        for (let j = 1; j< 2 /*airportsList.length*/;j++){
+            let originAirport = airportsList[j].originAirport;
+            let departureUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + airportsList[j].originAirport + "/flights/scheduled_departures?type=Airline"
+            let returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + airportsList[j].originAirport + "/flights/scheduled_arrivals?type=Airline"
+            let originTimeZone = airportsList[j].originTimeZone;
+            console.log(originAirport)
+            console.log(returnUrl)
+            console.log(originTimeZone)
+            
+            // Initial API Call
+            fetchAirportData(departureUrl, "departure", 0, originTimeZone,returnUrl, originAirport);
+        }
     }
+
+    multiAirport()
+        .then(function(){
+            console.log("finished departures and returns")
+            const delayForCheckingIfDbisUpdated = async () => {
+                await setTimeout(10000);
+                console.log("Waited 10s to make sure db is updated");
+                countDocuments();
+            }
+            delayForCheckingIfDbisUpdated();
+        })
 
     // Create the function for API Call 
     // direction is either "departure" or "return"; url is either "departureUrl" or "returnUrl"
-    function fetchAirportData(url, direction, pageCounter) {
+    function fetchAirportData(url, direction, pageCounter, originTimeZone, returnUrl, originAirport) {
         
         fetch(url, {
             method: 'GET',
@@ -196,7 +219,7 @@ const fireItAllUp = async () => {
                         const delayForRateLimitAndCallNextPage = async () => {
                             await setTimeout(15000);
                             console.log("Waited 15s");
-                            fetchAirportData(url, direction, pageCounter);
+                            fetchAirportData(url, direction, pageCounter, originTimeZone, returnUrl, originAirport);
                         }
                         delayForRateLimitAndCallNextPage();
                     }
@@ -205,16 +228,17 @@ const fireItAllUp = async () => {
                    
                     // If we checked for departures, we will now check for returns
                     if (direction === "departure"){
-                        fetchAirportData(returnUrl, "return", 0);
-                    } else {
-                        console.log("finished departures and returns")
-                        const delayForCheckingIfDbisUpdated = async () => {
-                            await setTimeout(10000);
-                            console.log("Waited 10s to make sure db is updated");
-                            countDocuments();
-                        }
-                        delayForCheckingIfDbisUpdated();
-                    }
+                        fetchAirportData(returnUrl, "return", 0, originTimeZone, returnUrl, originAirport);
+                    } else {return;}
+                    // else {
+                    //     console.log("finished departures and returns")
+                    //     const delayForCheckingIfDbisUpdated = async () => {
+                    //         await setTimeout(10000);
+                    //         console.log("Waited 10s to make sure db is updated");
+                    //         countDocuments();
+                    //     }
+                    //     delayForCheckingIfDbisUpdated();
+                    // }
                 }
             })
             .catch(function (error) {
