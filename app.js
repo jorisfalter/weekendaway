@@ -34,11 +34,15 @@ const airportsList =
         originTimeZone: 'Asia/Bangkok'
     },{
         originAirport: "wadd",          // bali
-        originTimeZone: 'Asia/Denpasar'
+        originTimeZone: 'Asia/kuala_lumpur'
     },{
         originAirport: "lppt",          // lisbon
         originTimeZone: 'Europe/Lisbon'
     }];
+
+console.log(airportsList.length)
+
+let endOfTheList = false;
 
 // testing variables
 let deleteDbAtStart = false;
@@ -82,31 +86,22 @@ const fireItAllUp = async () => {
         Returnflight.deleteMany({},function(err){if(err){console.log(err)} else if (!err){console.log("return db deleted before start")}});
     }
 
-    async function multiAirport(){
-        for (let j = 1; j< 2 /*airportsList.length*/;j++){
-            let originAirport = airportsList[j].originAirport;
-            let departureUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + airportsList[j].originAirport + "/flights/scheduled_departures?type=Airline"
-            let returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + airportsList[j].originAirport + "/flights/scheduled_arrivals?type=Airline"
-            let originTimeZone = airportsList[j].originTimeZone;
-            console.log(originAirport)
-            console.log(returnUrl)
-            console.log(originTimeZone)
-            
-            // Initial API Call
-            fetchAirportData(departureUrl, "departure", 0, originTimeZone,returnUrl, originAirport);
+    function multiAirport(){
+        for (let j = 1; j< airportsList.length;j++){
+                let originAirport = airportsList[j].originAirport;
+                let departureUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + airportsList[j].originAirport + "/flights/scheduled_departures?type=Airline"
+                let returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + airportsList[j].originAirport + "/flights/scheduled_arrivals?type=Airline"
+                let originTimeZone = airportsList[j].originTimeZone;
+                console.log(originAirport)
+                console.log(returnUrl)
+                console.log(originTimeZone)
+                if (j === airportsList.length - 1){endOfTheList = true;}
+                
+                // Initial API Call
+                fetchAirportData(departureUrl, "departure", 0, originTimeZone,returnUrl, originAirport);
         }
     }
-
-    multiAirport()
-        .then(function(){
-            console.log("finished departures and returns")
-            const delayForCheckingIfDbisUpdated = async () => {
-                await setTimeout(10000);
-                console.log("Waited 10s to make sure db is updated");
-                countDocuments();
-            }
-            delayForCheckingIfDbisUpdated();
-        })
+    multiAirport();
 
     // Create the function for API Call 
     // direction is either "departure" or "return"; url is either "departureUrl" or "returnUrl"
@@ -122,6 +117,7 @@ const fireItAllUp = async () => {
                 return response.json();
             })
             .then(function (data) {
+                // console.log(data)
                 if (direction === "departure"){
                     for (let i = 0; i < data.scheduled_departures.length; i++) {    
                         if (data.scheduled_departures[i].destination === null) {} else {
@@ -152,10 +148,10 @@ const fireItAllUp = async () => {
                                                 flightNumber:           flightNumber
                                             })
                                             newDepartingFlightEntry.save();
-                                            console.log("no duplicate found, new departing flight saved")
+                                            // console.log("no duplicate found, new departing flight saved")
                                         }
                                         else {
-                                            console.log("duplicate found - no departing flight logged")
+                                            // console.log("duplicate found - no departing flight logged")
                                         }
                                     }
                                 })     
@@ -191,10 +187,10 @@ const fireItAllUp = async () => {
                                                 flightNumber:           flightNumber
                                             })
                                             newReturnFlightEntry.save();
-                                            console.log("no duplicate found, new return flight saved")
+                                            // console.log("no duplicate found, new return flight saved")
                                         }
                                         else {
-                                            console.log("duplicate found - no return flight logged")
+                                            // console.log("duplicate found - no return flight logged")
                                         }
                                     }
                                 })      
@@ -229,16 +225,19 @@ const fireItAllUp = async () => {
                     // If we checked for departures, we will now check for returns
                     if (direction === "departure"){
                         fetchAirportData(returnUrl, "return", 0, originTimeZone, returnUrl, originAirport);
-                    } else {return;}
-                    // else {
-                    //     console.log("finished departures and returns")
-                    //     const delayForCheckingIfDbisUpdated = async () => {
-                    //         await setTimeout(10000);
-                    //         console.log("Waited 10s to make sure db is updated");
-                    //         countDocuments();
-                    //     }
-                    //     delayForCheckingIfDbisUpdated();
-                    // }
+                    } else {
+                        if (endOfTheList = false){
+                            return;
+                        } else if (endOfTheList = true){
+                            console.log("finished departures and returns")
+                            const delayForCheckingIfDbisUpdated = async () => {
+                                await setTimeout(10000);
+                                console.log("Waited 10s to make sure db is updated");
+                                countDocuments();
+                            }
+                            delayForCheckingIfDbisUpdated();
+                        }
+                    }
                 }
             })
             .catch(function (error) {
