@@ -29,24 +29,26 @@ const airportsList =
     [{
         originAirport: "vtbs",          // suvarnabhumi
         originTimeZone: 'Asia/Bangkok'
-    },{
-        originAirport: "vtbd",          // don mueang
-        originTimeZone: 'Asia/Bangkok'
-    },{
-        originAirport: "wadd",          // bali
-        originTimeZone: 'Asia/kuala_lumpur'
-    },{
-        originAirport: "lppt",          // lisbon
-        originTimeZone: 'Europe/Lisbon'
-    }];
+    }
+    // ,{
+    //     originAirport: "vtbd",          // don mueang
+    //     originTimeZone: 'Asia/Bangkok'
+    // },{
+    //     originAirport: "wadd",          // bali
+    //     originTimeZone: 'Asia/kuala_lumpur'
+    // },{
+    //     originAirport: "lppt",          // lisbon
+    //     originTimeZone: 'Europe/Lisbon'
+    // }
+];
 
-console.log(airportsList.length)
+console.log("length of list: " + airportsList.length)
 
 let endOfTheList = false;
 
 // testing variables
 let deleteDbAtStart = false;
-let pageCounterLimit = 2; // set to a high number when you don't want a limit on the number of pages fetched.
+let pageCounterLimit = 50; // set to a high number when you don't want a limit on the number of pages fetched.
 
 const fireItAllUp = async () => {
     await mongoose.connect("mongodb+srv://joris-mongo:" + process.env.ATLAS_KEY + "@cluster1.dkcnhgi.mongodb.net/flightsDB", { useNewUrlParser: true, useUnifiedTopology: true }); 
@@ -87,14 +89,14 @@ const fireItAllUp = async () => {
     }
 
     function multiAirport(){
-        for (let j = 1; j< airportsList.length;j++){
+        for (let j = 0; j< airportsList.length;j++){
                 let originAirport = airportsList[j].originAirport;
                 let departureUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + airportsList[j].originAirport + "/flights/scheduled_departures?type=Airline"
                 let returnUrl = "https://aeroapi.flightaware.com/aeroapi/airports/" + airportsList[j].originAirport + "/flights/scheduled_arrivals?type=Airline"
                 let originTimeZone = airportsList[j].originTimeZone;
-                console.log(originAirport)
-                console.log(returnUrl)
-                console.log(originTimeZone)
+                // console.log(originAirport)
+                // console.log(returnUrl)
+                // console.log(originTimeZone)
                 if (j === airportsList.length - 1){endOfTheList = true;}
                 
                 // Initial API Call
@@ -117,7 +119,7 @@ const fireItAllUp = async () => {
                 return response.json();
             })
             .then(function (data) {
-                // console.log(data)
+                //console.log(data)
                 if (direction === "departure"){
                     for (let i = 0; i < data.scheduled_departures.length; i++) {    
                         if (data.scheduled_departures[i].destination === null) {} else {
@@ -219,6 +221,11 @@ const fireItAllUp = async () => {
                         }
                         delayForRateLimitAndCallNextPage();
                     }
+
+
+                    // check if we bounce against the pagecounter
+                    if (pageCounter === pageCounterLimit - 1){console.log("pagecounterlimit reached")}
+
                 } else {
                     // when we have all the information from all pages. We end up here.
                    
