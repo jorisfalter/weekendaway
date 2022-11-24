@@ -24,9 +24,11 @@ app.get("/", function (req, res) {
 app.post("/", function (req, res) {
   const originInput = req.body.originName;
   const departureDateInput = req.body.departureDateName;
-  const departureTimeInput = req.body.departureTimeName;
-  //   const returnDateInput = req.body.returnDateName;
-  //   const returnTimeInput = req.body.returnTimeName;
+  const departureTimeStartInput = req.body.departureTimeStartName;
+  const departureTimeEndInput = req.body.departureTimeEndName;
+  const returnDateInput = req.body.returnDateName;
+  const returnTimeStartInput = req.body.returnTimeStartName;
+  const returnTimeEndInput = req.body.returnTimeEndName;
 
   //   const data = {
   //   members: [{
@@ -39,11 +41,23 @@ app.post("/", function (req, res) {
   //   }]
   //   };
 
-  console.log(originInput);
-  console.log(departureDateInput);
-  console.log(departureTimeInput);
-  //   console.log(returnDateInput);
-  //   console.log(returnTimeInput);
+  var departureStart_string =
+    departureDateInput + " " + departureTimeStartInput + ":00";
+  var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
+  console.log(departure_start_zulu); // which month did this use?
+
+  var departureEnd_string =
+    departureDateInput + " " + departureTimeEndInput + ":00";
+  var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/"));
+  console.log(departure_end_zulu); // which month did this use?
+
+  var returnStart_string = returnDateInput + " " + returnTimeStartInput + ":00";
+  var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
+  console.log(return_start_zulu); // which month did this use?
+
+  var returnEnd_string = returnDateInput + " " + returnTimeEndInput + ":00";
+  var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
+  console.log(return_end_zulu); // which month did this use?
 });
 
 const departureIntervalStart = new Date(2022, 9, 10, 14, 0, 0); // months are from 0! // This is browser time, not zulu time
@@ -103,19 +117,20 @@ function matchFlights(departingFlight, returnFlight) {
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (resultDepart.arrivalAirport === resultReturn.departureAirport) {
-        console.log(
-          "found match on: " +
-            resultReturn.departureAirport +
-            " and " +
-            resultDepart.arrivalAirport
-        );
-      } else
-        console.log(
-          "no match on: " +
-            resultReturn.departureAirport +
-            " and " +
-            resultDepart.arrivalAirport
-        );
+        // console.log(
+        //   "found match on: " +
+        //     resultReturn.departureAirport +
+        //     " and " +
+        //     resultDepart.arrivalAirport
+        // );
+      } else {
+        // console.log(
+        //   "no match on: " +
+        //     resultReturn.departureAirport +
+        //     " and " +
+        //     resultDepart.arrivalAirport
+        // );
+      }
     });
   });
 }
