@@ -41,6 +41,8 @@ app.post("/", function (req, res) {
   //   }]
   //   };
 
+  console.log(originInput);
+
   var departureStart_string =
     departureDateInput + " " + departureTimeStartInput + ":00";
   var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
@@ -58,6 +60,8 @@ app.post("/", function (req, res) {
   var returnEnd_string = returnDateInput + " " + returnTimeEndInput + ":00";
   var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
   console.log(return_end_zulu); // which month did this use?
+
+  console.log("searching");
 });
 
 const departureIntervalStart = new Date(2022, 9, 10, 14, 0, 0); // months are from 0! // This is browser time, not zulu time

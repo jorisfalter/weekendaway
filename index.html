@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="">
 
+  <link rel="stylesheet" href="/styles.css">
+
+
   <title>Weekend Away</title>
 
 
@@ -14,25 +17,50 @@
 <body >
   <main >
     <form action="/" method="post">
-      <h1 >Find Flights for a Weekend Away</h1>
+      <h1 class="homeTitle">Find Flights for a Weekend Away</h1>
       <!-- <input type="text" id="firstName" placeholder="First" name="fName" required autofocus>
       <input type="text" id="lastName"  placeholder="Last Name" name="lName" required>
       <input type="email" id="inputEmail" placeholder="Email" name="iEmail" required> -->
       
-      <select name="originName" id="originId" value="Bangkok">
+      <!-- <select name="originName" id="originId" value="Bangkok">
         <option value="Lisbon">Lisbon</option>
         <option value="Bangkok">Bangkok</option>
         <option value="Bali">Bali</option>
-      </select>
+      </select> -->
+    
+      <h2 class="instruction-question">Where are you flying from?</h1>
+      <input type = "radio" name = "originName" value = "Bangkok"> Bangkok
+      <br>
+      <input type = "radio" name = "originName" value = "Lisbon" checked> Lisbon
+      <br>
+      <input type = "radio" name = "originName" value = "Bali"> Bali
+      <br>
+
+
+      <h2 class="instruction-question"> When do you want to leave?</h2>
       <input type="date" id="departureDateId" name ="departureDateName" value="2022-09-10"">
+      <br>
+      <br>Between 
       <input type="time" id="departureTimeStartId" name ="departureTimeStartName" value="14:00">
+      and
       <input type="time" id="departureTimeEndId" name ="departureTimeEndName" value="15:00">
-      <input type="date" id="returnDateId" name ="returnDateName" value="2022-09-11">
+
+      <h2 class="instruction-question"> When do you want to come back?</h2>
+      <input type="date" id="returnDateId" name ="returnDateName" value="2022-09-11"> 
+      <br>
+      <br>Between 
       <input type="time" id="returnTimeStartId" name ="returnTimeStartName" value="01:00">
+      and
       <input type="time" id="returnTimeEndId" name ="returnTimeEndName" value="03:00">
 
-   
-      <button type="search">Search</button>
+      <br>
+      <br>
+      <button type="search">Find some destinations!</button>
+      <br>
+      <br>
+      <br>
+      <br>
+
       <p>&copy; jorisfalter.com</p>
     </form>
   </main>
