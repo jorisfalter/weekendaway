@@ -43,28 +43,34 @@ app.post("/", function (req, res) {
 
   console.log(originInput);
 
+  // hier geven we een maand in al in een datum configuratie. Ik ga ervan uit dat dat betekent dat hij de string herkent als een datum, en de maand niet verandert.
   var departureStart_string =
     departureDateInput + " " + departureTimeStartInput + ":00";
+  //   var departureStart_string_replaced = departureStart_string.replace(/-/g, "/");
+  //   console.log("replaced: " + departureStart_string_replaced);
   var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
-  console.log(departure_start_zulu); // which month did this use?
+  console.log(departure_start_zulu);
 
   var departureEnd_string =
     departureDateInput + " " + departureTimeEndInput + ":00";
   var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/"));
-  console.log(departure_end_zulu); // which month did this use?
+  console.log(departure_end_zulu);
 
   var returnStart_string = returnDateInput + " " + returnTimeStartInput + ":00";
   var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
-  console.log(return_start_zulu); // which month did this use?
+  console.log(return_start_zulu);
 
   var returnEnd_string = returnDateInput + " " + returnTimeEndInput + ":00";
   var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
-  console.log(return_end_zulu); // which month did this use?
+  console.log(return_end_zulu);
 
   console.log("searching");
 });
 
-const departureIntervalStart = new Date(2022, 9, 10, 14, 0, 0); // months are from 0! // This is browser time, not zulu time
+// Dit zijn onze testdatums.
+// Wanneer we een datum genereren met Date zijn maanden vanaf 0. We moeten dus oktober hebben, niet september
+// En is de tijd de browser tijd, het zal converted worden naar Zulu tijd.
+const departureIntervalStart = new Date(2022, 9, 10, 14, 0, 0);
 const departureIntervalEnd = new Date(2022, 9, 10, 15, 0, 0);
 const returnIntervalStart = new Date(2022, 9, 11, 1, 0, 0);
 const returnIntervalEnd = new Date(2022, 9, 11, 3, 0, 0);
@@ -121,19 +127,19 @@ function matchFlights(departingFlight, returnFlight) {
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (resultDepart.arrivalAirport === resultReturn.departureAirport) {
-        // console.log(
-        //   "found match on: " +
-        //     resultReturn.departureAirport +
-        //     " and " +
-        //     resultDepart.arrivalAirport
-        // );
+        console.log(
+          "found match on: " +
+            resultReturn.departureAirport +
+            " and " +
+            resultDepart.arrivalAirport
+        );
       } else {
-        // console.log(
-        //   "no match on: " +
-        //     resultReturn.departureAirport +
-        //     " and " +
-        //     resultDepart.arrivalAirport
-        // );
+        console.log(
+          "no match on: " +
+            resultReturn.departureAirport +
+            " and " +
+            resultDepart.arrivalAirport
+        );
       }
     });
   });
