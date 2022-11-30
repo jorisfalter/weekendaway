@@ -29,6 +29,17 @@ body {
   display: block;
 }
 
+button {
+  background-color: red;
+  color: white;
+  border-radius: 10px;
+  border: none;
+}
+
+button:hover {
+    background-color: #4CAF50; /* Green */
+    color: white;
+
 /*
 .form-signin {
   width: 100%;
