@@ -121,8 +121,16 @@ app.post("/", function (req, res) {
   const returnIntervalStart = returnStart_string;
   const returnIntervalEnd = returnEnd_string;
 
+  // wat we gaan doen, is de inputdatum veranderen naar de laatste weekdag (voor dewelke we data hebben) op die datum
+  const departureDayOfWeek = "";
+  const returnDayOfWeek = "";
+
   ////////////////////////////////////////////////////////////////////////
   // filter the table for the dep and ret intervals and call the function to check if there is a match
+
+  //// hier moeten we een manier vinden om de laatste data op die weekdag te vinden
+  ////
+
   Departingflight.find({
     departureTimeZulu: {
       $gte: departureIntervalStart,
