@@ -71,12 +71,12 @@ function matchFlights(departingFlight, returnFlight) {
         console.log("Returning from: " + resultReturn.departureAirport);
         console.log("Arriving at " + resultReturn.arrivalTimeLocal);
       } else {
-        console.log(
-          "no match on: " +
-            resultReturn.departureAirport +
-            " and " +
-            resultDepart.arrivalAirport
-        );
+        // console.log(
+        //   "no match on: " +
+        //     resultReturn.departureAirport +
+        //     " and " +
+        //     resultDepart.arrivalAirport
+        // );
       }
     });
   });
@@ -93,71 +93,84 @@ app.post("/", function (req, res) {
 
   console.log(originInput);
 
+  // hier moet de datum manipulatie komen
+
   // hier geven we een maand in al in een datum configuratie. Ik ga ervan uit dat dat betekent dat hij de string herkent als een datum, en de maand niet verandert.
   var departureStart_string =
     departureDateInput + " " + departureTimeStartInput + ":00";
   //   var departureStart_string_replaced = departureStart_string.replace(/-/g, "/");
   //   console.log("replaced: " + departureStart_string_replaced);
   var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
-  console.log(departure_start_zulu);
+  //   console.log(departure_start_zulu);
 
   var departureEnd_string =
     departureDateInput + " " + departureTimeEndInput + ":00";
   var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/"));
-  console.log(departure_end_zulu);
+  //   console.log(departure_end_zulu);
 
   var returnStart_string = returnDateInput + " " + returnTimeStartInput + ":00";
   var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
-  console.log(return_start_zulu);
+  //   console.log(return_start_zulu);
 
   var returnEnd_string = returnDateInput + " " + returnTimeEndInput + ":00";
   var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
-  console.log(return_end_zulu);
+  //   console.log(return_end_zulu);
 
   console.log("searching");
 
   ///////////////////////////////////////////////////////////////
-  // convert to a day in last 2 - 9 days
-
-  // convert to a day in last week
-  //  take today's date, eg Dec 1
   const todaysDate = new Date();
+  const todaysDateNumber = todaysDate.getDate();
 
   // convert input date to day of week, eg Sunday Dec 11 (sunday is 0)
   const departureDayOfWeek = departure_start_zulu.getDay();
+  //   console.log(departureDayOfWeek);
   const returnDayOfWeek = return_start_zulu.getDay();
   const todayDayOfWeek = todaysDate.getDay();
+  //   console.log(todayDayOfWeek);
 
-  calculateInterval(todayDayOfWeek, departureDayOfWeek);
-  calculateInterval(todayDayOfWeek, returnDayOfWeek);
+  let depInterval = calculateInterval(todayDayOfWeek, departureDayOfWeek);
+  let retInterval = calculateInterval(todayDayOfWeek, returnDayOfWeek);
+
+  console.log("depinterval: " + depInterval);
+  console.log("retinterval: " + retInterval);
+  console.log("todaysDateNumber: " + todaysDateNumber);
+
+  //   let newDepDate = todaysDateNumber + depInterval;
+  //   let newRetDate = todaysDateNumber + retInterval;
+
+  //   console.log("new Dep Date: " + newDepDate);
+  //   console.log("new Ret Date: " + newRetDate);
 
   function calculateInterval(todaysDate, inputDate) {
-    if (todaysDate - inputDate <= 2) {
+    if (todaysDate - 2 - inputDate >= 0) {
       return inputDate - todaysDate;
     } else {
       return inputDate - todaysDate - 7;
     }
   }
 
-  //  find the equivalent in last 2 - 9 days
-  let dateIntervalStart = new Date();
-  dateIntervalStart.setDate(dateIntervalStart.getDate() - 9);
-
-  let dateIntervalEnd = new Date();
-  dateIntervalEnd.setDate(dateIntervalEnd.getDate() - 2);
-
-  console.log("today: " + todaysDate);
-  console.log("interval start: " + dateIntervalStart);
-  console.log("interval end: " + dateIntervalEnd);
-
-  //    Wednesday Nov 23 until Tuesday nov 29
-  //    Sunday Nov 27
-
   // legacy, two different variables declared so mapping the one to the other
   const departureIntervalStart = departure_start_zulu;
   const departureIntervalEnd = departure_end_zulu;
-  const returnIntervalStart = returnStart_string;
-  const returnIntervalEnd = returnEnd_string;
+  const returnIntervalStart = return_start_zulu;
+  const returnIntervalEnd = return_end_zulu;
+
+  departureIntervalStart.setDate(
+    departureIntervalStart.getDate() + depInterval
+  );
+  departureIntervalEnd.setDate(departureIntervalEnd.getDate() + depInterval);
+  returnIntervalStart.setDate(returnIntervalStart.getDate() + retInterval);
+  returnIntervalEnd.setDate(returnIntervalEnd.getDate() + retInterval);
+
+  console.log(departureIntervalStart);
+  console.log(departure_start_zulu);
+  console.log(departureIntervalEnd);
+  console.log(departure_end_zulu);
+  console.log(returnIntervalStart);
+  console.log(return_start_zulu);
+  console.log(returnIntervalEnd);
+  console.log(return_end_zulu);
 
   // wat we gaan doen, is de inputdatum veranderen naar de laatste weekdag (voor dewelke we data hebben) op die datum
 
