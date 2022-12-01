@@ -116,14 +116,50 @@ app.post("/", function (req, res) {
 
   console.log("searching");
 
+  ///////////////////////////////////////////////////////////////
+  // convert to a day in last 2 - 9 days
+
+  // convert to a day in last week
+  //  take today's date, eg Dec 1
+  const todaysDate = new Date();
+
+  // convert input date to day of week, eg Sunday Dec 11 (sunday is 0)
+  const departureDayOfWeek = departure_start_zulu.getDay();
+  const returnDayOfWeek = return_start_zulu.getDay();
+  const todayDayOfWeek = todaysDate.getDay();
+
+  calculateInterval(todayDayOfWeek, departureDayOfWeek);
+  calculateInterval(todayDayOfWeek, returnDayOfWeek);
+
+  function calculateInterval(todaysDate, inputDate) {
+    if (todaysDate - inputDate <= 2) {
+      return inputDate - todaysDate;
+    } else {
+      return inputDate - todaysDate - 7;
+    }
+  }
+
+  //  find the equivalent in last 2 - 9 days
+  let dateIntervalStart = new Date();
+  dateIntervalStart.setDate(dateIntervalStart.getDate() - 9);
+
+  let dateIntervalEnd = new Date();
+  dateIntervalEnd.setDate(dateIntervalEnd.getDate() - 2);
+
+  console.log("today: " + todaysDate);
+  console.log("interval start: " + dateIntervalStart);
+  console.log("interval end: " + dateIntervalEnd);
+
+  //    Wednesday Nov 23 until Tuesday nov 29
+  //    Sunday Nov 27
+
+  // legacy, two different variables declared so mapping the one to the other
   const departureIntervalStart = departure_start_zulu;
   const departureIntervalEnd = departure_end_zulu;
   const returnIntervalStart = returnStart_string;
   const returnIntervalEnd = returnEnd_string;
 
   // wat we gaan doen, is de inputdatum veranderen naar de laatste weekdag (voor dewelke we data hebben) op die datum
-  const departureDayOfWeek = "";
-  const returnDayOfWeek = "";
 
   ////////////////////////////////////////////////////////////////////////
   // filter the table for the dep and ret intervals and call the function to check if there is a match
