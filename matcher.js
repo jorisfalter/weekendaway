@@ -5,6 +5,9 @@ const mongoose = require("mongoose");
 
 const app = express();
 
+app.set("view engine", "ejs");
+
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public")); // udemy class 248 15 minutes
 
 app.use(
@@ -91,56 +94,87 @@ app.post("/", function (req, res) {
   const returnTimeStartInput = req.body.returnTimeStartName;
   const returnTimeEndInput = req.body.returnTimeEndName;
 
-  console.log(originInput);
-
-  // hier moet de datum manipulatie komen
-
-  // hier geven we een maand in al in een datum configuratie. Ik ga ervan uit dat dat betekent dat hij de string herkent als een datum, en de maand niet verandert.
-  var departureStart_string =
-    departureDateInput + " " + departureTimeStartInput + ":00";
-  //   var departureStart_string_replaced = departureStart_string.replace(/-/g, "/");
-  //   console.log("replaced: " + departureStart_string_replaced);
-  var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
-  //   console.log(departure_start_zulu);
-
-  var departureEnd_string =
-    departureDateInput + " " + departureTimeEndInput + ":00";
-  var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/"));
-  //   console.log(departure_end_zulu);
-
-  var returnStart_string = returnDateInput + " " + returnTimeStartInput + ":00";
-  var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
-  //   console.log(return_start_zulu);
-
-  var returnEnd_string = returnDateInput + " " + returnTimeEndInput + ":00";
-  var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
-  //   console.log(return_end_zulu);
-
-  console.log("searching");
+  console.log("origin: " + originInput);
 
   ///////////////////////////////////////////////////////////////
   const todaysDate = new Date();
   const todaysDateNumber = todaysDate.getDate();
 
   // convert input date to day of week, eg Sunday Dec 11 (sunday is 0)
-  const departureDayOfWeek = departure_start_zulu.getDay();
-  //   console.log(departureDayOfWeek);
-  const returnDayOfWeek = return_start_zulu.getDay();
-  const todayDayOfWeek = todaysDate.getDay();
-  //   console.log(todayDayOfWeek);
+
+  // we hebben een string datum, die willen we converten naar een datum waarvoor we data beschikbaar hebben
+  // maar javascript convert naar zulu time, dus een dag terug
+  // eigenlijk hebben we alleen de day of week nodig van de string datum input
+
+  var departureDateYear = parseFloat(departureDateInput.substr(0, 4));
+  var departureDateMonth = parseFloat(departureDateInput.substr(5, 2)) - 1;
+  var departureDateDay = parseFloat(departureDateInput.substr(8, 2));
+  var departureDateInUtc = new Date(
+    Date.UTC(departureDateYear, departureDateMonth, departureDateDay, 0, 0, 0)
+  ); // If I don't break it down in peaces, he will convert my input date to a UTC date, which is 7 hours earlier, and thus the day before
+
+  var returnDateYear = parseFloat(returnDateInput.substr(0, 4));
+  var returnDateMonth = parseFloat(returnDateInput.substr(5, 2)) - 1;
+  var returnDateDay = parseFloat(returnDateInput.substr(8, 2));
+  var returnDateInUtc = new Date(
+    Date.UTC(returnDateYear, returnDateMonth, returnDateDay, 0, 0, 0)
+  ); // If I don't break it down in peaces, he will convert my input date to a UTC date, which is 7 hours earlier, and thus the day before
+
+  const departureDayOfWeek = departureDateInUtc.getDay();
+  const returnDayOfWeek = returnDateInUtc.getDay();
+  const todayDayOfWeek = todaysDate.getDay(); // console.log(todayDayOfWeek);
 
   let depInterval = calculateInterval(todayDayOfWeek, departureDayOfWeek);
   let retInterval = calculateInterval(todayDayOfWeek, returnDayOfWeek);
 
-  console.log("depinterval: " + depInterval);
-  console.log("retinterval: " + retInterval);
-  console.log("todaysDateNumber: " + todaysDateNumber);
+  let newDepDate = new Date();
+  let newRetDate = new Date();
+  newDepDate.setDate(newDepDate.getDate() + depInterval);
+  newRetDate.setDate(newRetDate.getDate() + retInterval);
 
-  //   let newDepDate = todaysDateNumber + depInterval;
-  //   let newRetDate = todaysDateNumber + retInterval;
+  var newDepDateString =
+    newDepDate.getUTCFullYear() +
+    "-" +
+    newDepDate.getUTCMonth() +
+    "-" +
+    newDepDate.getUTCDate();
+  var newRetDateString =
+    newRetDate.getUTCFullYear() +
+    "-" +
+    newRetDate.getUTCMonth() +
+    "-" +
+    newRetDate.getUTCDate();
 
-  //   console.log("new Dep Date: " + newDepDate);
-  //   console.log("new Ret Date: " + newRetDate);
+  // below outputs should give the same date. We converted the input date to a recent date
+  console.log("original dep date: " + departureDateInUtc);
+  console.log("original ret date: " + returnDateInUtc);
+  console.log("new dep date: " + newDepDate);
+  console.log("new ret date: " + newRetDate);
+  console.log("new dep date string: " + newDepDateString);
+  console.log("new ret date string: " + newRetDateString);
+
+  // the next step is to get the interval timing correct in UTC
+  // ik moet hem waarschijnlijk weer opbreken in componenten,
+
+  // hier geven we een maand in al in een datum configuratie. Ik ga ervan uit dat dat betekent dat hij de string herkent als een datum, en de maand niet verandert.
+  var departureStart_string =
+    newDepDateString + " " + departureTimeStartInput + ":00";
+  var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
+  console.log(departure_start_zulu);
+
+  var departureEnd_string =
+    newDepDateString + " " + departureTimeEndInput + ":00";
+  var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/"));
+  console.log(departure_end_zulu);
+
+  var returnStart_string =
+    newRetDateString + " " + returnTimeStartInput + ":00";
+  var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
+  console.log(return_start_zulu);
+
+  var returnEnd_string = newRetDateString + " " + returnTimeEndInput + ":00";
+  var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
+  console.log(return_end_zulu);
 
   function calculateInterval(todaysDate, inputDate) {
     if (todaysDate - 2 - inputDate >= 0) {
@@ -150,27 +184,21 @@ app.post("/", function (req, res) {
     }
   }
 
-  // legacy, two different variables declared so mapping the one to the other
+  // legacy problem,
+  // I've declared two different variables for the same content so mapping the one to the other
   const departureIntervalStart = departure_start_zulu;
   const departureIntervalEnd = departure_end_zulu;
   const returnIntervalStart = return_start_zulu;
   const returnIntervalEnd = return_end_zulu;
 
-  departureIntervalStart.setDate(
-    departureIntervalStart.getDate() + depInterval
-  );
-  departureIntervalEnd.setDate(departureIntervalEnd.getDate() + depInterval);
-  returnIntervalStart.setDate(returnIntervalStart.getDate() + retInterval);
-  returnIntervalEnd.setDate(returnIntervalEnd.getDate() + retInterval);
-
-  console.log(departureIntervalStart);
-  console.log(departure_start_zulu);
-  console.log(departureIntervalEnd);
-  console.log(departure_end_zulu);
-  console.log(returnIntervalStart);
-  console.log(return_start_zulu);
-  console.log(returnIntervalEnd);
-  console.log(return_end_zulu);
+  //   console.log(departureIntervalStart);
+  //   console.log(departure_start_zulu);
+  //   console.log(departureIntervalEnd);
+  //   console.log(departure_end_zulu);
+  //   console.log(returnIntervalStart);
+  //   console.log(return_start_zulu);
+  //   console.log(returnIntervalEnd);
+  //   console.log(return_end_zulu);
 
   // wat we gaan doen, is de inputdatum veranderen naar de laatste weekdag (voor dewelke we data hebben) op die datum
 
