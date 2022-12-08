@@ -8,6 +8,7 @@ const app = express();
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(express.static("public")); // udemy class 248 15 minutes
 
 app.use(
@@ -56,7 +57,7 @@ const Departingflight = mongoose.model(
 const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 
 app.get("/", function (req, res) {
-  res.sendFile(__dirname + "/index.html");
+  res.render("index", { foundFlights: false });
 });
 
 ////////////////////////////////////////////////////////////////////////
@@ -65,14 +66,18 @@ app.get("/", function (req, res) {
 function matchFlights(departingFlight, returnFlight) {
   //   console.log("all deps: " + departingFlight);
   //   console.log("all rets: " + returnFlight);
+  var foundFlights = false;
+  var foundDestinations = [];
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (resultDepart.arrivalAirport === resultReturn.departureAirport) {
-        console.log("found match on: " + resultReturn.departureAirport);
+        console.log("found match"); // on: " + resultReturn.departureAirport);
         console.log("Flying from: " + resultDepart.departureAirport);
         console.log("At: " + resultDepart.departureTimeLocal);
         console.log("Returning from: " + resultReturn.departureAirport);
         console.log("Arriving at " + resultReturn.arrivalTimeLocal);
+        foundFlights = true;
+        foundDestinations.push(resultReturn.departureAirport);
       } else {
         // console.log(
         //   "no match on: " +
@@ -83,6 +88,7 @@ function matchFlights(departingFlight, returnFlight) {
       }
     });
   });
+  return [foundFlights, foundDestinations];
 }
 
 app.post("/", function (req, res) {
@@ -95,6 +101,12 @@ app.post("/", function (req, res) {
   const returnTimeEndInput = req.body.returnTimeEndName;
 
   console.log("origin: " + originInput);
+  console.log("departure date: " + departureDateInput);
+  console.log("departure time start: " + departureTimeStartInput);
+  console.log("departure time end: " + departureTimeEndInput);
+  console.log("return date: " + returnDateInput);
+  console.log("rerturn time start: " + returnTimeStartInput);
+  console.log("return time end: " + returnTimeEndInput);
 
   ///////////////////////////////////////////////////////////////
   const todaysDate = new Date();
@@ -146,35 +158,36 @@ app.post("/", function (req, res) {
     newRetDate.getUTCDate();
 
   // below outputs should give the same date. We converted the input date to a recent date
-  console.log("original dep date: " + departureDateInUtc);
-  console.log("original ret date: " + returnDateInUtc);
-  console.log("new dep date: " + newDepDate);
-  console.log("new ret date: " + newRetDate);
-  console.log("new dep date string: " + newDepDateString);
-  console.log("new ret date string: " + newRetDateString);
+  //   console.log("original dep date: " + departureDateInUtc);
+  //   console.log("original ret date: " + returnDateInUtc);
+  //   console.log("new dep date: " + newDepDate);
+  //   console.log("new ret date: " + newRetDate);
+  //   console.log("new dep date string: " + newDepDateString);
+  //   console.log("new ret date string: " + newRetDateString);
 
-  // the next step is to get the interval timing correct in UTC
-  // ik moet hem waarschijnlijk weer opbreken in componenten,
+  // NOTE: ik heb nu de datums terug kunnen herbouwen, maar nu staat de tijd in Zulu tijd. Wil ik dat wel?
+  // controleer of de input geconvert wordt tot zulu tijd, en hoe zoek ik in de DB? in Zulu tijd?
+  // ik bouw het nu eerst zoals het was
 
   // hier geven we een maand in al in een datum configuratie. Ik ga ervan uit dat dat betekent dat hij de string herkent als een datum, en de maand niet verandert.
   var departureStart_string =
     newDepDateString + " " + departureTimeStartInput + ":00";
   var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
-  console.log(departure_start_zulu);
+  console.log("new dep start: " + departure_start_zulu);
 
   var departureEnd_string =
     newDepDateString + " " + departureTimeEndInput + ":00";
   var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/"));
-  console.log(departure_end_zulu);
+  console.log("new dep end: " + departure_end_zulu);
 
   var returnStart_string =
     newRetDateString + " " + returnTimeStartInput + ":00";
   var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
-  console.log(return_start_zulu);
+  console.log("new ret start: " + return_start_zulu);
 
   var returnEnd_string = newRetDateString + " " + returnTimeEndInput + ":00";
   var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
-  console.log(return_end_zulu);
+  console.log("new ret end: " + return_end_zulu);
 
   function calculateInterval(todaysDate, inputDate) {
     if (todaysDate - 2 - inputDate >= 0) {
@@ -208,6 +221,17 @@ app.post("/", function (req, res) {
   //// hier moeten we een manier vinden om de laatste data op die weekdag te vinden
   ////
 
+  var foundFlights;
+  var foundDestinations = [];
+
+  function displayFlights() {
+    console.log("foundFlights out of loop: " + foundFlights);
+    res.render("index", {
+      foundFlights: foundFlights,
+      foundDestinations: foundDestinations,
+    });
+  }
+
   Departingflight.find({
     departureTimeZulu: {
       $gte: departureIntervalStart,
@@ -222,10 +246,19 @@ app.post("/", function (req, res) {
       }).exec((err, returnFlight) => {
         if (err) {
           console.log(err);
-        } else matchFlights(departingFlight, returnFlight);
+        } else {
+          resultingFlights = matchFlights(departingFlight, returnFlight);
+          foundFlights = resultingFlights[0];
+          foundDestinations = resultingFlights[1];
+          console.log("foundFlights in loop: " + foundFlights);
+          displayFlights();
+        }
       });
   });
 });
+
+// we zitten hier vast in een situatie waarbij we moeten wachten op data voordat we kunnen returnen
+// kunnen we ideeen halen uit app.js?
 
 // Dit zijn onze testdatums. Ze geven twee resultaten, Madrid en Barcelona
 // Wanneer we een datum genereren met Date zijn maanden vanaf 0. We moeten dus oktober hebben, niet september
