@@ -57,7 +57,7 @@ const Departingflight = mongoose.model(
 const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 
 app.get("/", function (req, res) {
-  res.render("index", { foundFlights: false });
+  res.render("index", { foundFlights: false, foundDestinations: "" });
 });
 
 ////////////////////////////////////////////////////////////////////////
