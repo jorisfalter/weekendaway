@@ -73,9 +73,9 @@ function matchFlights(departingFlight, returnFlight) {
       if (resultDepart.arrivalAirport === resultReturn.departureAirport) {
         console.log("found match"); // on: " + resultReturn.departureAirport);
         console.log("Flying from: " + resultDepart.departureAirport);
-        console.log("At: " + resultDepart.departureTimeLocal);
+        console.log("At local time: " + resultDepart.departureTimeLocal);
         console.log("Returning from: " + resultReturn.departureAirport);
-        console.log("Arriving at " + resultReturn.arrivalTimeLocal);
+        console.log("Arriving at local time" + resultReturn.arrivalTimeLocal);
         foundFlights = true;
         foundDestinations.push(resultReturn.departureAirport);
       } else {
@@ -138,6 +138,8 @@ app.post("/", function (req, res) {
 
   let depInterval = calculateInterval(todayDayOfWeek, departureDayOfWeek);
   let retInterval = calculateInterval(todayDayOfWeek, returnDayOfWeek);
+  //   console.log("dep interval : " + depInterval);
+  //   console.log("ret interval : " + retInterval);
 
   let newDepDate = new Date();
   let newRetDate = new Date();
@@ -147,13 +149,13 @@ app.post("/", function (req, res) {
   var newDepDateString =
     newDepDate.getUTCFullYear() +
     "-" +
-    newDepDate.getUTCMonth() +
+    (newDepDate.getUTCMonth() + 1) + // adding +1 because months are counted from zero
     "-" +
     newDepDate.getUTCDate();
   var newRetDateString =
     newRetDate.getUTCFullYear() +
     "-" +
-    newRetDate.getUTCMonth() +
+    (newRetDate.getUTCMonth() + 1) + // adding +1 because months are counted from zero
     "-" +
     newRetDate.getUTCDate();
 
