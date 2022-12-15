@@ -75,7 +75,7 @@ function matchFlights(departingFlight, returnFlight) {
         console.log("Flying from: " + resultDepart.departureAirport);
         console.log("At local time: " + resultDepart.departureTimeLocal);
         console.log("Returning from: " + resultReturn.departureAirport);
-        console.log("Arriving at local time" + resultReturn.arrivalTimeLocal);
+        console.log("Arriving at local time: " + resultReturn.arrivalTimeLocal);
         foundFlights = true;
         foundDestinations.push(resultReturn.departureAirport);
       } else {
@@ -102,11 +102,11 @@ app.post("/", function (req, res) {
 
   console.log("origin: " + originInput);
   console.log("departure date: " + departureDateInput);
-  console.log("departure time start: " + departureTimeStartInput);
-  console.log("departure time end: " + departureTimeEndInput);
+  console.log("departure time start local: " + departureTimeStartInput);
+  console.log("departure time end local: " + departureTimeEndInput);
   console.log("return date: " + returnDateInput);
-  console.log("rerturn time start: " + returnTimeStartInput);
-  console.log("return time end: " + returnTimeEndInput);
+  console.log("return time start local: " + returnTimeStartInput);
+  console.log("return time end local: " + returnTimeEndInput);
 
   ///////////////////////////////////////////////////////////////
   const todaysDate = new Date();
@@ -174,12 +174,12 @@ app.post("/", function (req, res) {
   // hier geven we een maand in al in een datum configuratie. Ik ga ervan uit dat dat betekent dat hij de string herkent als een datum, en de maand niet verandert.
   var departureStart_string =
     newDepDateString + " " + departureTimeStartInput + ":00";
-  var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
+  var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/")); //.toLocaleString("en-US", { timeZone: "Europe/Lisbon" });
   console.log("new dep start: " + departure_start_zulu);
 
   var departureEnd_string =
     newDepDateString + " " + departureTimeEndInput + ":00";
-  var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/"));
+  var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/")); //.toISOString();
   console.log("new dep end: " + departure_end_zulu);
 
   var returnStart_string =
@@ -187,7 +187,6 @@ app.post("/", function (req, res) {
   var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
   console.log("new ret start: " + return_start_zulu);
 
-  var returnEnd_string = newRetDateString + " " + returnTimeEndInput + ":00";
   var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
   console.log("new ret end: " + return_end_zulu);
 
