@@ -71,11 +71,11 @@ function matchFlights(departingFlight, returnFlight) {
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (resultDepart.arrivalAirport === resultReturn.departureAirport) {
-        console.log("found match"); // on: " + resultReturn.departureAirport);
-        console.log("Flying from: " + resultDepart.departureAirport);
-        console.log("At local time: " + resultDepart.departureTimeLocal);
-        console.log("Returning from: " + resultReturn.departureAirport);
-        console.log("Arriving at local time: " + resultReturn.arrivalTimeLocal);
+        // console.log("found match"); // on: " + resultReturn.departureAirport);
+        // console.log("Flying from: " + resultDepart.departureAirport);
+        // console.log("At local time: " + resultDepart.departureTimeLocal);
+        // console.log("Returning from: " + resultReturn.departureAirport);
+        // console.log("Arriving at local time: " + resultReturn.arrivalTimeLocal);
         foundFlights = true;
         foundDestinations.push(resultReturn.departureAirport);
       } else {
@@ -89,6 +89,34 @@ function matchFlights(departingFlight, returnFlight) {
     });
   });
   return [foundFlights, foundDestinations];
+}
+
+function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
+  var mergedString = inputDate + " " + inputTimeInHours + ":00";
+  var inputInBrowserTime = new Date(mergedString.replace(/-/g, "/"));
+  // var inputInBrowserTime = new Date(year, month, day, hour);
+  var inputInAthensTimeString = inputInBrowserTime.toLocaleString("en-US", {
+    timeZone: timeZone,
+  });
+  // var inputInAthensTimeString = new Date(year, month, day, hour).toLocaleString(
+  //   "en-US",
+  //   { timeZone: "Europe/Athens" }
+  // );
+  var inputInAthensTime = new Date(inputInAthensTimeString);
+  //   console.log(inputInBrowserTime);
+  //   console.log(inputInAthensTimeString);
+  //   console.log(inputInAthensTime);
+  var diff = inputInBrowserTime.getTime() - inputInAthensTime.getTime();
+  var diffInHours = diff / 1000 / 3600;
+  // console.log(diffInHours);
+  var correctInputInUtcInMilliseconds = inputInBrowserTime.getTime() + diff;
+  // console.log(inputInBrowserTime.getTime());
+  // console.log(correctInputInUtcInMilliseconds);
+  var correctInputInUtc = new Date(correctInputInUtcInMilliseconds);
+  correctInputInUtc.toUTCString();
+  // console.log("final solution: " + correctInputInUtc.toUTCString());
+  // console.log(correctInputInUtc);
+  return correctInputInUtc;
 }
 
 app.post("/", function (req, res) {
@@ -172,23 +200,49 @@ app.post("/", function (req, res) {
   // ik bouw het nu eerst zoals het was
 
   // hier geven we een maand in al in een datum configuratie. Ik ga ervan uit dat dat betekent dat hij de string herkent als een datum, en de maand niet verandert.
-  var departureStart_string =
-    newDepDateString + " " + departureTimeStartInput + ":00";
-  var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/")); //.toLocaleString("en-US", { timeZone: "Europe/Lisbon" });
-  console.log("new dep start: " + departure_start_zulu);
 
-  var departureEnd_string =
-    newDepDateString + " " + departureTimeEndInput + ":00";
-  var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/")); //.toISOString();
-  console.log("new dep end: " + departure_end_zulu);
+  //   var departureStart_string =
+  //     newDepDateString + " " + departureTimeStartInput + ":00";
+  //   var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
+  //   console.log("new dep start: " + departure_start_zulu);
+  var departure_start_zulu = calculateLocalTime(
+    newDepDateString,
+    departureTimeStartInput,
+    "Europe/Lisbon"
+  );
+  console.log("new dep start: " + departure_start_zulu.toUTCString());
 
-  var returnStart_string =
-    newRetDateString + " " + returnTimeStartInput + ":00";
-  var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
-  console.log("new ret start: " + return_start_zulu);
+  //   var departureEnd_string =
+  //     newDepDateString + " " + departureTimeEndInput + ":00";
+  //   var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/"));
+  //   console.log("new dep end: " + departure_end_zulu);
+  var departure_end_zulu = calculateLocalTime(
+    newDepDateString,
+    departureTimeEndInput,
+    "Europe/Lisbon"
+  );
+  console.log("new dep end: " + departure_end_zulu.toUTCString());
 
-  var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
-  console.log("new ret end: " + return_end_zulu);
+  //   var returnStart_string =
+  //     newRetDateString + " " + returnTimeStartInput + ":00";
+  //   var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
+  //   console.log("new ret start: " + return_start_zulu);
+  var return_start_zulu = calculateLocalTime(
+    newRetDateString,
+    returnTimeStartInput,
+    "Europe/Lisbon"
+  );
+  console.log("new ret start: " + return_start_zulu.toUTCString());
+
+  //   var returnEnd_string = newRetDateString + " " + returnTimeEndInput + ":00";
+  //   var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
+  //   console.log("new ret end: " + return_end_zulu);
+  var return_end_zulu = calculateLocalTime(
+    newRetDateString,
+    returnTimeEndInput,
+    "Europe/Lisbon"
+  );
+  console.log("new ret end: " + return_end_zulu.toUTCString());
 
   function calculateInterval(todaysDate, inputDate) {
     if (todaysDate - 2 - inputDate >= 0) {
@@ -226,7 +280,7 @@ app.post("/", function (req, res) {
   var foundDestinations = [];
 
   function displayFlights() {
-    console.log("foundFlights out of loop: " + foundFlights);
+    // console.log("foundFlights out of loop: " + foundFlights);
     res.render("index", {
       foundFlights: foundFlights,
       foundDestinations: foundDestinations,
@@ -251,7 +305,7 @@ app.post("/", function (req, res) {
           resultingFlights = matchFlights(departingFlight, returnFlight);
           foundFlights = resultingFlights[0];
           foundDestinations = resultingFlights[1];
-          console.log("foundFlights in loop: " + foundFlights);
+          //   console.log("foundFlights in loop: " + foundFlights);
           displayFlights();
         }
       });
