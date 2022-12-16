@@ -80,8 +80,10 @@ function matchFlights(departingFlight, returnFlight) {
         foundDestinations.push({
           depAirport: resultDepart.departureAirport,
           depTime: resultDepart.departureTimeLocal,
+          depFlightNumber: resultDepart.flightNumber,
           retAirport: resultReturn.departureAirport,
           arrTime: resultReturn.arrivalTimeLocal,
+          retFlightNumber: resultReturn.flightNumber,
         });
       } else {
         // console.log(
