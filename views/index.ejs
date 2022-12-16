@@ -67,10 +67,42 @@
                 <br>
                 <br>
                 <!-- <p class="output">test output</p> -->
-                <p>
-                    <%= foundDestinations %>
-                </p>
-                <br>
+
+                <p> These destinations are available </p>
+
+                <% for (const child of foundDestinations){ %>
+
+
+                    <p>
+                        <%= child.retAirport %>
+                    </p>
+
+
+
+                    <% } %>
+
+                        <p> Details</p>
+
+                        <% for (const child of foundDestinations){ %>
+
+                            <p>
+                                Departure Airport: <%= child.depAirport %>
+                            </p>
+                            <p>
+                                Departure Date and Time: <%= child.depTime %>
+                            </p>
+                            <p>
+                                Destination Airport: <%= child.retAirport %>
+                            </p>
+                            <p>
+                                Return Arrival Date and Time: <%= child.arrTime %>
+                            </p>
+                            <br>
+
+                            <% } %>
+
+
+                                <p> Destinations are based on historical flight schedules</p>
 
         </form>
     </div>

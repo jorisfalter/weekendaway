@@ -77,7 +77,12 @@ function matchFlights(departingFlight, returnFlight) {
         // console.log("Returning from: " + resultReturn.departureAirport);
         // console.log("Arriving at local time: " + resultReturn.arrivalTimeLocal);
         foundFlights = true;
-        foundDestinations.push(resultReturn.departureAirport);
+        foundDestinations.push({
+          depAirport: resultDepart.departureAirport,
+          depTime: resultDepart.departureTimeLocal,
+          retAirport: resultReturn.departureAirport,
+          arrTime: resultReturn.arrivalTimeLocal,
+        });
       } else {
         // console.log(
         //   "no match on: " +
@@ -306,6 +311,7 @@ app.post("/", function (req, res) {
           foundFlights = resultingFlights[0];
           foundDestinations = resultingFlights[1];
           //   console.log("foundFlights in loop: " + foundFlights);
+          //   console.log(foundDestinations);
           displayFlights();
         }
       });
