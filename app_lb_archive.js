@@ -29,9 +29,9 @@ app.use(
 //
 const airportsList = [
   // {
-  //   originAirport: "vtbs", // suvarnabhumi
-  //   originTimeZone: "Asia/Bangkok",
-  // },
+  //     originAirport: "vtbs",          // suvarnabhumi
+  //     originTimeZone: 'Asia/Bangkok'
+  // }
   // ,{
   //     originAirport: "vtbd",          // don mueang
   //     originTimeZone: 'Asia/Bangkok'
@@ -69,7 +69,6 @@ const fireItAllUp = async () => {
   const departingFlightSchema = new mongoose.Schema({
     TimeOfEntry: Date,
     departureAirport: String,
-    departureAirport_iata: String,
     arrivalAirport: String,
     departureTimeZulu: Date,
     departureTimeLocal: String,
@@ -82,7 +81,6 @@ const fireItAllUp = async () => {
     TimeOfEntry: Date,
     departureAirport: String,
     arrivalAirport: String,
-    arrivalAirport_iata: String,
     arrivalTimeZulu: Date,
     arrivalTimeLocal: String,
     arrivalTimeDayOfWeek: Number,
@@ -171,9 +169,6 @@ const fireItAllUp = async () => {
             if (data.scheduled_departures[i].destination === null) {
             } else {
               // define variables with data from api
-              let originAirport_iata =
-                data.scheduled_departures[i].origin.code_iata;
-
               let arrivalAirport =
                 data.scheduled_departures[i].destination.code_iata;
               let departureTimeZulu = new Date(
@@ -199,7 +194,6 @@ const fireItAllUp = async () => {
                     const newDepartingFlightEntry = new Departingflight({
                       TimeOfEntry: new Date(),
                       departureAirport: originAirport,
-                      departureAirport_iata: originAirport_iata,
                       arrivalAirport: arrivalAirport,
                       departureTimeZulu: departureTimeZulu,
                       departureTimeLocal: departureTimeLocal,
@@ -220,8 +214,6 @@ const fireItAllUp = async () => {
             if (data.scheduled_arrivals[i].destination === null) {
             } else {
               // define variables with data from api
-              let arrivalAirport_iata =
-                data.scheduled_arrivals[i].destination.code_iata;
               let departureAirport =
                 data.scheduled_arrivals[i].origin.code_iata;
               let arrivalTimeZulu = new Date(
@@ -247,7 +239,6 @@ const fireItAllUp = async () => {
                       TimeOfEntry: new Date(),
                       departureAirport: departureAirport,
                       arrivalAirport: originAirport,
-                      arrivalAirport_iata: arrivalAirport_iata,
                       arrivalTimeZulu: arrivalTimeZulu,
                       arrivalTimeLocal: arrivalTimeLocal,
                       arrivalTimeDayOfWeek: arrivalTimeDayOfWeek,
