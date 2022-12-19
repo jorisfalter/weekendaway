@@ -40,25 +40,25 @@
 
 
                 <h2 class="instruction-question"> When do you want to leave?</h2>
-                <input type="date" id="departureDateId" name="departureDateName" value="2022-10-10"">
+                <input type="date" id="departureDateId" name="departureDateName" value="2023-01-13"">
                     <br>
                     <br> 
 
                     Between 
                     <!-- this comment is necessary to avoid a space in vs studio <input type=" time"
                     id="departureTimeStartId" name="departureTimeStartName" value="14:00"> -->
-                <input type="time" id="departureTimeStartId" name="departureTimeStartName" value="14:00">
+                <input type="time" id="departureTimeStartId" name="departureTimeStartName" value="18:00">
 
                 and
-                <input type="time" id="departureTimeEndId" name="departureTimeEndName" value="15:00">
+                <input type="time" id="departureTimeEndId" name="departureTimeEndName" value="20:00">
 
                 <h2 class="instruction-question"> When do you want to arrive back?</h2>
-                <input type="date" id="returnDateId" name="returnDateName" value="2022-10-11">
+                <input type="date" id="returnDateId" name="returnDateName" value="2023-01-15">
                 <br>
                 <br>Arriving back home between
-                <input type="time" id="returnTimeStartId" name="returnTimeStartName" value="13:00">
+                <input type="time" id="returnTimeStartId" name="returnTimeStartName" value="16:00">
                 and
-                <input type="time" id="returnTimeEndId" name="returnTimeEndName" value="14:00">
+                <input type="time" id="returnTimeEndId" name="returnTimeEndName" value="18:00">
 
                 <br>
                 <br>
@@ -89,7 +89,7 @@
                                 Departure Airport: <%= child.depAirport %>
                             </p>
                             <p>
-                                Departure Date and Time: <%= child.depTime %>
+                                Departure Time: <%= child.depTime.substring(12) %>
                             </p>
                             <p>
                                 Flight Number: <%= child.depFlightNumber %>
@@ -98,7 +98,7 @@
                                 Destination Airport: <%= child.retAirport %>
                             </p>
                             <p>
-                                Return Arrival Date and Time: <%= child.arrTime %>
+                                Return Arrival Time: <%= child.arrTime.substring(12) %>
                             </p>
                             <p>
                                 Flight Number: <%= child.retFlightNumber %>
