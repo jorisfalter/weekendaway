@@ -1,6 +1,7 @@
 html,
 body {
   height: 100%;
+  font-family: "Plus Jakarta Sans", sans-serif;
 }
 
 body {
@@ -8,7 +9,7 @@ body {
   /* align-items: center; */
   padding-top: 40px;
   padding-bottom: 40px;
-  background-color: #f5f5f5;
+  background-color: white;
 }
 
 .container {
@@ -42,8 +43,52 @@ button {
 }
 
 button:hover {
-    background-color: #4CAF50; /* Green */
-    color: white;
+  background-color: #4caf50; /* Green */
+  color: white;
+}
+
+/* @media screen and (min-width: 600px) { */
+.outercontainer {
+  margin: 0 20%;
+}
+/* } */
+
+.boxborder {
+  border-radius: 8px;
+  margin: 0 16px;
+  padding: 8px 16px 48px;
+  border-width: 0;
+  box-shadow: 0 1px 3px 0 rgb(60 64 67 / 30%), 0 4px 8px 3px rgb(60 64 67 / 15%);
+}
+
+.origin-note {
+  font-size: 0.875rem;
+  color: #616161;
+  text-align: left;
+  padding: 4px;
+}
+
+input[type="time"] {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  /* border-color: #dadce0; */
+}
+input[type="date"] {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  /* struggling to get the border colors working */
+  /* border-color: #dadce0; */
+  /* border-color: -internal-light-dark(rgb(118, 118, 118), rgb(133, 133, 133)); */
+  /* border-color: -internal-light-dark(yellow, blue); */
+
+  /* border-radius: 4px; */
+}
+
+.inputdata {
+  text-align: left;
+}
+
+.planeicon {
+  margin: 0 10px;
+}
 
 /*
 .form-signin {

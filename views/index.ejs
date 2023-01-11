@@ -11,6 +11,14 @@
 
     <title>Weekend Away</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap');
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+
 
 </head>
 
@@ -19,7 +27,31 @@
     <div class="container">
 
         <form action="/" method="post">
-            <h1 class="homeTitle">Find Flights for a Weekend Away</h1>
+            <div class="outercontainer">
+                <div class=boxborder>
+                    <div class=origin-note>
+                        Origin: Lisbon
+                    </div>
+                    <div class=inputdata>
+                        <span class="departureDate">
+                            <input type="date" id="departureDateId" name="departureDateName" value="2023-01-13"">
+                        </span>
+                        <i class=" fas fa-plane-departure planeicon"></i>
+
+                            <span class=" departureTimes">
+                                <input type="time" id="departureTimeStartId" name="departureTimeStartName"
+                                    value="18:00">
+                                <input type="time" id="departureTimeEndId" name="departureTimeEndName" value="20:00">
+                            </span>
+                    </div>
+
+
+                </div>
+            </div>
+
+
+
+            <h1 class=" homeTitle">Find Flights for a Weekend Away</h1>
             <!-- <input type="text" id="firstName" placeholder="First" name="fName" required autofocus>
                 <input type="text" id="lastName"  placeholder="Last Name" name="lName" required>
                 <input type="email" id="inputEmail" placeholder="Email" name="iEmail" required> -->
@@ -40,17 +72,14 @@
 
 
                 <h2 class="instruction-question"> When do you want to leave?</h2>
-                <input type="date" id="departureDateId" name="departureDateName" value="2023-01-13"">
-                    <br>
-                    <br> 
+                <br>
+                <br>
 
-                    Between 
-                    <!-- this comment is necessary to avoid a space in vs studio <input type=" time"
+                Between
+                <!-- this comment is necessary to avoid a space in vs studio <input type=" time"
                     id="departureTimeStartId" name="departureTimeStartName" value="14:00"> -->
-                <input type="time" id="departureTimeStartId" name="departureTimeStartName" value="18:00">
 
                 and
-                <input type="time" id="departureTimeEndId" name="departureTimeEndName" value="20:00">
 
                 <h2 class="instruction-question"> When do you want to arrive back?</h2>
                 <input type="date" id="returnDateId" name="returnDateName" value="2023-01-15">
