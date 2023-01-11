@@ -1,0 +1,149 @@
+html,
+body {
+  height: 100%;
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+body {
+  /* display: flex; */
+  /* align-items: center; */
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: white;
+}
+
+.container {
+  text-align: center;
+  width: 80%;
+  margin: auto;
+  display: block;
+  min-width: 100%;
+}
+
+.instruction-question {
+  color: red;
+  font-weight: bold;
+  font-size: 1.3em;
+}
+
+.footer {
+  display: block;
+}
+
+button {
+  background-color: red;
+  color: white;
+  border-radius: 0.3rem;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  font-weight: 400;
+  width: 40%;
+  padding: 0.5rem 1rem;
+}
+
+button:hover {
+  background-color: #4caf50; /* Green */
+  color: white;
+}
+
+/* @media screen and (min-width: 600px) { */
+.outercontainer {
+  margin: 0 20%;
+}
+/* } */
+
+.boxborder {
+  border-radius: 8px;
+  margin: 0 16px;
+  padding: 8px 16px 16px;
+  border-width: 0;
+  box-shadow: 0 1px 3px 0 rgb(60 64 67 / 30%), 0 4px 8px 3px rgb(60 64 67 / 15%);
+}
+
+.origin-note {
+  font-size: 0.875rem;
+  color: #616161;
+  text-align: left;
+  padding: 4px;
+}
+
+/* .depTimeOne {
+  border-style: none;
+} */
+
+input[type="time"] {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  padding: 0px 4px;
+  width: 75px;
+  /* border-style: none; */
+  /* border-color: #dadce0; */
+}
+input[type="date"] {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  padding: 0px 4px;
+  /* struggling to get the border colors working */
+  /* border-color: #dadce0; */
+  /* border-color: -internal-light-dark(rgb(118, 118, 118), rgb(133, 133, 133)); */
+  /* border-color: -internal-light-dark(yellow, blue); */
+
+  /* border-radius: 4px; */
+}
+
+.inputdata {
+  text-align: left;
+}
+
+.planeicon {
+  margin: 0 10px;
+  padding: 0 0 0 30px;
+}
+
+.departureTimes {
+  /* border-color: black;
+  border-style: solid; */
+}
+
+.departuresDateAndTime {
+  margin: 4px;
+}
+
+.arrivalDateAndTime {
+  margin: 4px;
+}
+
+/*
+.form-signin {
+  width: 100%;
+  max-width: 330px;
+  padding: 15px;
+  margin: auto;
+}
+.form-signin .checkbox {
+  font-weight: 400;
+}
+.form-signin .form-control {
+  position: relative;
+  box-sizing: border-box;
+  height: auto;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+.form-signin #firstName {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-signin #lastName {
+  margin-bottom: -1px;
+  border-radius: 0;
+}
+.form-signin input[type="email"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+} */
