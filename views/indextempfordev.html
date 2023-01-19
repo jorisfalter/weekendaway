@@ -31,10 +31,12 @@
 
         <form action="/" method="post">
             <h1 class=" homeTitle">Flights for Flaneurs</h1>
-            <h3>You tell us when you want to go and return</h3>
-            <h3>We tell you which destinations are available</h3>
+            <br>
+            <h3>Leaving When? Returning When?</h3>
+            <h3>We tell you which destinations are available!</h3>
 
-            <div class="outercontainer">
+            <!-- Old code -->
+            <!-- <div class="outercontainer">
                 <div class=boxborder>
                     <div class="searchButton">
                         <button type="search">Find <br> Destinations!</button>
@@ -71,40 +73,52 @@
                     </div>
 
                 </div>
-            </div>
+            </div> -->
             <br>
             <div class="outercontainer">
                 <div class=boxborder>
                     <div class="container">
+                        <div class=origin-note>
+                            Origin: Lisbon
+                        </div>
+                        <div class=explainer-note>
+
+                        </div>
                         <div class="row">
                             <div class="col-md-9">
                                 <div class="row">
-                                    <div class=origin-note>
-                                        Origin: Lisbon
-                                    </div>
+
                                 </div>
                                 <div class="row">
+                                    <!-- <span>When do you want to leave?</span> -->
                                     <div class="departuresDateAndTime">
+                                        <!-- <span>Leave</span> -->
+                                        <i class=" fas fa-plane-departure planeicon"></i>
+
                                         <span class="departureDate">
                                             <input type="date" id="departureDateId" name="departureDateName"
                                                 value="2023-01-13"">
                                         </span>
-                                        <i class=" fas fa-plane-departure planeicon"></i>
-                                            <span class="departureTimes">
-                                                <input class="depTimeOne" type="time" id="departureTimeStartId"
-                                                    name="departureTimeStartName" value="18:00">
-                                                <input type="time" id="departureTimeEndId" name="departureTimeEndName"
-                                                    value="20:00">
-                                            </span>
+                                            <span class=" departureTimes">
+                                            <input class="depTimeOne" type="time" id="departureTimeStartId"
+                                                name="departureTimeStartName" value="18:00">
+                                            <input type="time" id="departureTimeEndId" name="departureTimeEndName"
+                                                value="20:00">
+                                        </span>
                                     </div>
                                 </div>
+                                <!-- <br> -->
                                 <div class="row">
+                                    <!-- <span>When do you want to be back?</span> -->
+                                    <!-- <span>Back Home</span> -->
+
                                     <div class="arrivalDateAndTime">
+                                        <i class="fa-solid fa-plane-arrival planeicon"></i>
+
                                         <span class="arrivalDate">
                                             <input type="date" id="returnDateId" name="returnDateName"
                                                 value="2023-01-15">
                                         </span>
-                                        <i class="fa-solid fa-plane-arrival planeicon"></i>
                                         <span class="arrivalTimes">
                                             <input type="time" id="returnTimeStartId" name="returnTimeStartName"
                                                 value="16:00">
