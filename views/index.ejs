@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
 
-    <link rel="stylesheet" href="/styles.css">
+
 
 
     <title>Weekend Away</title>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap" rel="stylesheet">
@@ -18,6 +20,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap');
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
 
 
 </head>
@@ -27,31 +30,122 @@
     <div class="container">
 
         <form action="/" method="post">
-            <div class="outercontainer">
+            <h1 class=" homeTitle">Flights for Flaneurs</h1>
+            <br>
+            <h3>Leaving When? Returning When?</h3>
+            <h3>We know which destinations are available!</h3>
+
+            <!-- Old code -->
+            <!-- <div class="outercontainer">
                 <div class=boxborder>
+                    <div class="searchButton">
+                        <button type="search">Find <br> Destinations!</button>
+
+                    </div>
+
                     <div class=origin-note>
                         Origin: Lisbon
                     </div>
-                    <div class=inputdata>
-                        <span class="departureDate">
-                            <input type="date" id="departureDateId" name="departureDateName" value="2023-01-13"">
-                        </span>
-                        <i class=" fas fa-plane-departure planeicon"></i>
 
-                            <span class=" departureTimes">
-                                <input type="time" id="departureTimeStartId" name="departureTimeStartName"
-                                    value="18:00">
-                                <input type="time" id="departureTimeEndId" name="departureTimeEndName" value="20:00">
+                    <div class="inputdata">
+                        <div class="departuresDateAndTime">
+                            <span class="departureDate">
+                                <input type="date" id="departureDateId" name="departureDateName" value="2023-01-13"">
                             </span>
+                            <i class=" fas fa-plane-departure planeicon"></i>
+                                <span class="departureTimes">
+                                    <input class="depTimeOne" type="time" id="departureTimeStartId"
+                                        name="departureTimeStartName" value="18:00">
+                                    <input type="time" id="departureTimeEndId" name="departureTimeEndName"
+                                        value="20:00">
+                                </span>
+                        </div>
+                        <div class="arrivalDateAndTime">
+                            <span class="arrivalDate">
+                                <input type="date" id="returnDateId" name="returnDateName" value="2023-01-15">
+                            </span>
+                            <i class="fa-solid fa-plane-arrival planeicon"></i>
+                            <span class="arrivalTimes">
+                                <input type="time" id="returnTimeStartId" name="returnTimeStartName" value="16:00">
+                                <input type="time" id="returnTimeEndId" name="returnTimeEndName" value="18:00">
+                            </span>
+                        </div>
                     </div>
 
+                </div>
+            </div> -->
+            <br>
+            <div class="outercontainer">
+                <div class=boxborder>
+                    <div class="container">
+                        <div class=origin-note>
+                            Origin: Lisbon
+                        </div>
+                        <div class=explainer-note>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="row">
+
+                                </div>
+                                <div class="row">
+                                    <!-- <span>When do you want to leave?</span> -->
+                                    <div class="departuresDateAndTime">
+                                        <!-- <span>Leave</span> -->
+
+                                        <span class="departureDate">
+                                            <input type="date" id="departureDateId" name="departureDateName"
+                                                value="2023-01-13"">
+                                        </span>
+                                            <span class=" departureTimes">
+                                            <input class="depTimeOne" type="time" id="departureTimeStartId"
+                                                name="departureTimeStartName" value="18:00">
+                                            <input type="time" id="departureTimeEndId" name="departureTimeEndName"
+                                                value="20:00">
+                                        </span>
+                                        <i class=" fas fa-plane-departure planeicon"></i>
+
+                                    </div>
+
+                                </div>
+                                <!-- <br> -->
+                                <div class="row">
+                                    <!-- <span>When do you want to be back?</span> -->
+                                    <!-- <span>Back Home</span> -->
+
+                                    <div class="arrivalDateAndTime">
+
+                                        <span class="arrivalDate">
+                                            <input type="date" id="returnDateId" name="returnDateName"
+                                                value="2023-01-15">
+                                        </span>
+                                        <span class="arrivalTimes">
+                                            <input type="time" id="returnTimeStartId" name="returnTimeStartName"
+                                                value="16:00">
+                                            <input type="time" id="returnTimeEndId" name="returnTimeEndName"
+                                                value="18:00">
+                                        </span>
+                                        <i class="fa-solid fa-plane-arrival planeicon"></i>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="searchButtonBootstrap">
+                                    <button type="search">Find <br> Destinations!</button>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
 
                 </div>
             </div>
 
 
 
-            <h1 class=" homeTitle">Find Flights for a Weekend Away</h1>
             <!-- <input type="text" id="firstName" placeholder="First" name="fName" required autofocus>
                 <input type="text" id="lastName"  placeholder="Last Name" name="lName" required>
                 <input type="email" id="inputEmail" placeholder="Email" name="iEmail" required> -->
@@ -62,82 +156,49 @@
                     <option value="Bali">Bali</option>
                 </select> -->
 
-            <h2 class="instruction-question">Where are you flying from?</h1>
-                <!-- <input type="radio" name="originName" value="Bangkok"> Bangkok -->
-                <br>
-                <input type="radio" name="originName" value="Lisbon" checked> Lisbon
-                <br>
-                <!-- <input type="radio" name="originName" value="Bali"> Bali -->
-                <br>
+            <br><br><br><br><br><br><br><br><br>
+
+            <p> These destinations are available </p>
+
+            <% for (const child of foundDestinations){ %>
 
 
-                <h2 class="instruction-question"> When do you want to leave?</h2>
-                <br>
-                <br>
-
-                Between
-                <!-- this comment is necessary to avoid a space in vs studio <input type=" time"
-                    id="departureTimeStartId" name="departureTimeStartName" value="14:00"> -->
-
-                and
-
-                <h2 class="instruction-question"> When do you want to arrive back?</h2>
-                <input type="date" id="returnDateId" name="returnDateName" value="2023-01-15">
-                <br>
-                <br>Arriving back home between
-                <input type="time" id="returnTimeStartId" name="returnTimeStartName" value="16:00">
-                and
-                <input type="time" id="returnTimeEndId" name="returnTimeEndName" value="18:00">
-
-                <br>
-                <br>
-                <button type="search">Find Some Destinations!</button>
-                <br>
-                <br>
-                <br>
-                <!-- <p class="output">test output</p> -->
-
-                <p> These destinations are available </p>
-
-                <% for (const child of foundDestinations){ %>
-
-
-                    <p>
-                        <%= child.retAirport %>
-                    </p>
+                <p>
+                    <%= child.retAirport %>
+                </p>
 
 
 
-                    <% } %>
+                <% } %>
 
-                        <p> Details</p>
+                    <p> Details</p>
 
-                        <% for (const child of foundDestinations){ %>
+                    <% for (const child of foundDestinations){ %>
 
-                            <p>
-                                Departure Airport: <%= child.depAirport %>
-                            </p>
-                            <p>
-                                Departure Time: <%= child.depTime.substring(12) %>
-                            </p>
-                            <p>
-                                Flight Number: <%= child.depFlightNumber %>
-                            </p>
-                            <p>
-                                Destination Airport: <%= child.retAirport %>
-                            </p>
-                            <p>
-                                Return Arrival Time: <%= child.arrTime.substring(12) %>
-                            </p>
-                            <p>
-                                Flight Number: <%= child.retFlightNumber %>
-                            </p>
-                            <br>
+                        <p>
+                            Departure Airport: <%= child.depAirport %>
+                        </p>
+                        <p>
+                            Departure Time: <%= child.depTime.substring(12) %>
+                        </p>
+                        <p>
+                            Flight Number: <%= child.depFlightNumber %>
+                        </p>
+                        <p>
+                            Destination Airport: <%= child.retAirport %>
+                        </p>
+                        <p>
+                            Return Arrival Time: <%= child.arrTime.substring(12) %>
+                        </p>
+                        <p>
+                            Flight Number: <%= child.retFlightNumber %>
+                        </p>
+                        <br>
 
-                            <% } %>
+                        <% } %>
 
 
-                                <p> Destinations are based on historical flight schedules</p>
+                            <p> Destinations are based on historical flight schedules</p>
 
         </form>
     </div>
