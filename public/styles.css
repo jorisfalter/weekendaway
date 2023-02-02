@@ -83,6 +83,9 @@ button:hover {
   margin: 0 20%;
 }
 
+.resultrow {
+}
+
 .boxborder {
   border-radius: 8px;
   margin: 0 16px;
@@ -96,6 +99,13 @@ button:hover {
   font-size: 0.875rem;
   color: #616161;
   text-align: left;
+  padding: 4px;
+}
+
+.result-note {
+  font-size: 0.875rem;
+  color: #616161;
+  /* text-align: left; */
   padding: 4px;
 }
 
