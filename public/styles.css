@@ -141,6 +141,30 @@ input[type="date"] {
   /* color: #4caf50;  */
 }
 
+.mobileSeparator {
+  display: none;
+}
+
+@media only screen and (max-width: 600px) {
+  .planeicon {
+    display: none;
+  }
+
+  .departureDate,
+  .depTimeTwo,
+  .depTimeOne,
+  .arrivalDate,
+  .RetTimeOne,
+  .RetTimeTwo {
+    margin: 5px 0px;
+  }
+
+  .mobileSeparator {
+    display: block;
+    visibility: hidden;
+  }
+}
+
 .departureTimes {
   /* border-color: black;
   border-style: solid; */
