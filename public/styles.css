@@ -76,9 +76,6 @@ button:hover {
   cursor: pointer;
 }
 
-/* @media screen and (min-width: 600px) { */
-/* } */
-
 .outercontainer {
   margin: 0 20%;
 }
@@ -162,6 +159,14 @@ input[type="date"] {
   .mobileSeparator {
     display: block;
     visibility: hidden;
+  }
+
+  input[type="time"] {
+    font-size: 0.875rem;
+  }
+
+  input[type="date"] {
+    font-size: 0.875rem;
   }
 }
 
