@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 
 const app = express();
 
+const airportsList = require("./airports.js");
+
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -60,6 +62,20 @@ app.get("/", function (req, res) {
   res.render("index", { foundFlights: false, foundDestinations: "" });
 });
 
+function getDestinationInFull(destinationAirportAbbreviated) {
+  var longAirportName = "noname";
+
+  // can we put this in an external list - similar to what the trenitalia guy built?
+  for (let i = 0; i < airportsList.length; i++) {
+    if (airportsList[i][0] === destinationAirportAbbreviated) {
+      // console.log("boom");
+      longAirportName = airportsList[i][1];
+      i = airportsList.length;
+    }
+  }
+  return longAirportName;
+}
+
 ////////////////////////////////////////////////////////////////////////
 // find the entries in the db between start and end for departure
 // find the entries in the db between start and end for return
@@ -77,6 +93,13 @@ function matchFlights(departingFlight, returnFlight) {
         // console.log("Returning from: " + resultReturn.departureAirport);
         // console.log("Arriving at local time: " + resultReturn.arrivalTimeLocal);
         foundFlights = true;
+
+        // Translate the Airport Code into a full name comprehensible for users
+        var destinationInFull = getDestinationInFull(
+          resultReturn.departureAirport
+        );
+
+        // Push all info into the query
         foundDestinations.push({
           depAirport: resultDepart.departureAirport,
           depTime: resultDepart.departureTimeLocal,
@@ -84,6 +107,9 @@ function matchFlights(departingFlight, returnFlight) {
           retAirport: resultReturn.departureAirport,
           arrTime: resultReturn.arrivalTimeLocal,
           retFlightNumber: resultReturn.flightNumber,
+          depAirline: "testDepAirline",
+          retAirline: "testRetAirline",
+          destinationInFull: destinationInFull,
         });
       } else {
         // console.log(
@@ -241,9 +267,6 @@ app.post("/", function (req, res) {
   );
   console.log("new ret start: " + return_start_zulu.toUTCString());
 
-  //   var returnEnd_string = newRetDateString + " " + returnTimeEndInput + ":00";
-  //   var return_end_zulu = new Date(returnEnd_string.replace(/-/g, "/"));
-  //   console.log("new ret end: " + return_end_zulu);
   var return_end_zulu = calculateLocalTime(
     newRetDateString,
     returnTimeEndInput,
@@ -266,31 +289,10 @@ app.post("/", function (req, res) {
   const returnIntervalStart = return_start_zulu;
   const returnIntervalEnd = return_end_zulu;
 
-  //   console.log(departureIntervalStart);
-  //   console.log(departure_start_zulu);
-  //   console.log(departureIntervalEnd);
-  //   console.log(departure_end_zulu);
-  //   console.log(returnIntervalStart);
-  //   console.log(return_start_zulu);
-  //   console.log(returnIntervalEnd);
-  //   console.log(return_end_zulu);
-
-  // wat we gaan doen, is de inputdatum veranderen naar de laatste weekdag (voor dewelke we data hebben) op die datum
-
-  ////////////////////////////////////////////////////////////////////////
-  // filter the table for the dep and ret intervals and call the function to check if there is a match
-
-  //// hier moeten we een manier vinden om de laatste data op die weekdag te vinden
-  ////
-
   var foundFlights;
-  var foundDestinations = [];
+  var foundDestinations = []; // dit is de enige die we uiteindelijk gebruiken in de frontend
 
   function displayFlights() {
-    // console.log("foundFlights out of loop: " + foundFlights);
-
-    // hier moeten we de omzetting doen van vluchtnummer naar airline en van icao code naar luchthaven
-
     res.render("index", {
       foundFlights: foundFlights,
       foundDestinations: foundDestinations,
@@ -315,16 +317,12 @@ app.post("/", function (req, res) {
           resultingFlights = matchFlights(departingFlight, returnFlight);
           foundFlights = resultingFlights[0];
           foundDestinations = resultingFlights[1];
-          //   console.log("foundFlights in loop: " + foundFlights);
-          //   console.log(foundDestinations);
+
           displayFlights();
         }
       });
   });
 });
-
-// we zitten hier vast in een situatie waarbij we moeten wachten op data voordat we kunnen returnen
-// kunnen we ideeen halen uit app.js?
 
 // Dit zijn onze testdatums. Ze geven twee resultaten, Madrid en Barcelona
 // Wanneer we een datum genereren met Date zijn maanden vanaf 0. We moeten dus oktober hebben, niet september
@@ -333,11 +331,6 @@ app.post("/", function (req, res) {
 // const departureIntervalEnd = new Date(2022, 9, 10, 15, 0, 0);
 // const returnIntervalStart = new Date(2022, 9, 11, 1, 0, 0);
 // const returnIntervalEnd = new Date(2022, 9, 11, 3, 0, 0);
-
-// console.log(departureIntervalStart);
-// console.log(departureIntervalEnd);
-// console.log(returnIntervalStart);
-// console.log(returnIntervalEnd);
 
 app.listen(process.env.PORT || 3000, function () {
   console.log("listening");

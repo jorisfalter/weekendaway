@@ -121,48 +121,62 @@
 
                 <div class="container">
 
+                    <p>
+                        <%= %>
+                    </p>
+                    <% if (foundDestinations.length===0 ){ %>
+                        <p>No Solutions</p>
+
+                        <% }else { %>
+
+                            <% for (const child of foundDestinations){ %>
 
 
 
-                    <% for (const child of foundDestinations){ %>
+                                <div class="row border-bottom">
 
-                        <div class="row border-bottom">
+                                    <div class="col-md-2">
+                                        <p class="result-note">Destination</p>
+                                        <p>
 
-                            <div class="col-md-2">
-                                <p class="result-note">Destination</p>
-                                <p>
-                                    <%= child.retAirport %>
-                                </p>
-                            </div>
-                            <div class="col-md-5">
-                                <p class=result-note>Leaving</p>
-                                <p>
-                                    <%= child.depFlightNumber %>
-                                </p>
-                                <p>
-                                    <%= child.depTime.substring(12) %>
-                                </p>
-                            </div>
-                            <div class="col-md-5">
-                                <p class=result-note>Back Home</p>
-                                <p>
-                                    <%= child.retFlightNumber %>
-                                </p>
-                                <p>
-                                    <%= child.arrTime.substring(12) %>
-                                </p>
-                            </div>
-                        </div>
-                        <br>
+                                            <% if (child.destinationInFull !=="noname" ){ %>
+                                                <%= child.destinationInFull %>
+                                                    <% } else { %>
+                                                        <%= child.retAirport %>
+                                                            <% } %>
+
+                                        </p>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <p class=result-note>Leaving</p>
+                                        <p>
+                                            <%= child.depFlightNumber %>
+                                        </p>
+                                        <p>
+                                            <%= child.depTime.substring(12) %>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <p class=result-note>Back Home</p>
+                                        <p>
+                                            <%= child.retFlightNumber %>
+                                        </p>
+                                        <p>
+                                            <%= child.arrTime.substring(12) %>
+                                        </p>
+                                    </div>
+                                </div>
+                                <br>
 
 
-                        <% } %>
+                                <% } %>
+                                    <% } %>
 
                 </div>
             </div>
 
 
-            <p>Note: Destinations are based on historical flight schedules</p>
+            <p class="bottomNote">Destinations are based on historical flight schedules</p>
 
         </form>
     </div>
