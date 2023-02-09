@@ -288,6 +288,9 @@ app.post("/", function (req, res) {
 
   function displayFlights() {
     // console.log("foundFlights out of loop: " + foundFlights);
+
+    // hier moeten we de omzetting doen van vluchtnummer naar airline en van icao code naar luchthaven
+
     res.render("index", {
       foundFlights: foundFlights,
       foundDestinations: foundDestinations,
