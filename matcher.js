@@ -65,15 +65,19 @@ app.get("/", function (req, res) {
 function getDestinationInFull(destinationAirportAbbreviated) {
   var longAirportName = "noname";
 
-  // can we put this in an external list - similar to what the trenitalia guy built?
   for (let i = 0; i < airportsList.length; i++) {
     if (airportsList[i][0] === destinationAirportAbbreviated) {
-      // console.log("boom");
       longAirportName = airportsList[i][1];
       i = airportsList.length;
     }
   }
   return longAirportName;
+}
+
+function getAirlineName() {
+  var airlineName = "noname";
+
+  return "testName";
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -99,6 +103,10 @@ function matchFlights(departingFlight, returnFlight) {
           resultReturn.departureAirport
         );
 
+        // Translate the Flight number into an airline
+        var depAirline = getAirlineName(resultDepart.flightNumber);
+        var retAirline = getAirlineName(resultReturn.flightNumber);
+
         // Push all info into the query
         foundDestinations.push({
           depAirport: resultDepart.departureAirport,
@@ -107,8 +115,8 @@ function matchFlights(departingFlight, returnFlight) {
           retAirport: resultReturn.departureAirport,
           arrTime: resultReturn.arrivalTimeLocal,
           retFlightNumber: resultReturn.flightNumber,
-          depAirline: "testDepAirline",
-          retAirline: "testRetAirline",
+          depAirline: depAirline,
+          retAirline: retAirline,
           destinationInFull: destinationInFull,
         });
       } else {
