@@ -1,11 +1,11 @@
-airportsList = [
+airlinesList = [
   ["TO", "Transavia"],
   ["NI", "Portugalia"],
   ["TP", "Tap Air Portugal"],
   ["IB", "Iberia"],
-  ["U", "Easyjet"],
+  ["U2", "Easyjet"],
   ["EC", "Easyjet"],
   ["FR", "Ryanair"],
   ["BA", "British Airways"],
 ];
-module.exports = airportsList;
+module.exports = airlinesList;

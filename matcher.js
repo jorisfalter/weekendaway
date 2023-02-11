@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const app = express();
 
 const airportsList = require("./airports.js");
+const airlinesList = require("./airlines.js");
 
 app.set("view engine", "ejs");
 
@@ -74,10 +75,18 @@ function getDestinationInFull(destinationAirportAbbreviated) {
   return longAirportName;
 }
 
-function getAirlineName() {
+function getAirlineName(flightNumber) {
   var airlineName = "noname";
 
-  return "testName";
+  var flightNumberCut = flightNumber.slice(0, 2);
+
+  for (let i = 0; i < airlinesList.length; i++) {
+    if (airlinesList[i][0] === flightNumberCut) {
+      airlineName = airlinesList[i][1];
+      i = airlinesList.length;
+    }
+  }
+  return airlineName;
 }
 
 ////////////////////////////////////////////////////////////////////////
