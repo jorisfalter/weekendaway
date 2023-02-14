@@ -52,21 +52,19 @@
 
                                 </div>
                                 <div class="row">
-                                    <!-- <span>When do you want to leave?</span> -->
                                     <div class="departuresDateAndTime">
-                                        <!-- <span>Leave</span> -->
+
 
                                         <span class="departureDate">
                                             <input type="date" id="departureDateId" name="departureDateName"
-                                                value="2023-01-13"">
-                                        
-                                        <!-- Kunnen we hier vast het volgende weekend pakken? Vraagt nogal wat berekening die in js moet gebeuren? -->
-                                            </span>
-                                            <span class=" departureTimes">
+                                                value="2023-02-17">
+
+                                        </span>
+                                        <span class=" departureTimes">
                                             <input class="depTimeOne" type="time" id="departureTimeStartId"
-                                                name="departureTimeStartName" value="18:00">
+                                                name="departureTimeStartName" value="16:00">
                                             <input class="depTimeTwo" type="time" id="departureTimeEndId"
-                                                name="departureTimeEndName" value="20:00">
+                                                name="departureTimeEndName" value="18:00">
                                         </span>
                                         <i class=" fas fa-plane-departure planeicon"></i>
 
@@ -81,11 +79,11 @@
 
                                         <span class="arrivalDate">
                                             <input type="date" id="returnDateId" name="returnDateName"
-                                                value="2023-01-15">
+                                                value="2023-02-20">
                                         </span>
                                         <span class="arrivalTimes">
                                             <input class="RetTimeOne" type="time" id="returnTimeStartId"
-                                                name="returnTimeStartName" value="16:00">
+                                                name="returnTimeStartName" value="13:00">
                                             <input class="RetTimeOne" type="time" id="returnTimeEndId"
                                                 name="returnTimeEndName" value="18:00">
                                         </span>
@@ -121,9 +119,7 @@
 
                 <div class="container">
 
-                    <p>
-                        <%= %>
-                    </p>
+
                     <% if (foundDestinations.length===0 ){ %>
                         <p>No Solutions</p>
 

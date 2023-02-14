@@ -7,5 +7,16 @@ airlinesList = [
   ["EC", "Easyjet"],
   ["FR", "Ryanair"],
   ["BA", "British Airways"],
+  ["LH", "Lufthansa"],
+  ["KL", "KLM"],
+  ["LX", "Swiss"],
+  ["UX", "Air Europa"],
+  ["TK", "Turkish Airlines"],
+  ["LW", "Lauda Europe"],
+  ["VY", "Vueling"],
+  ["S4", "Azores Airlines"],
+  ["AY", "Finnair"],
+  ["W6", "Wizz Air"],
+  ["AT", "Royal Air Maroc"],
 ];
 module.exports = airlinesList;

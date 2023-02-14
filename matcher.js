@@ -60,9 +60,28 @@ const Departingflight = mongoose.model(
 const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 
 //////////////////////////////////////////////////////////////////////
+// setup constants
+let originInput = "";
+let departureDateInput = "2023-02-17";
+let departureTimeStartInput = "18:00";
+let departureTimeEndInput = "20:00";
+let returnDateInput = "2023-02-19";
+let returnTimeStartInput = "13:00";
+let returnTimeEndInput = "18:00";
+
+//////////////////////////////////////////////////////////////////////
 // app starts here
 app.get("/", function (req, res) {
-  res.render("index", { foundFlights: false, foundDestinations: "" });
+  res.render("index", {
+    foundFlights: false,
+    foundDestinations: "",
+    inputDate1: departureDateInput,
+    inputTime1: departureTimeStartInput,
+    inputTime2: departureTimeEndInput,
+    inputDate2: returnDateInput,
+    inputTime3: returnTimeStartInput,
+    inputTime4: returnTimeEndInput,
+  });
 });
 
 function getDestinationInFull(destinationAirportAbbreviated) {
@@ -95,15 +114,14 @@ function getAirlineName(flightNumber) {
 // find the entries in the db between start and end for departure
 // find the entries in the db between start and end for return
 function matchFlights(departingFlight, returnFlight) {
-  console.log("we're here");
   // console.log("all deps: " + departingFlight);
-  console.log("all rets: " + returnFlight);
+  // console.log("all rets: " + returnFlight);
   var foundFlights = false;
   var foundDestinations = [];
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (resultDepart.arrivalAirport === resultReturn.departureAirport) {
-        console.log("found match"); // on: " + resultReturn.departureAirport);
+        // console.log("found match"); // on: " + resultReturn.departureAirport);
         // console.log("Flying from: " + resultDepart.departureAirport);
         // console.log("At local time: " + resultDepart.departureTimeLocal);
         // console.log("Returning from: " + resultReturn.departureAirport);
@@ -173,13 +191,13 @@ function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
 }
 
 app.post("/", function (req, res) {
-  const originInput = req.body.originName;
-  const departureDateInput = req.body.departureDateName;
-  const departureTimeStartInput = req.body.departureTimeStartName;
-  const departureTimeEndInput = req.body.departureTimeEndName;
-  const returnDateInput = req.body.returnDateName;
-  const returnTimeStartInput = req.body.returnTimeStartName;
-  const returnTimeEndInput = req.body.returnTimeEndName;
+  originInput = req.body.originName;
+  departureDateInput = req.body.departureDateName;
+  departureTimeStartInput = req.body.departureTimeStartName;
+  departureTimeEndInput = req.body.departureTimeEndName;
+  returnDateInput = req.body.returnDateName;
+  returnTimeStartInput = req.body.returnTimeStartName;
+  returnTimeEndInput = req.body.returnTimeEndName;
 
   console.log("origin: " + originInput);
   console.log("departure date: " + departureDateInput);
