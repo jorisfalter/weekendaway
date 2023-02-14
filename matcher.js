@@ -59,6 +59,8 @@ const Departingflight = mongoose.model(
 );
 const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 
+//////////////////////////////////////////////////////////////////////
+// app starts here
 app.get("/", function (req, res) {
   res.render("index", { foundFlights: false, foundDestinations: "" });
 });
@@ -93,14 +95,15 @@ function getAirlineName(flightNumber) {
 // find the entries in the db between start and end for departure
 // find the entries in the db between start and end for return
 function matchFlights(departingFlight, returnFlight) {
-  //   console.log("all deps: " + departingFlight);
-  //   console.log("all rets: " + returnFlight);
+  console.log("we're here");
+  // console.log("all deps: " + departingFlight);
+  console.log("all rets: " + returnFlight);
   var foundFlights = false;
   var foundDestinations = [];
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (resultDepart.arrivalAirport === resultReturn.departureAirport) {
-        // console.log("found match"); // on: " + resultReturn.departureAirport);
+        console.log("found match"); // on: " + resultReturn.departureAirport);
         // console.log("Flying from: " + resultDepart.departureAirport);
         // console.log("At local time: " + resultDepart.departureTimeLocal);
         // console.log("Returning from: " + resultReturn.departureAirport);
@@ -130,7 +133,7 @@ function matchFlights(departingFlight, returnFlight) {
         });
       } else {
         // console.log(
-        //   "no match on: " +
+        // "no match" //on: " +
         //     resultReturn.departureAirport +
         //     " and " +
         //     resultDepart.arrivalAirport
@@ -324,7 +327,14 @@ app.post("/", function (req, res) {
   }).exec((err, departingFlight) => {
     if (err) {
       console.log(err);
-    } else
+    } else {
+      console.log(
+        "checking return flights between " +
+          returnIntervalStart +
+          " and " +
+          returnIntervalEnd
+      );
+
       Returnflight.find({
         arrivalTimeZulu: { $gte: returnIntervalStart, $lte: returnIntervalEnd },
       }).exec((err, returnFlight) => {
@@ -338,6 +348,7 @@ app.post("/", function (req, res) {
           displayFlights();
         }
       });
+    }
   });
 });
 
