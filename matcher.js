@@ -346,13 +346,6 @@ app.post("/", function (req, res) {
     if (err) {
       console.log(err);
     } else {
-      console.log(
-        "checking return flights between " +
-          returnIntervalStart +
-          " and " +
-          returnIntervalEnd
-      );
-
       Returnflight.find({
         arrivalTimeZulu: { $gte: returnIntervalStart, $lte: returnIntervalEnd },
       }).exec((err, returnFlight) => {
