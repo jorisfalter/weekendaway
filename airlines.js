@@ -18,5 +18,6 @@ airlinesList = [
   ["AY", "Finnair"],
   ["W6", "Wizz Air"],
   ["AT", "Royal Air Maroc"],
+  ["DS", "Easyjet Switzerland"],
 ];
 module.exports = airlinesList;
