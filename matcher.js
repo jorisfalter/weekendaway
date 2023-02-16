@@ -60,27 +60,34 @@ const Departingflight = mongoose.model(
 const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 
 //////////////////////////////////////////////////////////////////////
-// setup constants
-let originInput = "";
-let departureDateInput = "2023-02-17";
-let departureTimeStartInput = "18:00";
-let departureTimeEndInput = "20:00";
-let returnDateInput = "2023-02-19";
-let returnTimeStartInput = "13:00";
-let returnTimeEndInput = "18:00";
+let firstTimeLoad = false;
+
+// let originInput = "";
+// let departureDateInput = "2023-02-17";
+// let departureTimeStartInput = "18:00";
+// let departureTimeEndInput = "20:00";
+// let returnDateInput = "2023-02-19";
+// let returnTimeStartInput = "13:00";
+// let returnTimeEndInput = "18:00";
+// firstTimeLoad = true;
 
 //////////////////////////////////////////////////////////////////////
 // app starts here
 app.get("/", function (req, res) {
+  // setup constants
+
+  // if (!firstTimeLoad) {
+  // }
+
   res.render("index", {
     foundFlights: false,
     foundDestinations: "",
-    inputDate1: departureDateInput,
-    inputTime1: departureTimeStartInput,
-    inputTime2: departureTimeEndInput,
-    inputDate2: returnDateInput,
-    inputTime3: returnTimeStartInput,
-    inputTime4: returnTimeEndInput,
+    // inputDate1: departureDateInput,
+    // inputTime1: departureTimeStartInput,
+    // inputTime2: departureTimeEndInput,
+    // inputDate2: returnDateInput,
+    // inputTime3: returnTimeStartInput,
+    // inputTime4: returnTimeEndInput,
   });
 });
 

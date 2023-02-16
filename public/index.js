@@ -9,7 +9,7 @@ console.log(clickedButtonTrue);
 
 if (clickedButtonTrue) {
   var depTimeStartDefault = "15:00";
-  document.getElementById("departureTimeStartId").value = depTimeStartDefault;
+  //   document.getElementById("departureTimeStartId").value = depTimeStartDefault;
   // document.getElementById("departureTimeEndId").value = test;
   // document.getElementById("returnTimeStartId").value = test;
   // document.getElementById("returnTimeEndId").value = test;
