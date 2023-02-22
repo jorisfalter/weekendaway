@@ -60,30 +60,83 @@ const Departingflight = mongoose.model(
 const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 
 //////////////////////////////////////////////////////////////////////
-let firstTimeLoad = false;
 
 //////////////////////////////////////////////////////////////////////
 // app starts here
 app.get("/", function (req, res) {
-  // setup constants
+  //
+  // define default dates
+  var dayOfFriday = 5;
+  var dateOfToday = new Date();
+  var dayOfToday = dateOfToday.getDay();
+  var nextFridayInt = new Date(); //you have to initialise a day, so initialising it here to today
+  var nextSundayInt = new Date();
 
+  var daysToAdd = dayOfFriday - dayOfToday;
+  if (daysToAdd < 0) {
+    daysToAdd = daysToAdd + 7;
+  }
+  var daysToAddS = daysToAdd + 2;
+
+  var nextFridayInt = nextFridayInt.setDate(
+    nextFridayInt.getDate() + daysToAdd
+  );
+  var nextSundayInt = nextSundayInt.setDate(
+    nextSundayInt.getDate() + daysToAddS
+  );
+
+  var nextFridayZulu = new Date(nextFridayInt);
+  var nextSundayZulu = new Date(nextSundayInt);
+  if (nextFridayZulu.getUTCMonth() + 1 < 10) {
+    var nextFridayString =
+      nextFridayZulu.getUTCFullYear() +
+      "-0" +
+      (nextFridayZulu.getUTCMonth() + 1) + // adding +1 because months are counted from zero
+      "-" +
+      nextFridayZulu.getUTCDate();
+  } else {
+    var nextFridayString =
+      nextFridayZulu.getUTCFullYear() +
+      "-" +
+      (nextFridayZulu.getUTCMonth() + 1) + // adding +1 because months are counted from zero
+      "-" +
+      nextFridayZulu.getUTCDate();
+  }
+
+  if (nextSundayZulu.getUTCMonth() + 1 < 10) {
+    var nextSundayString =
+      nextSundayZulu.getUTCFullYear() +
+      "-0" +
+      (nextSundayZulu.getUTCMonth() + 1) + // adding +1 because months are counted from zero
+      "-" +
+      nextSundayZulu.getUTCDate();
+  } else {
+    var nextSundayString =
+      nextSundayZulu.getUTCFullYear() +
+      "-" +
+      (nextSundayZulu.getUTCMonth() + 1) + // adding +1 because months are counted from zero
+      "-" +
+      nextSundayZulu.getUTCDate();
+  }
+
+  // console.log(nextFridayString);
   let originInput = "";
-  let departureDateInitialInput = "2023-02-17";
+  let departureDateInitialInput = nextFridayString;
   let departureTimeStartInput = "18:00";
   let departureTimeEndInput = "20:00";
-  let returnDateInput = "2023-02-19";
-  let returnTimeStartInput = "13:00";
+  let returnDateInput = nextSundayString;
+  let returnTimeStartInput = "15:00";
   let returnTimeEndInput = "18:00";
 
   res.render("index", {
     foundFlights: false,
     foundDestinations: "",
     inputDate1: departureDateInitialInput,
-    // inputTime1: departureTimeStartInput,
-    // inputTime2: departureTimeEndInput,
-    // inputDate2: returnDateInput,
-    // inputTime3: returnTimeStartInput,
-    // inputTime4: returnTimeEndInput,
+    inputTime1: departureTimeStartInput,
+    inputTime2: departureTimeEndInput,
+    inputDate2: returnDateInput,
+    inputTime3: returnTimeStartInput,
+    inputTime4: returnTimeEndInput,
   });
 });
 
@@ -338,6 +391,11 @@ app.post("/", function (req, res) {
       foundFlights: foundFlights,
       foundDestinations: foundDestinations,
       inputDate1: departureDateInput,
+      inputDate2: returnDateInput,
+      inputTime1: departureTimeStartInput,
+      inputTime2: departureTimeEndInput,
+      inputTime3: returnTimeStartInput,
+      inputTime4: returnTimeEndInput,
     });
   }
 
