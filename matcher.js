@@ -137,6 +137,7 @@ app.get("/", function (req, res) {
     inputDate2: returnDateInput,
     inputTime3: returnTimeStartInput,
     inputTime4: returnTimeEndInput,
+    firstLoad: true,
   });
 });
 
@@ -396,6 +397,7 @@ app.post("/", function (req, res) {
       inputTime2: departureTimeEndInput,
       inputTime3: returnTimeStartInput,
       inputTime4: returnTimeEndInput,
+      firstLoad: false,
     });
   }
 
