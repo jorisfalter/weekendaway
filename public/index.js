@@ -3,22 +3,23 @@
 //////////////////////////////////////////////////////////////////////
 // set default params on homescreen
 
-let clickedButtonTrue = true;
+// let clickedButtonTrue = true;
 
-console.log(clickedButtonTrue);
+// console.log(clickedButtonTrue);
 
-if (clickedButtonTrue) {
-  var depTimeStartDefault = "15:00";
-  //   document.getElementById("departureTimeStartId").value = depTimeStartDefault;
-  // document.getElementById("departureTimeEndId").value = test;
-  // document.getElementById("returnTimeStartId").value = test;
-  // document.getElementById("returnTimeEndId").value = test;
-}
+// if (!renderedOnce) {
+//   var depTimeStartDefault = "15:00";
+//   document.getElementById("departureTimeStartId").value = depTimeStartDefault;
+// document.getElementById("departureTimeEndId").value = test;
+// document.getElementById("returnTimeStartId").value = test;
+// document.getElementById("returnTimeEndId").value = test;
+//   clickedButtonTrue = false;
+// }
 
 //
-let findDestButtonElement = document.getElementById("findDestButton");
-findDestButtonElement.addEventListener("click", myFunction);
+// let findDestButtonElement = document.getElementById("findDestButton");
+// findDestButtonElement.addEventListener("click", myFunction);
 
-function myFunction() {
-  clickedButtonTrue = false;
-}
+// function myFunction() {
+//   clickedButtonTrue = false;
+// }

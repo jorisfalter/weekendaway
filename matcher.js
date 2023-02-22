@@ -62,27 +62,23 @@ const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 //////////////////////////////////////////////////////////////////////
 let firstTimeLoad = false;
 
-// let originInput = "";
-// let departureDateInput = "2023-02-17";
-// let departureTimeStartInput = "18:00";
-// let departureTimeEndInput = "20:00";
-// let returnDateInput = "2023-02-19";
-// let returnTimeStartInput = "13:00";
-// let returnTimeEndInput = "18:00";
-// firstTimeLoad = true;
-
 //////////////////////////////////////////////////////////////////////
 // app starts here
 app.get("/", function (req, res) {
   // setup constants
 
-  // if (!firstTimeLoad) {
-  // }
+  let originInput = "";
+  let departureDateInitialInput = "2023-02-17";
+  let departureTimeStartInput = "18:00";
+  let departureTimeEndInput = "20:00";
+  let returnDateInput = "2023-02-19";
+  let returnTimeStartInput = "13:00";
+  let returnTimeEndInput = "18:00";
 
   res.render("index", {
     foundFlights: false,
     foundDestinations: "",
-    // inputDate1: departureDateInput,
+    inputDate1: departureDateInitialInput,
     // inputTime1: departureTimeStartInput,
     // inputTime2: departureTimeEndInput,
     // inputDate2: returnDateInput,
@@ -144,7 +140,7 @@ function matchFlights(departingFlight, returnFlight) {
         var depAirline = getAirlineName(resultDepart.flightNumber);
         var retAirline = getAirlineName(resultReturn.flightNumber);
 
-        // Push all info into the query
+        // Push all info into the array
         foundDestinations.push({
           depAirport: resultDepart.departureAirport,
           depTime: resultDepart.departureTimeLocal,
@@ -198,13 +194,13 @@ function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
 }
 
 app.post("/", function (req, res) {
-  originInput = req.body.originName;
-  departureDateInput = req.body.departureDateName;
-  departureTimeStartInput = req.body.departureTimeStartName;
-  departureTimeEndInput = req.body.departureTimeEndName;
-  returnDateInput = req.body.returnDateName;
-  returnTimeStartInput = req.body.returnTimeStartName;
-  returnTimeEndInput = req.body.returnTimeEndName;
+  let originInput = req.body.originName;
+  let departureDateInput = req.body.departureDateName;
+  let departureTimeStartInput = req.body.departureTimeStartName;
+  let departureTimeEndInput = req.body.departureTimeEndName;
+  let returnDateInput = req.body.returnDateName;
+  let returnTimeStartInput = req.body.returnTimeStartName;
+  let returnTimeEndInput = req.body.returnTimeEndName;
 
   console.log("origin: " + originInput);
   console.log("departure date: " + departureDateInput);
@@ -334,13 +330,14 @@ app.post("/", function (req, res) {
   const returnIntervalStart = return_start_zulu;
   const returnIntervalEnd = return_end_zulu;
 
-  var foundFlights;
+  var foundFlights; // volgens mij is dit een boolean om te zien of we vluchten gevonden hebben
   var foundDestinations = []; // dit is de enige die we uiteindelijk gebruiken in de frontend
 
   function displayFlights() {
     res.render("index", {
       foundFlights: foundFlights,
       foundDestinations: foundDestinations,
+      inputDate1: departureDateInput,
     });
   }
 
