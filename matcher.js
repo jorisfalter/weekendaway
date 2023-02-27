@@ -87,39 +87,23 @@ app.get("/", function (req, res) {
 
   var nextFridayZulu = new Date(nextFridayInt);
   var nextSundayZulu = new Date(nextSundayInt);
-  if (nextFridayZulu.getUTCMonth() + 1 < 10) {
-    var nextFridayString =
-      nextFridayZulu.getUTCFullYear() +
-      "-0" +
-      (nextFridayZulu.getUTCMonth() + 1) + // adding +1 because months are counted from zero
-      "-" +
-      nextFridayZulu.getUTCDate();
-  } else {
-    var nextFridayString =
-      nextFridayZulu.getUTCFullYear() +
-      "-" +
-      (nextFridayZulu.getUTCMonth() + 1) + // adding +1 because months are counted from zero
-      "-" +
-      nextFridayZulu.getUTCDate();
-  }
 
-  if (nextSundayZulu.getUTCMonth() + 1 < 10) {
-    var nextSundayString =
-      nextSundayZulu.getUTCFullYear() +
-      "-0" +
-      (nextSundayZulu.getUTCMonth() + 1) + // adding +1 because months are counted from zero
-      "-" +
-      nextSundayZulu.getUTCDate();
-  } else {
-    var nextSundayString =
-      nextSundayZulu.getUTCFullYear() +
-      "-" +
-      (nextSundayZulu.getUTCMonth() + 1) + // adding +1 because months are counted from zero
-      "-" +
-      nextSundayZulu.getUTCDate();
-  }
+  var nextFridayString =
+    nextFridayZulu.getUTCFullYear() +
+    "-" +
+    ("0" + (nextFridayZulu.getUTCMonth() + 1)).slice(-2) + // adding +1 because months are counted from zero
+    "-" +
+    ("0" + nextFridayZulu.getUTCDate()).slice(-2);
 
-  // console.log(nextFridayString);
+  var nextSundayString =
+    nextSundayZulu.getUTCFullYear() +
+    "-" +
+    ("0" + (nextSundayZulu.getUTCMonth() + 1)).slice(-2) + // adding +1 because months are counted from zero
+    "-" +
+    ("0" + nextSundayZulu.getUTCDate()).slice(-2);
+
+  console.log(nextFridayString);
+
   let originInput = "";
   let departureDateInitialInput = nextFridayString;
   let departureTimeStartInput = "18:00";
