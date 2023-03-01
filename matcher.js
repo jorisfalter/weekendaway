@@ -390,12 +390,14 @@ app.post("/", function (req, res) {
       $gte: departureIntervalStart,
       $lte: departureIntervalEnd,
     },
+    // ik moet hier eveneeens op departureAirport filteren
   }).exec((err, departingFlight) => {
     if (err) {
       console.log(err);
     } else {
       Returnflight.find({
         arrivalTimeZulu: { $gte: returnIntervalStart, $lte: returnIntervalEnd },
+        // ik moet hier eveneeens op arrivalAirport filteren
       }).exec((err, returnFlight) => {
         if (err) {
           console.log(err);
