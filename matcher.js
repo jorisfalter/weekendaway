@@ -104,7 +104,7 @@ app.get("/", function (req, res) {
 
   console.log(nextFridayString);
 
-  let originInput = "";
+  let originInput = ""; // I think I can remove this
   let departureDateInitialInput = nextFridayString;
   let departureTimeStartInput = "18:00";
   let departureTimeEndInput = "20:00";
@@ -224,6 +224,8 @@ app.post("/", function (req, res) {
   let returnTimeStartInput = req.body.returnTimeStartName;
   let returnTimeEndInput = req.body.returnTimeEndName;
 
+  let originInputCode = "";
+
   console.log("origin: " + originInput);
   console.log("departure date: " + departureDateInput);
   console.log("departure time start local: " + departureTimeStartInput);
@@ -231,6 +233,17 @@ app.post("/", function (req, res) {
   console.log("return date: " + returnDateInput);
   console.log("return time start local: " + returnTimeStartInput);
   console.log("return time end local: " + returnTimeEndInput);
+
+  ///////////////////////////////////////////////////////////////
+  // convert the airports into a code
+  // I either need to change this in the fetching files (but then I would need to update each file, so I should probably make sure the files are able to run in one file)
+  // >> technical debt
+  // or I should bring this in an outside file
+
+  if (originInput === "Lisbon") {
+    console.log("he wants Lisbon");
+    originInputCode = "lppt";
+  }
 
   ///////////////////////////////////////////////////////////////
   const todaysDate = new Date();
@@ -368,36 +381,44 @@ app.post("/", function (req, res) {
       firstLoad: false,
     });
   }
-
-  Departingflight.find({
-    departureTimeZulu: {
-      $gte: departureIntervalStart,
-      $lte: departureIntervalEnd,
-    },
-
+  Departingflight.find(
+    // old code when not filtering on the airport
     // {
-    //   $and:[{departureTimeZulu: {
-    //     $gte: departureIntervalStart,
-    //     $lte: departureIntervalEnd,
-    //   }
-
-    // },{departureAirport:originInput
-
-    // }
-
-    // ]
-
+    // departureTimeZulu: {
+    //   $gte: departureIntervalStart,
+    //   $lte: departureIntervalEnd,
     // },
 
-    // ik moet hier eveneeens op departureAirport filteren
-  }).exec((err, departingFlight) => {
+    {
+      $and: [
+        {
+          departureTimeZulu: {
+            $gte: departureIntervalStart,
+            $lte: departureIntervalEnd,
+          },
+        },
+        { departureAirport: originInputCode },
+      ],
+    }
+  ).exec((err, departingFlight) => {
     if (err) {
       console.log(err);
     } else {
-      Returnflight.find({
-        arrivalTimeZulu: { $gte: returnIntervalStart, $lte: returnIntervalEnd },
-        // ik moet hier eveneeens op arrivalAirport filteren
-      }).exec((err, returnFlight) => {
+      Returnflight.find(
+        // old code when not filtering on the airport
+        // {arrivalTimeZulu: { $gte: returnIntervalStart, $lte: returnIntervalEnd },
+        {
+          $and: [
+            {
+              arrivalTimeZulu: {
+                $gte: returnIntervalStart,
+                $lte: returnIntervalEnd,
+              },
+            },
+            { arrivalAirport: originInputCode },
+          ],
+        }
+      ).exec((err, returnFlight) => {
         if (err) {
           console.log(err);
         } else {
