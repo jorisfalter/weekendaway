@@ -187,6 +187,7 @@ const fireItAllUp = async () => {
               let flightNumber = data.scheduled_departures[i].ident_iata;
 
               // use findOne instead on date and flight number
+              // here we check for duplicates
               Departingflight.findOne({
                 departureTimeZulu: departureTimeZulu,
                 flightNumber: flightNumber,

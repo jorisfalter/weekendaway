@@ -155,18 +155,11 @@ function getAirlineName(flightNumber) {
 // find the entries in the db between start and end for departure
 // find the entries in the db between start and end for return
 function matchFlights(departingFlight, returnFlight) {
-  // console.log("all deps: " + departingFlight);
-  // console.log("all rets: " + returnFlight);
   var foundFlights = false;
   var foundDestinations = [];
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (resultDepart.arrivalAirport === resultReturn.departureAirport) {
-        // console.log("found match"); // on: " + resultReturn.departureAirport);
-        // console.log("Flying from: " + resultDepart.departureAirport);
-        // console.log("At local time: " + resultDepart.departureTimeLocal);
-        // console.log("Returning from: " + resultReturn.departureAirport);
-        // console.log("Arriving at local time: " + resultReturn.arrivalTimeLocal);
         foundFlights = true;
 
         // Translate the Airport Code into a full name comprehensible for users
@@ -206,28 +199,19 @@ function matchFlights(departingFlight, returnFlight) {
 function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
   var mergedString = inputDate + " " + inputTimeInHours + ":00";
   var inputInBrowserTime = new Date(mergedString.replace(/-/g, "/"));
-  // var inputInBrowserTime = new Date(year, month, day, hour);
   var inputInAthensTimeString = inputInBrowserTime.toLocaleString("en-US", {
     timeZone: timeZone,
   });
-  // var inputInAthensTimeString = new Date(year, month, day, hour).toLocaleString(
-  //   "en-US",
-  //   { timeZone: "Europe/Athens" }
-  // );
+
   var inputInAthensTime = new Date(inputInAthensTimeString);
-  //   console.log(inputInBrowserTime);
-  //   console.log(inputInAthensTimeString);
-  //   console.log(inputInAthensTime);
+
   var diff = inputInBrowserTime.getTime() - inputInAthensTime.getTime();
   var diffInHours = diff / 1000 / 3600;
-  // console.log(diffInHours);
   var correctInputInUtcInMilliseconds = inputInBrowserTime.getTime() + diff;
-  // console.log(inputInBrowserTime.getTime());
-  // console.log(correctInputInUtcInMilliseconds);
+
   var correctInputInUtc = new Date(correctInputInUtcInMilliseconds);
   correctInputInUtc.toUTCString();
-  // console.log("final solution: " + correctInputInUtc.toUTCString());
-  // console.log(correctInputInUtc);
+
   return correctInputInUtc;
 }
 
@@ -390,6 +374,21 @@ app.post("/", function (req, res) {
       $gte: departureIntervalStart,
       $lte: departureIntervalEnd,
     },
+
+    // {
+    //   $and:[{departureTimeZulu: {
+    //     $gte: departureIntervalStart,
+    //     $lte: departureIntervalEnd,
+    //   }
+
+    // },{departureAirport:originInput
+
+    // }
+
+    // ]
+
+    // },
+
     // ik moet hier eveneeens op departureAirport filteren
   }).exec((err, departingFlight) => {
     if (err) {
