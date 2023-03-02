@@ -104,7 +104,6 @@ app.get("/", function (req, res) {
 
   console.log(nextFridayString);
 
-  let originInput = ""; // I think I can remove this
   let departureDateInitialInput = nextFridayString;
   let departureTimeStartInput = "18:00";
   let departureTimeEndInput = "20:00";
