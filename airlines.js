@@ -24,5 +24,12 @@ airlinesList = [
   ["EI", "Aer Lingus"],
   ["EK", "Emirates"],
   ["W9", "Wizz Air"],
+  ["FB", "Bulgaria Air"],
+  ["WT", "Swift Air"],
+  ["VR", "Cape Verde Airlines"],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
 ];
 module.exports = airlinesList;
