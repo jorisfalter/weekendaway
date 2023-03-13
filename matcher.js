@@ -241,7 +241,7 @@ app.post("/", function (req, res) {
 
   if (originInput === "Lisbon") {
     console.log("he wants Lisbon");
-    originInputCode = "vtbd";
+    originInputCode = "lppt";
   }
 
   ///////////////////////////////////////////////////////////////
