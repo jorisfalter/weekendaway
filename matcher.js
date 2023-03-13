@@ -125,7 +125,7 @@ app.get("/", function (req, res) {
 });
 
 function getDestinationInFull(destinationAirportAbbreviated) {
-  var longAirportName = "noname";
+  var longAirportName = "Unknown Airport";
 
   for (let i = 0; i < airportsList.length; i++) {
     if (airportsList[i][0] === destinationAirportAbbreviated) {
@@ -137,7 +137,7 @@ function getDestinationInFull(destinationAirportAbbreviated) {
 }
 
 function getAirlineName(flightNumber) {
-  var airlineName = "noname";
+  var airlineName = "Unknown Airline";
 
   var flightNumberCut = flightNumber.slice(0, 2);
 
