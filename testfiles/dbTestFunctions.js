@@ -5,8 +5,8 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-const airportsList = require("./airports.js");
-const airlinesList = require("./airlines.js");
+const airportsList = require("../airports.js");
+const airlinesList = require("../airlines.js");
 
 app.set("view engine", "ejs");
 
