@@ -16,6 +16,20 @@ h3 {
   color: gray;
 }
 
+.radio-inline{
+  margin-left:10px;
+  margin-right:10px;
+}
+
+.radio-button-button{
+  margin-left:10px;
+  margin-right:10px;
+}
+
+.departure-note{
+  font-size:0.6rem;
+}
+
 .container {
   text-align: center;
   width: 80%;
