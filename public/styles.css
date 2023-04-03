@@ -28,6 +28,9 @@ h3 {
 
 .departure-note{
   font-size:0.6rem;
+  color:black;
+  font-style: italic;
+
 }
 
 .container {
