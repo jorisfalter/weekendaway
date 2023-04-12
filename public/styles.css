@@ -17,14 +17,23 @@ h3 {
 }
 
 .radio-inline{
-  margin-left:10px;
-  margin-right:10px;
+  padding-left:10px;
+  padding-right:10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  border-color:gray;
+  border-style: solid;
+  border-radius:5px;
+  margin-left: 2px;
+  margin-right: 2px;
 }
 
 .radio-button-button{
   margin-left:10px;
   margin-right:10px;
 }
+
+
 
 .departure-note{
   font-size:0.6rem;
