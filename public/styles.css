@@ -50,6 +50,10 @@ h3 {
   min-width: 100%;
 }
 
+.origin-container {
+  text-align: left;
+}
+
 .instruction-question {
   color: red;
   font-weight: bold;
