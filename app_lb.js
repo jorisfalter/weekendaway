@@ -230,6 +230,8 @@ const fireItAllUp = async () => {
               // define variables with data from api
               let arrivalAirport_icao =
                 data.scheduled_arrivals[i].destination.code_icao;
+              let arrivalAirport_city =
+                data.scheduled_arrivals[i].destination.city;
               let departureAirport_icao =
                 data.scheduled_arrivals[i].origin.code_icao;
               let departureAirport_city =
@@ -257,8 +259,8 @@ const fireItAllUp = async () => {
                       TimeOfEntry: new Date(),
                       departureAirport_icao: departureAirport_icao,
                       departureAirport_city: departureAirport_city,
-                      arrivalAirport_city: originAirport_city,
-                      arrivalAirport_icao: originAirport_icao,
+                      arrivalAirport_city: arrivalAirport_city,
+                      arrivalAirport_icao: arrivalAirport_icao,
                       arrivalTimeZulu: arrivalTimeZulu,
                       arrivalTimeLocal: arrivalTimeLocal,
                       arrivalTimeDayOfWeek: arrivalTimeDayOfWeek,

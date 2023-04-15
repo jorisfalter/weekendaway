@@ -52,9 +52,9 @@ const fireItAllUp = async () => {
 
   // delete data
   try {
-    const { deletedCount } = await Departingflight.deleteMany({
-      // const { deletedCount } = await Returnflight.deleteMany({
-      // TimeOfEntry: { $lte: fifteenDaysAgo },
+    // const { deletedCount } = await Departingflight.deleteMany({
+    const { deletedCount } = await Returnflight.deleteMany({
+      TimeOfEntry: { $lte: fifteenDaysAgo },
     }).exec();
 
     // try to delete old data from Santander first
