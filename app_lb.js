@@ -41,7 +41,7 @@ const airportsList = [
   // },
   {
     originAirport_city: "Lisbon",
-    originAirport_iata: "lppt",
+    originAirport_icao: "lppt",
     originTimeZone: "Europe/Lisbon",
   },
 ];
@@ -70,9 +70,9 @@ const fireItAllUp = async () => {
   const departingFlightSchema = new mongoose.Schema({
     TimeOfEntry: Date,
     departureAirport_city: String,
-    departureAirport_iata: String,
+    departureAirport_icao: String,
     arrivalAirport_city: String,
-    arrivalAirport_iata: String,
+    arrivalAirport_icao: String,
     departureTimeZulu: Date,
     departureTimeLocal: String,
     departureTimeDayOfWeek: Number,
@@ -83,9 +83,9 @@ const fireItAllUp = async () => {
   const returnFlightSchema = new mongoose.Schema({
     TimeOfEntry: Date,
     departureAirport_city: String,
-    departureAirport_iata: String,
+    departureAirport_icao: String,
     arrivalAirport_city: String,
-    arrivalAirport_iata: String,
+    arrivalAirport_icao: String,
     arrivalTimeZulu: Date,
     arrivalTimeLocal: String,
     arrivalTimeDayOfWeek: Number,
@@ -118,17 +118,17 @@ const fireItAllUp = async () => {
 
   function multiAirport() {
     for (let j = 0; j < airportsList.length; j++) {
-      let originAirport_iata = airportsList[j].originAirport_iata;
+      let originAirport_icao = airportsList[j].originAirport_icao;
       let departureUrl =
         "https://aeroapi.flightaware.com/aeroapi/airports/" +
-        airportsList[j].originAirport_iata +
+        airportsList[j].originAirport_icao +
         "/flights/scheduled_departures?type=Airline";
       let returnUrl =
         "https://aeroapi.flightaware.com/aeroapi/airports/" +
-        airportsList[j].originAirport_iata +
+        airportsList[j].originAirport_icao +
         "/flights/scheduled_arrivals?type=Airline";
       let originTimeZone = airportsList[j].originTimeZone;
-      // console.log(originAirport_iata)
+      // console.log(originAirport_icao)
       // console.log(returnUrl)
       // console.log(originTimeZone)
       if (j === airportsList.length - 1) {
@@ -142,7 +142,7 @@ const fireItAllUp = async () => {
         0,
         originTimeZone,
         returnUrl,
-        originAirport_iata
+        originAirport_icao
       );
     }
   }
@@ -156,7 +156,7 @@ const fireItAllUp = async () => {
     pageCounter,
     originTimeZone,
     returnUrl,
-    originAirport_iata
+    originAirport_icao
   ) {
     fetch(url, {
       method: "GET",
@@ -174,13 +174,12 @@ const fireItAllUp = async () => {
             if (data.scheduled_departures[i].destination === null) {
             } else {
               // define variables with data from api
-              let originAirport_iata =
-                data.scheduled_departures[i].origin.code_iata;
-              let originAirport_city =
-                data.scheduled_departures[i].origin.code_city;
+              let originAirport_icao =
+                data.scheduled_departures[i].origin.code_icao;
+              let originAirport_city = data.scheduled_departures[i].origin.city;
               // I'm not sure why I'm fetching these two above variables as I already have them
-              let arrivalAirport_iata =
-                data.scheduled_departures[i].destination.code_iata;
+              let arrivalAirport_icao =
+                data.scheduled_departures[i].destination.code_icao;
               let arrivalAirport_city =
                 data.scheduled_departures[i].destination.city;
               let departureTimeZulu = new Date(
@@ -191,7 +190,7 @@ const fireItAllUp = async () => {
                 { timeZone: originTimeZone }
               );
               let departureTimeDayOfWeek = departureTimeZulu.getDay(); // has to be zulu time because local time is a string, not a date
-              let flightNumber = data.scheduled_departures[i].ident_iata;
+              let flightNumber = data.scheduled_departures[i].ident_icao;
 
               // use findOne instead on date and flight number
               // here we check for duplicates
@@ -207,9 +206,9 @@ const fireItAllUp = async () => {
                     const newDepartingFlightEntry = new Departingflight({
                       TimeOfEntry: new Date(),
                       departureAirport_city: originAirport_city,
-                      departureAirport_iata: originAirport_iata,
+                      departureAirport_icao: originAirport_icao,
                       arrivalAirport_city: arrivalAirport_city,
-                      arrivalAirport_iata: arrivalAirport_iata,
+                      arrivalAirport_icao: arrivalAirport_icao,
                       departureTimeZulu: departureTimeZulu,
                       departureTimeLocal: departureTimeLocal,
                       departureTimeDayOfWeek: departureTimeDayOfWeek,
@@ -229,10 +228,10 @@ const fireItAllUp = async () => {
             if (data.scheduled_arrivals[i].destination === null) {
             } else {
               // define variables with data from api
-              let arrivalAirport_iata =
-                data.scheduled_arrivals[i].destination.code_iata;
-              let departureAirport_iata =
-                data.scheduled_arrivals[i].origin.code_iata;
+              let arrivalAirport_icao =
+                data.scheduled_arrivals[i].destination.code_icao;
+              let departureAirport_icao =
+                data.scheduled_arrivals[i].origin.code_icao;
               let departureAirport_city =
                 data.scheduled_arrivals[i].origin.city;
               let arrivalTimeZulu = new Date(
@@ -242,7 +241,7 @@ const fireItAllUp = async () => {
                 timeZone: originTimeZone,
               });
               let arrivalTimeDayOfWeek = arrivalTimeZulu.getDay();
-              let flightNumber = data.scheduled_arrivals[i].ident_iata;
+              let flightNumber = data.scheduled_arrivals[i].ident_icao;
 
               // use findOne instead on date and flight number
               Returnflight.findOne({
@@ -256,10 +255,10 @@ const fireItAllUp = async () => {
                     // put data in database
                     const newReturnFlightEntry = new Returnflight({
                       TimeOfEntry: new Date(),
-                      departureAirport_iata: departureAirport_iata,
+                      departureAirport_icao: departureAirport_icao,
                       departureAirport_city: departureAirport_city,
                       arrivalAirport_city: originAirport_city,
-                      arrivalAirport_iata: originAirport_iata,
+                      arrivalAirport_icao: originAirport_icao,
                       arrivalTimeZulu: arrivalTimeZulu,
                       arrivalTimeLocal: arrivalTimeLocal,
                       arrivalTimeDayOfWeek: arrivalTimeDayOfWeek,
@@ -299,7 +298,7 @@ const fireItAllUp = async () => {
                 pageCounter,
                 originTimeZone,
                 returnUrl,
-                originAirport_iata
+                originAirport_icao
               );
             };
             delayForRateLimitAndCallNextPage();
@@ -320,7 +319,7 @@ const fireItAllUp = async () => {
               0,
               originTimeZone,
               returnUrl,
-              originAirport_iata
+              originAirport_icao
             );
           } else {
             if ((endOfTheList = false)) {
