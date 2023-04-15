@@ -52,7 +52,8 @@ const fireItAllUp = async () => {
 
   // delete data
   try {
-    const { deletedCount } = await Returnflight.deleteMany({
+    const { deletedCount } = await Departingflight.deleteMany({
+      // const { deletedCount } = await Returnflight.deleteMany({
       TimeOfEntry: { $lte: fifteenDaysAgo },
     }).exec();
 
