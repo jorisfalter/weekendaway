@@ -40,7 +40,8 @@ const airportsList = [
   //     originTimeZone: 'Asia/kuala_lumpur'
   // },
   {
-    originAirport: "lppt", // lisbon
+    originAirport_city: "Lisbon",
+    originAirport_iata: "lppt",
     originTimeZone: "Europe/Lisbon",
   },
 ];
@@ -68,9 +69,10 @@ const fireItAllUp = async () => {
   // setup departure collection
   const departingFlightSchema = new mongoose.Schema({
     TimeOfEntry: Date,
-    departureAirport: String,
+    departureAirport_city: String,
     departureAirport_iata: String,
-    arrivalAirport: String,
+    arrivalAirport_city: String,
+    arrivalAirport_iata: String,
     departureTimeZulu: Date,
     departureTimeLocal: String,
     departureTimeDayOfWeek: Number,
@@ -80,8 +82,9 @@ const fireItAllUp = async () => {
   // setup return collection
   const returnFlightSchema = new mongoose.Schema({
     TimeOfEntry: Date,
-    departureAirport: String,
-    arrivalAirport: String,
+    departureAirport_city: String,
+    departureAirport_iata: String,
+    arrivalAirport_city: String,
     arrivalAirport_iata: String,
     arrivalTimeZulu: Date,
     arrivalTimeLocal: String,
@@ -115,17 +118,17 @@ const fireItAllUp = async () => {
 
   function multiAirport() {
     for (let j = 0; j < airportsList.length; j++) {
-      let originAirport = airportsList[j].originAirport;
+      let originAirport_iata = airportsList[j].originAirport_iata;
       let departureUrl =
         "https://aeroapi.flightaware.com/aeroapi/airports/" +
-        airportsList[j].originAirport +
+        airportsList[j].originAirport_iata +
         "/flights/scheduled_departures?type=Airline";
       let returnUrl =
         "https://aeroapi.flightaware.com/aeroapi/airports/" +
-        airportsList[j].originAirport +
+        airportsList[j].originAirport_iata +
         "/flights/scheduled_arrivals?type=Airline";
       let originTimeZone = airportsList[j].originTimeZone;
-      // console.log(originAirport)
+      // console.log(originAirport_iata)
       // console.log(returnUrl)
       // console.log(originTimeZone)
       if (j === airportsList.length - 1) {
@@ -139,7 +142,7 @@ const fireItAllUp = async () => {
         0,
         originTimeZone,
         returnUrl,
-        originAirport
+        originAirport_iata
       );
     }
   }
@@ -153,7 +156,7 @@ const fireItAllUp = async () => {
     pageCounter,
     originTimeZone,
     returnUrl,
-    originAirport
+    originAirport_iata
   ) {
     fetch(url, {
       method: "GET",
@@ -173,9 +176,13 @@ const fireItAllUp = async () => {
               // define variables with data from api
               let originAirport_iata =
                 data.scheduled_departures[i].origin.code_iata;
-
-              let arrivalAirport =
+              let originAirport_city =
+                data.scheduled_departures[i].origin.code_city;
+              // I'm not sure why I'm fetching these two above variables as I already have them
+              let arrivalAirport_iata =
                 data.scheduled_departures[i].destination.code_iata;
+              let arrivalAirport_city =
+                data.scheduled_departures[i].destination.city;
               let departureTimeZulu = new Date(
                 data.scheduled_departures[i].scheduled_out
               );
@@ -199,9 +206,10 @@ const fireItAllUp = async () => {
                     // put data in database
                     const newDepartingFlightEntry = new Departingflight({
                       TimeOfEntry: new Date(),
-                      departureAirport: originAirport,
+                      departureAirport_city: originAirport_city,
                       departureAirport_iata: originAirport_iata,
-                      arrivalAirport: arrivalAirport,
+                      arrivalAirport_city: arrivalAirport_city,
+                      arrivalAirport_iata: arrivalAirport_iata,
                       departureTimeZulu: departureTimeZulu,
                       departureTimeLocal: departureTimeLocal,
                       departureTimeDayOfWeek: departureTimeDayOfWeek,
@@ -223,8 +231,10 @@ const fireItAllUp = async () => {
               // define variables with data from api
               let arrivalAirport_iata =
                 data.scheduled_arrivals[i].destination.code_iata;
-              let departureAirport =
+              let departureAirport_iata =
                 data.scheduled_arrivals[i].origin.code_iata;
+              let departureAirport_city =
+                data.scheduled_arrivals[i].origin.city;
               let arrivalTimeZulu = new Date(
                 data.scheduled_arrivals[i].scheduled_in
               );
@@ -246,9 +256,10 @@ const fireItAllUp = async () => {
                     // put data in database
                     const newReturnFlightEntry = new Returnflight({
                       TimeOfEntry: new Date(),
-                      departureAirport: departureAirport,
-                      arrivalAirport: originAirport,
-                      arrivalAirport_iata: arrivalAirport_iata,
+                      departureAirport_iata: departureAirport_iata,
+                      departureAirport_city: departureAirport_city,
+                      arrivalAirport_city: originAirport_city,
+                      arrivalAirport_iata: originAirport_iata,
                       arrivalTimeZulu: arrivalTimeZulu,
                       arrivalTimeLocal: arrivalTimeLocal,
                       arrivalTimeDayOfWeek: arrivalTimeDayOfWeek,
@@ -288,7 +299,7 @@ const fireItAllUp = async () => {
                 pageCounter,
                 originTimeZone,
                 returnUrl,
-                originAirport
+                originAirport_iata
               );
             };
             delayForRateLimitAndCallNextPage();
@@ -309,7 +320,7 @@ const fireItAllUp = async () => {
               0,
               originTimeZone,
               returnUrl,
-              originAirport
+              originAirport_iata
             );
           } else {
             if ((endOfTheList = false)) {
