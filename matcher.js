@@ -33,8 +33,10 @@ console.log("mongoose fired up");
 // setup departure collection
 const departingFlightSchema = new mongoose.Schema({
   TimeOfEntry: Date,
-  departureAirport: String,
-  arrivalAirport: String,
+  departureAirport_city: String,
+  departureAirport_icao: String,
+  arrivalAirport_city: String,
+  arrivalAirport_icao: String,
   departureTimeZulu: Date,
   departureTimeLocal: String,
   departureTimeDayOfWeek: Number,
@@ -44,8 +46,10 @@ const departingFlightSchema = new mongoose.Schema({
 // setup return collection
 const returnFlightSchema = new mongoose.Schema({
   TimeOfEntry: Date,
-  departureAirport: String,
-  arrivalAirport: String,
+  departureAirport_city: String,
+  departureAirport_icao: String,
+  arrivalAirport_city: String,
+  arrivalAirport_icao: String,
   arrivalTimeZulu: Date,
   arrivalTimeLocal: String,
   arrivalTimeDayOfWeek: Number,
