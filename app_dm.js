@@ -15,35 +15,29 @@ app.use(
   })
 );
 
-////// define variables
-// let originAirport = "lexj"
-// let originTimeZone = 'Europe/Madrid'
-// let originAirport = "vtbs"
-// let originTimeZone = 'Asia/Bangkok';
-
-// vtse = chumphon
-// vtbs = suvarnabhumi
-// vtsm = samui
-// lexj = santander
-
 //
 const airportsList = [
-  //     {
-  //     originAirport: "vtbs",          // suvarnabhumi
-  //     originTimeZone: 'Asia/Bangkok'
-  // }
+  // {
+  //   originAirport_city: "Bangkok",
+  //   originAirport_icao: "vtbs", // Suvarnabhumi
+  //   originTimeZone: "Asia/Bangkok",
+  // },
   // ,
   {
-    originAirport: "vtbd", // don mueang
+    originAirport_city: "Bangkok",
+    originAirport_icao: "vtbd", // Don Mueang
     originTimeZone: "Asia/Bangkok",
   },
-  // ,{
-  //     originAirport: "wadd",          // bali
-  //     originTimeZone: 'Asia/kuala_lumpur'
-  // },{
-  //     originAirport: "lppt",          // lisbon
-  //     originTimeZone: 'Europe/Lisbon'
-  // }
+  // {
+  //   originAirport_city: "Austin",
+  //   originAirport_icao: "kaus",
+  //   originTimeZone: "US/Central",
+  // },
+  // {
+  //   originAirport_city: "Lisbon",
+  //   originAirport_icao: "lppt",
+  //   originTimeZone: "Europe/Lisbon",
+  // },
 ];
 
 console.log("length of list: " + airportsList.length);
@@ -69,8 +63,10 @@ const fireItAllUp = async () => {
   // setup departure collection
   const departingFlightSchema = new mongoose.Schema({
     TimeOfEntry: Date,
-    departureAirport: String,
-    arrivalAirport: String,
+    departureAirport_city: String,
+    departureAirport_icao: String,
+    arrivalAirport_city: String,
+    arrivalAirport_icao: String,
     departureTimeZulu: Date,
     departureTimeLocal: String,
     departureTimeDayOfWeek: Number,
@@ -80,8 +76,10 @@ const fireItAllUp = async () => {
   // setup return collection
   const returnFlightSchema = new mongoose.Schema({
     TimeOfEntry: Date,
-    departureAirport: String,
-    arrivalAirport: String,
+    departureAirport_city: String,
+    departureAirport_icao: String,
+    arrivalAirport_city: String,
+    arrivalAirport_icao: String,
     arrivalTimeZulu: Date,
     arrivalTimeLocal: String,
     arrivalTimeDayOfWeek: Number,
@@ -114,17 +112,17 @@ const fireItAllUp = async () => {
 
   function multiAirport() {
     for (let j = 0; j < airportsList.length; j++) {
-      let originAirport = airportsList[j].originAirport;
+      let originAirport_icao = airportsList[j].originAirport_icao;
       let departureUrl =
         "https://aeroapi.flightaware.com/aeroapi/airports/" +
-        airportsList[j].originAirport +
+        airportsList[j].originAirport_icao +
         "/flights/scheduled_departures?type=Airline";
       let returnUrl =
         "https://aeroapi.flightaware.com/aeroapi/airports/" +
-        airportsList[j].originAirport +
+        airportsList[j].originAirport_icao +
         "/flights/scheduled_arrivals?type=Airline";
       let originTimeZone = airportsList[j].originTimeZone;
-      // console.log(originAirport)
+      // console.log(originAirport_icao)
       // console.log(returnUrl)
       // console.log(originTimeZone)
       if (j === airportsList.length - 1) {
@@ -138,7 +136,7 @@ const fireItAllUp = async () => {
         0,
         originTimeZone,
         returnUrl,
-        originAirport
+        originAirport_icao
       );
     }
   }
@@ -152,7 +150,7 @@ const fireItAllUp = async () => {
     pageCounter,
     originTimeZone,
     returnUrl,
-    originAirport
+    originAirport_icao
   ) {
     fetch(url, {
       method: "GET",
@@ -170,8 +168,14 @@ const fireItAllUp = async () => {
             if (data.scheduled_departures[i].destination === null) {
             } else {
               // define variables with data from api
-              let arrivalAirport =
-                data.scheduled_departures[i].destination.code_iata;
+              let originAirport_icao =
+                data.scheduled_departures[i].origin.code_icao;
+              let originAirport_city = data.scheduled_departures[i].origin.city;
+              // I'm not sure why I'm fetching these two above variables as I already have them
+              let arrivalAirport_icao =
+                data.scheduled_departures[i].destination.code_icao;
+              let arrivalAirport_city =
+                data.scheduled_departures[i].destination.city;
               let departureTimeZulu = new Date(
                 data.scheduled_departures[i].scheduled_out
               );
@@ -180,9 +184,10 @@ const fireItAllUp = async () => {
                 { timeZone: originTimeZone }
               );
               let departureTimeDayOfWeek = departureTimeZulu.getDay(); // has to be zulu time because local time is a string, not a date
-              let flightNumber = data.scheduled_departures[i].ident_iata;
+              let flightNumber = data.scheduled_departures[i].ident_icao;
 
               // use findOne instead on date and flight number
+              // here we check for duplicates
               Departingflight.findOne({
                 departureTimeZulu: departureTimeZulu,
                 flightNumber: flightNumber,
@@ -194,8 +199,10 @@ const fireItAllUp = async () => {
                     // put data in database
                     const newDepartingFlightEntry = new Departingflight({
                       TimeOfEntry: new Date(),
-                      departureAirport: originAirport,
-                      arrivalAirport: arrivalAirport,
+                      departureAirport_city: originAirport_city,
+                      departureAirport_icao: originAirport_icao,
+                      arrivalAirport_city: arrivalAirport_city,
+                      arrivalAirport_icao: arrivalAirport_icao,
                       departureTimeZulu: departureTimeZulu,
                       departureTimeLocal: departureTimeLocal,
                       departureTimeDayOfWeek: departureTimeDayOfWeek,
@@ -215,8 +222,14 @@ const fireItAllUp = async () => {
             if (data.scheduled_arrivals[i].destination === null) {
             } else {
               // define variables with data from api
-              let departureAirport =
-                data.scheduled_arrivals[i].origin.code_iata;
+              let arrivalAirport_icao =
+                data.scheduled_arrivals[i].destination.code_icao;
+              let arrivalAirport_city =
+                data.scheduled_arrivals[i].destination.city;
+              let departureAirport_icao =
+                data.scheduled_arrivals[i].origin.code_icao;
+              let departureAirport_city =
+                data.scheduled_arrivals[i].origin.city;
               let arrivalTimeZulu = new Date(
                 data.scheduled_arrivals[i].scheduled_in
               );
@@ -224,7 +237,7 @@ const fireItAllUp = async () => {
                 timeZone: originTimeZone,
               });
               let arrivalTimeDayOfWeek = arrivalTimeZulu.getDay();
-              let flightNumber = data.scheduled_arrivals[i].ident_iata;
+              let flightNumber = data.scheduled_arrivals[i].ident_icao;
 
               // use findOne instead on date and flight number
               Returnflight.findOne({
@@ -238,8 +251,10 @@ const fireItAllUp = async () => {
                     // put data in database
                     const newReturnFlightEntry = new Returnflight({
                       TimeOfEntry: new Date(),
-                      departureAirport: departureAirport,
-                      arrivalAirport: originAirport,
+                      departureAirport_icao: departureAirport_icao,
+                      departureAirport_city: departureAirport_city,
+                      arrivalAirport_city: arrivalAirport_city,
+                      arrivalAirport_icao: arrivalAirport_icao,
                       arrivalTimeZulu: arrivalTimeZulu,
                       arrivalTimeLocal: arrivalTimeLocal,
                       arrivalTimeDayOfWeek: arrivalTimeDayOfWeek,
@@ -279,7 +294,7 @@ const fireItAllUp = async () => {
                 pageCounter,
                 originTimeZone,
                 returnUrl,
-                originAirport
+                originAirport_icao
               );
             };
             delayForRateLimitAndCallNextPage();
@@ -300,7 +315,7 @@ const fireItAllUp = async () => {
               0,
               originTimeZone,
               returnUrl,
-              originAirport
+              originAirport_icao
             );
           } else {
             if ((endOfTheList = false)) {

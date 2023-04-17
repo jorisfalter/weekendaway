@@ -28,16 +28,16 @@ const airportsList = [
   //   originAirport_icao: "vtbd", // Don Mueang
   //   originTimeZone: "Asia/Bangkok",
   // },
-  // {
-  //   originAirport_city: "Austin",
-  //   originAirport_icao: "kaus",
-  //   originTimeZone: "US/Central",
-  // },
   {
-    originAirport_city: "Lisbon",
-    originAirport_icao: "lppt",
-    originTimeZone: "Europe/Lisbon",
+    originAirport_city: "Austin",
+    originAirport_icao: "kaus",
+    originTimeZone: "US/Central",
   },
+  //   {
+  //     originAirport_city: "Lisbon",
+  //     originAirport_icao: "lppt",
+  //     originTimeZone: "Europe/Lisbon",
+  //   },
 ];
 
 console.log("length of list: " + airportsList.length);
