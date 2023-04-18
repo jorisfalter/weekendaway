@@ -34,9 +34,9 @@ console.log("mongoose fired up");
 const departingFlightSchema = new mongoose.Schema({
   TimeOfEntry: Date,
   departureAirport_city: String,
-  departureAirport_icao: String,
+  departureAirport_iata: String,
   arrivalAirport_city: String,
-  arrivalAirport_icao: String,
+  arrivalAirport_iata: String,
   departureTimeZulu: Date,
   departureTimeLocal: String,
   departureTimeDayOfWeek: Number,
@@ -47,9 +47,9 @@ const departingFlightSchema = new mongoose.Schema({
 const returnFlightSchema = new mongoose.Schema({
   TimeOfEntry: Date,
   departureAirport_city: String,
-  departureAirport_icao: String,
+  departureAirport_iata: String,
   arrivalAirport_city: String,
-  arrivalAirport_icao: String,
+  arrivalAirport_iata: String,
   arrivalTimeZulu: Date,
   arrivalTimeLocal: String,
   arrivalTimeDayOfWeek: Number,
@@ -162,12 +162,14 @@ function matchFlights(departingFlight, returnFlight) {
   var foundDestinations = [];
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
-      if (resultDepart.arrivalAirport === resultReturn.departureAirport) {
+      if (
+        resultDepart.arrivalAirport_city === resultReturn.departureAirport_city
+      ) {
         foundFlights = true;
 
         // Translate the Airport Code into a full name comprehensible for users
         var destinationInFull = getDestinationInFull(
-          resultReturn.departureAirport
+          resultReturn.departureAirport_iata
         );
 
         // Translate the Flight number into an airline
@@ -176,10 +178,10 @@ function matchFlights(departingFlight, returnFlight) {
 
         // Push all info into the array
         foundDestinations.push({
-          depAirport: resultDepart.departureAirport,
+          depAirport: resultDepart.departureAirport_iata,
           depTime: resultDepart.departureTimeLocal,
           depFlightNumber: resultDepart.flightNumber,
-          retAirport: resultReturn.departureAirport,
+          retAirport: resultReturn.departureAirport_iata,
           arrTime: resultReturn.arrivalTimeLocal,
           retFlightNumber: resultReturn.flightNumber,
           depAirline: depAirline,
@@ -188,10 +190,10 @@ function matchFlights(departingFlight, returnFlight) {
         });
       } else {
         // console.log(
-        // "no match" //on: " +
-        //     resultReturn.departureAirport +
+        //   "no match" + //on: " +
+        //     resultReturn.departureAirport_iata +
         //     " and " +
-        //     resultDepart.arrivalAirport
+        //     resultDepart.arrivalAirport_iata
         // );
       }
     });
@@ -209,7 +211,6 @@ function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
   var inputInAthensTime = new Date(inputInAthensTimeString);
 
   var diff = inputInBrowserTime.getTime() - inputInAthensTime.getTime();
-  var diffInHours = diff / 1000 / 3600;
   var correctInputInUtcInMilliseconds = inputInBrowserTime.getTime() + diff;
 
   var correctInputInUtc = new Date(correctInputInUtcInMilliseconds);
@@ -227,7 +228,7 @@ app.post("/", function (req, res) {
   let returnTimeStartInput = req.body.returnTimeStartName;
   let returnTimeEndInput = req.body.returnTimeEndName;
 
-  let originInputCode = "";
+  let originInputCode_iata = "";
 
   console.log("origin: " + originInput);
   console.log("departure date: " + departureDateInput);
@@ -243,9 +244,15 @@ app.post("/", function (req, res) {
   // >> technical debt
   // or I should bring this in an outside file
 
-  if (originInput === "Lisbon") {
-    console.log("he wants Lisbon");
-    originInputCode = "lppt";
+  // if (originInput === "Lisbon") {
+  //   console.log("he wants Lisbon");
+  //   originInputCode_iata = "lppt";
+  // }
+  switch (originInput) {
+    case "Lisbon":
+      console.log("User leaves from Lisbon");
+      originInputCode_iata = "LIS";
+      break;
   }
 
   ///////////////////////////////////////////////////////////////
@@ -299,24 +306,6 @@ app.post("/", function (req, res) {
     "-" +
     newRetDate.getUTCDate();
 
-  // below outputs should give the same date. We converted the input date to a recent date
-  //   console.log("original dep date: " + departureDateInUtc);
-  //   console.log("original ret date: " + returnDateInUtc);
-  //   console.log("new dep date: " + newDepDate);
-  //   console.log("new ret date: " + newRetDate);
-  //   console.log("new dep date string: " + newDepDateString);
-  //   console.log("new ret date string: " + newRetDateString);
-
-  // NOTE: ik heb nu de datums terug kunnen herbouwen, maar nu staat de tijd in Zulu tijd. Wil ik dat wel?
-  // controleer of de input geconvert wordt tot zulu tijd, en hoe zoek ik in de DB? in Zulu tijd?
-  // ik bouw het nu eerst zoals het was
-
-  // hier geven we een maand in al in een datum configuratie. Ik ga ervan uit dat dat betekent dat hij de string herkent als een datum, en de maand niet verandert.
-
-  //   var departureStart_string =
-  //     newDepDateString + " " + departureTimeStartInput + ":00";
-  //   var departure_start_zulu = new Date(departureStart_string.replace(/-/g, "/"));
-  //   console.log("new dep start: " + departure_start_zulu);
   var departure_start_zulu = calculateLocalTime(
     newDepDateString,
     departureTimeStartInput,
@@ -324,10 +313,6 @@ app.post("/", function (req, res) {
   );
   console.log("new dep start: " + departure_start_zulu.toUTCString());
 
-  //   var departureEnd_string =
-  //     newDepDateString + " " + departureTimeEndInput + ":00";
-  //   var departure_end_zulu = new Date(departureEnd_string.replace(/-/g, "/"));
-  //   console.log("new dep end: " + departure_end_zulu);
   var departure_end_zulu = calculateLocalTime(
     newDepDateString,
     departureTimeEndInput,
@@ -335,10 +320,6 @@ app.post("/", function (req, res) {
   );
   console.log("new dep end: " + departure_end_zulu.toUTCString());
 
-  //   var returnStart_string =
-  //     newRetDateString + " " + returnTimeStartInput + ":00";
-  //   var return_start_zulu = new Date(returnStart_string.replace(/-/g, "/"));
-  //   console.log("new ret start: " + return_start_zulu);
   var return_start_zulu = calculateLocalTime(
     newRetDateString,
     returnTimeStartInput,
@@ -387,10 +368,10 @@ app.post("/", function (req, res) {
   Departingflight.find(
     // old code when not filtering on the airport
     // {
-    // departureTimeZulu: {
-    //   $gte: departureIntervalStart,
-    //   $lte: departureIntervalEnd,
-    // },
+    //   departureTimeZulu: {
+    //     $gte: departureIntervalStart,
+    //     $lte: departureIntervalEnd,
+    //   },
 
     {
       $and: [
@@ -400,7 +381,7 @@ app.post("/", function (req, res) {
             $lte: departureIntervalEnd,
           },
         },
-        { departureAirport: originInputCode },
+        { departureAirport_city: originInput },
       ],
     }
   ).exec((err, departingFlight) => {
@@ -409,7 +390,11 @@ app.post("/", function (req, res) {
     } else {
       Returnflight.find(
         // old code when not filtering on the airport
-        // {arrivalTimeZulu: { $gte: returnIntervalStart, $lte: returnIntervalEnd },
+        // {
+        //   arrivalTimeZulu: {
+        //     $gte: returnIntervalStart,
+        //     $lte: returnIntervalEnd,
+        //   },
         {
           $and: [
             {
@@ -418,7 +403,7 @@ app.post("/", function (req, res) {
                 $lte: returnIntervalEnd,
               },
             },
-            { arrivalAirport: originInputCode },
+            { arrivalAirport_city: originInput },
           ],
         }
       ).exec((err, returnFlight) => {
@@ -435,14 +420,6 @@ app.post("/", function (req, res) {
     }
   });
 });
-
-// Dit zijn onze testdatums. Ze geven twee resultaten, Madrid en Barcelona
-// Wanneer we een datum genereren met Date zijn maanden vanaf 0. We moeten dus oktober hebben, niet september
-// En is de tijd de browser tijd, het zal converted worden naar Zulu tijd.
-// const departureIntervalStart = new Date(2022, 9, 10, 14, 0, 0);
-// const departureIntervalEnd = new Date(2022, 9, 10, 15, 0, 0);
-// const returnIntervalStart = new Date(2022, 9, 11, 1, 0, 0);
-// const returnIntervalEnd = new Date(2022, 9, 11, 3, 0, 0);
 
 app.listen(process.env.PORT || 3000, function () {
   console.log("listening");
