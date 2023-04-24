@@ -220,7 +220,7 @@ function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
 }
 
 app.post("/", function (req, res) {
-  let originInput = req.body.originName;
+  let originInput = req.body.originName; // city name (eg Lisbon)
   let departureDateInput = req.body.departureDateName;
   let departureTimeStartInput = req.body.departureTimeStartName;
   let departureTimeEndInput = req.body.departureTimeEndName;
@@ -228,9 +228,9 @@ app.post("/", function (req, res) {
   let returnTimeStartInput = req.body.returnTimeStartName;
   let returnTimeEndInput = req.body.returnTimeEndName;
 
-  let originInputCode_iata = "";
+  // let originInputCode_iata = "";
 
-  console.log("origin: " + originInput);
+  console.log("origin city name: " + originInput);
   console.log("departure date: " + departureDateInput);
   console.log("departure time start local: " + departureTimeStartInput);
   console.log("departure time end local: " + departureTimeEndInput);
@@ -248,12 +248,6 @@ app.post("/", function (req, res) {
   //   console.log("he wants Lisbon");
   //   originInputCode_iata = "lppt";
   // }
-  switch (originInput) {
-    case "Lisbon":
-      console.log("User leaves from Lisbon");
-      originInputCode_iata = "LIS";
-      break;
-  }
 
   ///////////////////////////////////////////////////////////////
   const todaysDate = new Date();
@@ -306,31 +300,44 @@ app.post("/", function (req, res) {
     "-" +
     newRetDate.getUTCDate();
 
+  let originInputTimeZone;
+  switch (originInput) {
+    case "Lisbon":
+      originInputTimeZone = "Europe/Lisbon";
+      break;
+    case "Austin":
+      originInputTimeZone = "America/Chicago";
+      break;
+    case "Bangkok":
+      originInputTimeZone = "Asia/Bangkok";
+      break;
+  }
+
   var departure_start_zulu = calculateLocalTime(
     newDepDateString,
     departureTimeStartInput,
-    "Europe/Lisbon"
+    originInputTimeZone
   );
   console.log("new dep start: " + departure_start_zulu.toUTCString());
 
   var departure_end_zulu = calculateLocalTime(
     newDepDateString,
     departureTimeEndInput,
-    "Europe/Lisbon"
+    originInputTimeZone
   );
   console.log("new dep end: " + departure_end_zulu.toUTCString());
 
   var return_start_zulu = calculateLocalTime(
     newRetDateString,
     returnTimeStartInput,
-    "Europe/Lisbon"
+    originInputTimeZone
   );
   console.log("new ret start: " + return_start_zulu.toUTCString());
 
   var return_end_zulu = calculateLocalTime(
     newRetDateString,
     returnTimeEndInput,
-    "Europe/Lisbon"
+    originInputTimeZone
   );
   console.log("new ret end: " + return_end_zulu.toUTCString());
 
