@@ -125,6 +125,7 @@ app.get("/", function (req, res) {
     inputTime3: returnTimeStartInput,
     inputTime4: returnTimeEndInput,
     firstLoad: true,
+    checkboxStatus: ["checked", "", ""],
   });
 });
 
@@ -304,12 +305,15 @@ app.post("/", function (req, res) {
   switch (originInput) {
     case "Lisbon":
       originInputTimeZone = "Europe/Lisbon";
+      checkboxStatusArray = ["checked", "", ""];
       break;
     case "Austin":
       originInputTimeZone = "America/Chicago";
+      checkboxStatusArray = ["", "checked", ""];
       break;
     case "Bangkok":
       originInputTimeZone = "Asia/Bangkok";
+      checkboxStatusArray = ["", "", "checked"];
       break;
   }
 
@@ -370,6 +374,7 @@ app.post("/", function (req, res) {
       inputTime3: returnTimeStartInput,
       inputTime4: returnTimeEndInput,
       firstLoad: false,
+      checkboxStatus: checkboxStatusArray,
     });
   }
   Departingflight.find(
