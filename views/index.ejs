@@ -155,7 +155,33 @@
             <br><br><br><br><br>
 
 
+            <div class=boxborder>
 
+                <div class="container">
+                    <% let uniqueList=[] %>
+                        <% for (const child of foundDestinations){ %>
+                            <% if (!uniqueList.includes(child.destinationInFull)){ %>
+                                <% uniqueList.push(child.destinationInFull) %>
+                                    <% if (child.destinationInFull !=="Unknown Airport" ){ %>
+                                        <%= child.destinationInFull %> ,
+                                            <% } else { %>
+                                                <%= child.retAirport %> ,
+                                                    <% } %>
+
+
+                                                        <% } %>
+
+
+                                                            <% } %>
+
+
+
+
+                </div>
+            </div>
+
+
+            <br><br>
             <div class=boxborder>
 
                 <div class="container">
@@ -165,6 +191,9 @@
                         <p>Looks like you're not flying anywhere ... No flights found...</p>
 
                         <% }else { %>
+
+
+
 
                             <% for (const child of foundDestinations){ %>
 
