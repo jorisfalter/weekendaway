@@ -33,6 +33,10 @@ h3 {
   margin-right:10px;
 }
 
+.destination-summary{
+  max-width:200px;
+  text-align:center;
+}
 
 
 .departure-note{

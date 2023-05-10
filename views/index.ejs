@@ -158,25 +158,23 @@
             <div class=boxborder>
 
                 <div class="container">
+                    <!-- <h1>Your Destinations</h1> -->
+                    <!-- <div class="destination-summary"> -->
                     <% let uniqueList=[] %>
                         <% for (const child of foundDestinations){ %>
-                            <% if (!uniqueList.includes(child.destinationInFull)){ %>
-                                <% uniqueList.push(child.destinationInFull) %>
+                            <% if (!uniqueList.includes(child.retAirport)){ %>
+                                <% uniqueList.push(child.retAirport) %>
                                     <% if (child.destinationInFull !=="Unknown Airport" ){ %>
-                                        <%= child.destinationInFull %>,
+                                        <%= child.destinationInFull %><br>
                                             <% } else { %>
-                                                <%= child.retAirport %>,
+                                                <%= child.retAirport %><br>
                                                     <% } %>
-
-
                                                         <% } %>
-
-
                                                             <% } %>
 
 
 
-
+                                                                <!-- </div> -->
                 </div>
             </div>
 
