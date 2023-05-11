@@ -152,107 +152,109 @@
 
 
 
-            <br><br><br><br><br>
+
+            <% if (!firstLoad){ %>
+                <br><br><br><br><br>
 
 
-            <div class=boxborder>
+                <div class=boxborder>
 
-                <div class="container">
-                    <!-- <h1>Your Destinations</h1> -->
-                    <!-- <div class="destination-summary"> -->
-                    <% let uniqueList=[] %>
-                        <% for (const child of foundDestinations){ %>
-                            <% if (!uniqueList.includes(child.retAirport)){ %>
-                                <% uniqueList.push(child.retAirport) %>
-                                    <% if (child.destinationInFull !=="Unknown Airport" ){ %>
-                                        <%= child.destinationInFull %><br>
-                                            <% } else { %>
-                                                <%= child.retAirport %><br>
-                                                    <% } %>
+                    <div class="container">
+                        <!-- <h1>Your Destinations</h1> -->
+                        <!-- <div class="destination-summary"> -->
+                        <% let uniqueList=[] %>
+                            <% for (const child of foundDestinations){ %>
+                                <% if (!uniqueList.includes(child.retAirport)){ %>
+                                    <% uniqueList.push(child.retAirport) %>
+                                        <% if (child.destinationInFull !=="Unknown Airport" ){ %>
+                                            <%= child.destinationInFull %><br>
+                                                <% } else { %>
+                                                    <%= child.retAirport %><br>
                                                         <% } %>
                                                             <% } %>
+                                                                <% } %>
 
 
 
-                                                                <!-- </div> -->
+                                                                    <!-- </div> -->
+                    </div>
                 </div>
-            </div>
+
+                <br><br>
+                <div class=boxborder>
+
+                    <div class="container">
 
 
-            <br><br>
-            <div class=boxborder>
+                        <% if (foundDestinations.length===0 && !firstLoad){ %>
+                            <p>Looks like you're not flying anywhere ... No flights found...</p>
 
-                <div class="container">
-
-
-                    <% if (foundDestinations.length===0 && !firstLoad){ %>
-                        <p>Looks like you're not flying anywhere ... No flights found...</p>
-
-                        <% }else { %>
+                            <% }else { %>
 
 
 
 
-                            <% for (const child of foundDestinations){ %>
+                                <% for (const child of foundDestinations){ %>
 
 
 
-                                <div class="row border-bottom">
+                                    <div class="row border-bottom">
 
 
 
-                                    <div class="col-md-2">
-                                        <p class="result-note">Destination</p>
-                                        <p>
+                                        <div class="col-md-2">
+                                            <p class="result-note">Destination</p>
+                                            <p>
 
-                                            <% if (child.destinationInFull !=="Unknown Airport" ){ %>
-                                                <%= child.destinationInFull %>
-                                                    <% } else { %>
-                                                        <%= child.retAirport %>
-                                                            <% } %>
+                                                <% if (child.destinationInFull !=="Unknown Airport" ){ %>
+                                                    <%= child.destinationInFull %>
+                                                        <% } else { %>
+                                                            <%= child.retAirport %>
+                                                                <% } %>
 
-                                        </p>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <p class=result-note>Leaving</p>
+                                            <p>
+                                                <%= child.depFlightNumber %>
+                                                    <%= child.depAirline %>
+
+                                            </p>
+                                            <p>
+                                                <%= child.depTime.substring(12) %>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <p class=result-note>Back Home</p>
+                                            <p>
+                                                <%= child.retFlightNumber %>
+                                                    <%= child.retAirline %>
+
+                                            </p>
+                                            <p>
+                                                <%= child.arrTime.substring(12) %>
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div class="col-md-5">
-                                        <p class=result-note>Leaving</p>
-                                        <p>
-                                            <%= child.depFlightNumber %>
-                                                <%= child.depAirline %>
-
-                                        </p>
-                                        <p>
-                                            <%= child.depTime.substring(12) %>
-                                        </p>
-                                    </div>
-                                    <div class="col-md-5">
-                                        <p class=result-note>Back Home</p>
-                                        <p>
-                                            <%= child.retFlightNumber %>
-                                                <%= child.retAirline %>
-
-                                        </p>
-                                        <p>
-                                            <%= child.arrTime.substring(12) %>
-                                        </p>
-                                    </div>
-                                </div>
-                                <br>
+                                    <br>
 
 
-                                <% } %>
                                     <% } %>
+                                        <% } %>
 
+                    </div>
                 </div>
-            </div>
+                <% } %>
 
 
-            <p class="bottomNote">Destinations are based on historical flight schedules</p>
+                    <p class="bottomNote">Destinations are based on historical flight schedules</p>
 
         </form>
     </div>
     <br>
     <div class="footer">
-        <p>&copy; jorisfalter.com</p>
+        <p><a href="about">About WeekendAway app</a></p>
 
     </div>
 
