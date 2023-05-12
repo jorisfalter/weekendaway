@@ -79,6 +79,9 @@ web_modules/
 .env.production.local
 .env.local
 
+# html file with Google Maps Key
+mapTest.html
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
