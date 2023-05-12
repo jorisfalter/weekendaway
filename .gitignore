@@ -80,7 +80,7 @@ web_modules/
 .env.local
 
 # html file with Google Maps Key
-mapTest1.html
+mapTest.html
 mapTest2.html
 
 # parcel-bundler cache (https://parceljs.org/)
