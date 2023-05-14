@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const fetch = require("node-fetch");
 
 const app = express();
 
@@ -155,6 +156,33 @@ function getAirlineName(flightNumber) {
   return airlineName;
 }
 
+async function getReturnAirportCoordinates(airportWeAreSearching) {
+  // const mapsKey = process.env.GOOGLE_MAPS_GEOCODER;
+  // const address = airportWeAreSearching + " airport";
+  // const URL =
+  //   "https://maps.googleapis.com/maps/api/geocode/json?address=" +
+  //   address +
+  //   "&key=" +
+  //   mapsKey;
+  // async function fetchData(address) {
+  //   try {
+  //     const response = await fetch(URL);
+  //     const json = await response.json();
+  //     console.log(address);
+  //     console.log("xcor: " + json.results[0].geometry.location.lat);
+  //     console.log("ycor: " + json.results[0].geometry.location.lng);
+  //     // setAirportCoords({
+  //     //   xcor: json.results[0].geometry.location.lat,
+  //     //   ycor: json.results[0].geometry.location.lng,
+  //     // });
+  //     // setLocation(json.results[0].address_components[0].long_name); for debugging only
+  //   } catch (error) {
+  //     console.log("error", error);
+  //   }
+  // }
+  // fetchData(address);
+}
+
 ////////////////////////////////////////////////////////////////////////
 // find the entries in the db between start and end for departure
 // find the entries in the db between start and end for return
@@ -176,6 +204,10 @@ function matchFlights(departingFlight, returnFlight) {
         // Translate the Flight number into an airline
         var depAirline = getAirlineName(resultDepart.flightNumber);
         var retAirline = getAirlineName(resultReturn.flightNumber);
+
+        // fetch coordinates for all resulting airports
+        var tempRetAirport = resultReturn.departureAirport_iata;
+        // var tempResult = getReturnAirportCoordinates(tempRetAirport);
 
         // Push all info into the array
         foundDestinations.push({
