@@ -1,25 +1,33 @@
 // this is the js for everything related to the index.html screen. Everything which relates to the browser window.
 
-//////////////////////////////////////////////////////////////////////
-// set default params on homescreen
+function initMap() {
+  const map = L.map("map").setView([13.7563, 100.5018], 5);
 
-// let clickedButtonTrue = true;
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:
+      'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+  }).addTo(map);
 
-// console.log(clickedButtonTrue);
+  // Pairs of city coordinates
+  const destinations = {
+    "Chiang Mai": { lat: 18.7877, lng: 98.9931 },
+    Phuket: { lat: 7.8804, lng: 98.3923 },
+    Singapore: { lat: 1.3521, lng: 103.8198 },
+  };
 
-// if (!renderedOnce) {
-//   var depTimeStartDefault = "15:00";
-//   document.getElementById("departureTimeStartId").value = depTimeStartDefault;
-// document.getElementById("departureTimeEndId").value = test;
-// document.getElementById("returnTimeStartId").value = test;
-// document.getElementById("returnTimeEndId").value = test;
-//   clickedButtonTrue = false;
-// }
+  // Draw lines for each pair of cities
+  Object.keys(destinations).forEach((destinationName) => {
+    const destination = destinations[destinationName];
+    const polyline = L.polyline(
+      [
+        [13.7563, 100.5018],
+        [destination.lat, destination.lng],
+      ],
+      { color: "red", weight: 3 }
+    ).addTo(map);
+  });
+}
 
-//
-// let findDestButtonElement = document.getElementById("findDestButton");
-// findDestButtonElement.addEventListener("click", myFunction);
-
-// function myFunction() {
-//   clickedButtonTrue = false;
-// }
+window.onload = function () {
+  initMap();
+};

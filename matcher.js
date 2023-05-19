@@ -117,7 +117,7 @@ app.get("/", function (req, res) {
   let returnTimeEndInput = "18:00";
 
   res.render("index", {
-    foundFlights: false,
+    // foundFlights: false,
     foundDestinations: "",
     inputDate1: departureDateInitialInput,
     inputTime1: departureTimeStartInput,
@@ -156,6 +156,7 @@ function getAirlineName(flightNumber) {
   return airlineName;
 }
 
+// this is a test code to get airport data. Turns out this is way to expensive to do it like this.
 async function getReturnAirportCoordinates(airportWeAreSearching) {
   // const mapsKey = process.env.GOOGLE_MAPS_GEOCODER;
   // const address = airportWeAreSearching + " airport";
@@ -187,14 +188,14 @@ async function getReturnAirportCoordinates(airportWeAreSearching) {
 // find the entries in the db between start and end for departure
 // find the entries in the db between start and end for return
 function matchFlights(departingFlight, returnFlight) {
-  var foundFlights = false;
+  // var foundFlights = false;
   var foundDestinations = [];
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (
         resultDepart.arrivalAirport_city === resultReturn.departureAirport_city
       ) {
-        foundFlights = true;
+        // foundFlights = true;
 
         // Translate the Airport Code into a full name comprehensible for users
         var destinationInFull = getDestinationInFull(
@@ -231,7 +232,7 @@ function matchFlights(departingFlight, returnFlight) {
       }
     });
   });
-  return [foundFlights, foundDestinations];
+  return ["", foundDestinations];
 }
 
 function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
@@ -392,12 +393,12 @@ app.post("/", function (req, res) {
   const returnIntervalStart = return_start_zulu;
   const returnIntervalEnd = return_end_zulu;
 
-  var foundFlights; // volgens mij is dit een boolean om te zien of we vluchten gevonden hebben
+  // var foundFlights; // volgens mij is dit een boolean om te zien of we vluchten gevonden hebben
   var foundDestinations = []; // dit is de enige die we uiteindelijk gebruiken in de frontend
 
   function displayFlights() {
     res.render("index", {
-      foundFlights: foundFlights,
+      // foundFlights: foundFlights,
       foundDestinations: foundDestinations,
       inputDate1: departureDateInput,
       inputDate2: returnDateInput,
@@ -455,7 +456,7 @@ app.post("/", function (req, res) {
           console.log(err);
         } else {
           resultingFlights = matchFlights(departingFlight, returnFlight);
-          foundFlights = resultingFlights[0];
+          // foundFlights = resultingFlights[0];
           foundDestinations = resultingFlights[1];
 
           displayFlights();
