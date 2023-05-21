@@ -458,7 +458,7 @@ app.post("/", function (req, res) {
           resultingFlights = matchFlights(departingFlight, returnFlight);
           // foundFlights = resultingFlights[0];
           foundDestinations = resultingFlights[1];
-
+          console.log("foundDestinations: " + foundDestinations[0]);
           displayFlights();
         }
       });
