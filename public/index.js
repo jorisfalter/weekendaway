@@ -1,10 +1,14 @@
 // this is the js for everything related to the index.html screen. Everything which relates to the browser window.
 
 function initMap() {
+  var depAirport = document.getElementById("depAirportHidden").innerHTML;
+  console.log("here we are logging index.js: " + depAirport);
+
   const map = L.map("map").setView([13.7563, 100.5018], 5);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
+      // depAirport, // for testing purposes
       'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
   }).addTo(map);
 

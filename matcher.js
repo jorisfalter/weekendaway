@@ -458,7 +458,17 @@ app.post("/", function (req, res) {
           resultingFlights = matchFlights(departingFlight, returnFlight);
           // foundFlights = resultingFlights[0];
           foundDestinations = resultingFlights[1];
-          console.log("foundDestinations: " + foundDestinations[0]);
+          // console.log(
+          //   "foundDestinations dep airport: " + foundDestinations[0].depAirport
+          // );
+          // console.log(
+          //   "foundDestinations dep airport: " + foundDestinations[0].retAirport
+          // );
+          // console.log(
+          //   "foundDestinations dep airport: " +
+          //     foundDestinations[0].destinationInFull
+          // );
+
           displayFlights();
         }
       });

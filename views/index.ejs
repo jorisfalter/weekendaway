@@ -172,7 +172,16 @@
                     <!-- this is the map -->
                     <!-- <div id="map"></div> -->
 
-                    <!-- <%= foundDestinations[0] %> -->
+
+                    <!-- Probably not a best practice, but storing the data in a hidden variable -->
+                    <div style=" display:none;" id="depAirportHidden">
+                        <%= foundDestinations[0].depAirport %>
+                    </div>
+
+                    <div style="display:none;" id="retAirportHidden">
+                        <%= foundDestinations[0].retAirport %>
+                    </div>
+
 
 
                     <div class="container">
