@@ -189,7 +189,8 @@ async function getReturnAirportCoordinates(airportWeAreSearching) {
 // find the entries in the db between start and end for return
 function matchFlights(departingFlight, returnFlight) {
   // var foundFlights = false;
-  var foundDestinations = [];
+  var foundDestinationsInfo = [];
+  var foundDestinationsDestinationsOnly = [];
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (
@@ -211,7 +212,7 @@ function matchFlights(departingFlight, returnFlight) {
         // var tempResult = getReturnAirportCoordinates(tempRetAirport);
 
         // Push all info into the array
-        foundDestinations.push({
+        foundDestinationsInfo.push({
           depAirport: resultDepart.departureAirport_iata,
           depTime: resultDepart.departureTimeLocal,
           depFlightNumber: resultDepart.flightNumber,
@@ -222,6 +223,11 @@ function matchFlights(departingFlight, returnFlight) {
           retAirline: retAirline,
           destinationInFull: destinationInFull,
         });
+
+        // push destination info into the array
+        foundDestinationsDestinationsOnly.push(
+          resultReturn.departureAirport_iata
+        );
       } else {
         // console.log(
         //   "no match" + //on: " +
@@ -232,7 +238,7 @@ function matchFlights(departingFlight, returnFlight) {
       }
     });
   });
-  return ["", foundDestinations];
+  return ["", foundDestinationsInfo, foundDestinationsDestinationsOnly];
 }
 
 function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
@@ -393,8 +399,10 @@ app.post("/", function (req, res) {
   const returnIntervalStart = return_start_zulu;
   const returnIntervalEnd = return_end_zulu;
 
+  //// list of variables returning from matchflights function
   // var foundFlights; // volgens mij is dit een boolean om te zien of we vluchten gevonden hebben
-  var foundDestinations = []; // dit is de enige die we uiteindelijk gebruiken in de frontend
+  var foundDestinations = []; // dit wordt de array met een object met alle info over de bestemming en vluchten
+  var foundDestinationsDestinationsOnly = []; // dit wordt enkel de iata bestemming afkorting
 
   function displayFlights() {
     res.render("index", {
@@ -456,18 +464,16 @@ app.post("/", function (req, res) {
           console.log(err);
         } else {
           resultingFlights = matchFlights(departingFlight, returnFlight);
-          // foundFlights = resultingFlights[0];
-          foundDestinations = resultingFlights[1];
-          // console.log(
-          //   "foundDestinations dep airport: " + foundDestinations[0].depAirport
-          // );
-          // console.log(
-          //   "foundDestinations dep airport: " + foundDestinations[0].retAirport
-          // );
-          // console.log(
-          //   "foundDestinations dep airport: " +
-          //     foundDestinations[0].destinationInFull
-          // );
+          // foundFlights = resultingFlights[0]; // the info on position [0] is empty
+          foundDestinations = resultingFlights[1]; // This contains the full array of information as separate objects
+          foundDestinationsDestinationsOnly = resultingFlights[2]; // this only contains the iata destination list as array
+          var uniqueDestinations = [
+            ...new Set(foundDestinationsDestinationsOnly),
+          ];
+
+          // next: uniqueDestinations moeten nu
+          // 1. Coordinates krijgen
+          // 2. samen met de origin (als stad?) naar de frontend gestuurd worden
 
           displayFlights();
         }
