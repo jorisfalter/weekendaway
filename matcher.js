@@ -203,13 +203,17 @@ function matchFlights(departingFlight, returnFlight) {
           resultReturn.departureAirport_iata
         );
 
+        // console.log("depflnumber: " + resultDepart.flightNumber);
+        // console.log("retflnumber: " + resultReturn);
+
         // Translate the Flight number into an airline
         var depAirline = getAirlineName(resultDepart.flightNumber);
         var retAirline = getAirlineName(resultReturn.flightNumber);
 
-        // fetch coordinates for all resulting airports
+        //// fetch coordinates for all resulting airports
         var tempRetAirport = resultReturn.departureAirport_iata;
         // var tempResult = getReturnAirportCoordinates(tempRetAirport);
+        //// similar to getDestinationInFull function
 
         // Push all info into the array
         foundDestinationsInfo.push({
@@ -470,10 +474,12 @@ app.post("/", function (req, res) {
           var uniqueDestinations = [
             ...new Set(foundDestinationsDestinationsOnly),
           ];
+          console.log(uniqueDestinations);
 
           // next: uniqueDestinations moeten nu
           // 1. Coordinates krijgen
           // 2. samen met de origin (als stad?) naar de frontend gestuurd worden
+          // Als alternatief, kunnen we ook rond regel 214 de data al gelijk opslaan - tempRetAirport
 
           displayFlights();
         }
