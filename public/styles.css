@@ -82,6 +82,10 @@ a:hover {
 
 }
 
+.attribution{
+  font-size:0.8rem;
+}
+
 .searchButton {
   /* position: absolute; */
   /* right: 35px;
