@@ -1,4 +1,4 @@
-airportsList = [
+airportsListV2 = [
   ["ORY", "Paris Orly", 0, 0],
   ["MAD", "Madrid", 40.4719, -3.56264],
   ["BCN", "Barcelona", 41.2971, 2.07846],
@@ -155,4 +155,4 @@ airportsList = [
   ["CVG", "Cincinnati", 39.0488, -84.6678],
   ["OKC", "Will Rogers", 35.3931, -97.6007],
 ];
-module.exports = airportsList;
+module.exports = airportsListV2;

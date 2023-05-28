@@ -7,6 +7,7 @@ const fetch = require("node-fetch");
 const app = express();
 
 const airportsList = require("./airports.js");
+const airportsListWithCoords = require("./airportsv2.js");
 const airlinesList = require("./airlines.js");
 
 app.set("view engine", "ejs");
@@ -130,18 +131,6 @@ app.get("/", function (req, res) {
   });
 });
 
-function getDestinationInFull(destinationAirportAbbreviated) {
-  var longAirportName = "Unknown Airport";
-
-  for (let i = 0; i < airportsList.length; i++) {
-    if (airportsList[i][0] === destinationAirportAbbreviated) {
-      longAirportName = airportsList[i][1];
-      i = airportsList.length;
-    }
-  }
-  return longAirportName;
-}
-
 function getAirlineName(flightNumber) {
   var airlineName = "Unknown Airline";
 
@@ -156,8 +145,32 @@ function getAirlineName(flightNumber) {
   return airlineName;
 }
 
-// this is a test code to get airport data. Turns out this is way to expensive to do it like this.
-async function getReturnAirportCoordinates(airportWeAreSearching) {
+function getDestinationInFull(destinationAirportAbbreviated) {
+  var longAirportName = "Unknown Airport";
+
+  for (let i = 0; i < airportsList.length; i++) {
+    if (airportsList[i][0] === destinationAirportAbbreviated) {
+      longAirportName = airportsList[i][1];
+      i = airportsList.length;
+    }
+  }
+  return longAirportName;
+}
+
+function getReturnAirportCoordinates(destinationAirportAbbreviated) {
+  var airportCoords = ["no x", "no y"];
+
+  for (let i = 0; i < airportsListWithCoords.length; i++) {
+    if (airportsListWithCoords[i][0] === destinationAirportAbbreviated) {
+      var airportXCoor = airportsListV2[i][2];
+      var airportyCoor = airportsListV2[i][3];
+      airportCoords = [airportXCoor, airportyCoor];
+      i = airportsListWithCoords.length;
+    }
+  }
+  return airportCoords;
+  //// this is a test code to get airport data. Turns out this is way to expensive to do it like this.
+  //// change function to an async function
   // const mapsKey = process.env.GOOGLE_MAPS_GEOCODER;
   // const address = airportWeAreSearching + " airport";
   // const URL =
@@ -202,18 +215,21 @@ function matchFlights(departingFlight, returnFlight) {
         var destinationInFull = getDestinationInFull(
           resultReturn.departureAirport_iata
         );
+        // console.log(destinationInFull);
 
-        // console.log("depflnumber: " + resultDepart.flightNumber);
-        // console.log("retflnumber: " + resultReturn);
+        //// fetch coordinates for the airport
+        //// similar to getDestinationInFull function
+        var tempResult = getReturnAirportCoordinates(
+          resultReturn.departureAirport_iata
+        );
+        console.log(tempResult);
 
         // Translate the Flight number into an airline
         var depAirline = getAirlineName(resultDepart.flightNumber);
         var retAirline = getAirlineName(resultReturn.flightNumber);
 
-        //// fetch coordinates for all resulting airports
-        var tempRetAirport = resultReturn.departureAirport_iata;
-        // var tempResult = getReturnAirportCoordinates(tempRetAirport);
-        //// similar to getDestinationInFull function
+        // console.log("depflnumber: " + depAirline);
+        // console.log("retflnumber: " + retAirline);
 
         // Push all info into the array
         foundDestinationsInfo.push({
