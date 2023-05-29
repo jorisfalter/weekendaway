@@ -2,7 +2,10 @@
 
 function initMap() {
   var depAirport = document.getElementById("depAirportHidden").innerHTML;
-  console.log("here we are logging index.js: " + depAirport);
+  console.log("here we are logging index.js return airport: " + depAirport);
+
+  var retAirport = document.getElementById("retAirportHidden").innerHTML;
+  console.log("here we are logging index.js return airport: " + retAirport);
 
   const map = L.map("map").setView([13.7563, 100.5018], 5);
 

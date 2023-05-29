@@ -128,6 +128,7 @@ app.get("/", function (req, res) {
     inputTime4: returnTimeEndInput,
     firstLoad: true,
     checkboxStatus: ["checked", "", ""],
+    foundDestinationsDestinationsOnlyTrf: "",
   });
 });
 
@@ -219,10 +220,10 @@ function matchFlights(departingFlight, returnFlight) {
 
         //// fetch coordinates for the airport
         //// similar to getDestinationInFull function
-        var tempResult = getReturnAirportCoordinates(
+        var airportCoordinates = getReturnAirportCoordinates(
           resultReturn.departureAirport_iata
         );
-        console.log(tempResult);
+        console.log(airportCoordinates);
 
         // Translate the Flight number into an airline
         var depAirline = getAirlineName(resultDepart.flightNumber);
@@ -244,9 +245,10 @@ function matchFlights(departingFlight, returnFlight) {
           destinationInFull: destinationInFull,
         });
 
-        // push destination info into the array
+        // push destination coordinates info into the array
         foundDestinationsDestinationsOnly.push(
-          resultReturn.departureAirport_iata
+          // resultReturn.departureAirport_iata
+          airportCoordinates
         );
       } else {
         // console.log(
@@ -436,6 +438,7 @@ app.post("/", function (req, res) {
       inputTime4: returnTimeEndInput,
       firstLoad: false,
       checkboxStatus: checkboxStatusArray,
+      foundDestinationsDestinationsOnlyTrf: foundDestinationsDestinationsOnly,
     });
   }
   Departingflight.find(
@@ -487,10 +490,13 @@ app.post("/", function (req, res) {
           // foundFlights = resultingFlights[0]; // the info on position [0] is empty
           foundDestinations = resultingFlights[1]; // This contains the full array of information as separate objects
           foundDestinationsDestinationsOnly = resultingFlights[2]; // this only contains the iata destination list as array
-          var uniqueDestinations = [
-            ...new Set(foundDestinationsDestinationsOnly),
-          ];
-          console.log(uniqueDestinations);
+          console.log(foundDestinationsDestinationsOnly);
+
+          // // this is to remove the duplicates in the array, but it only worked with destinations, not with the coordinates
+          // var uniqueDestinations = [
+          //   ...new Set(foundDestinationsDestinationsOnly),
+          // ];
+          // console.log(uniqueDestinations);
 
           // next: uniqueDestinations moeten nu
           // 1. Coordinates krijgen
