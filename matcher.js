@@ -128,7 +128,8 @@ app.get("/", function (req, res) {
     inputTime4: returnTimeEndInput,
     firstLoad: true,
     checkboxStatus: ["checked", "", ""],
-    foundDestinationsDestinationsOnlyTrf: "",
+    foundDestinationsDestinationsOnlyTrf: [],
+    testvariable: [1, 2],
   });
 });
 
@@ -218,13 +219,6 @@ function matchFlights(departingFlight, returnFlight) {
         );
         // console.log(destinationInFull);
 
-        //// fetch coordinates for the airport
-        //// similar to getDestinationInFull function
-        var airportCoordinates = getReturnAirportCoordinates(
-          resultReturn.departureAirport_iata
-        );
-        console.log(airportCoordinates);
-
         // Translate the Flight number into an airline
         var depAirline = getAirlineName(resultDepart.flightNumber);
         var retAirline = getAirlineName(resultReturn.flightNumber);
@@ -247,8 +241,8 @@ function matchFlights(departingFlight, returnFlight) {
 
         // push destination coordinates info into the array
         foundDestinationsDestinationsOnly.push(
-          // resultReturn.departureAirport_iata
-          airportCoordinates
+          resultReturn.departureAirport_iata
+          // airportCoordinates
         );
       } else {
         // console.log(
@@ -427,6 +421,7 @@ app.post("/", function (req, res) {
   var foundDestinationsDestinationsOnly = []; // dit wordt enkel de iata bestemming afkorting
 
   function displayFlights() {
+    console.log(foundDestinationsDestinationsOnly);
     res.render("index", {
       // foundFlights: foundFlights,
       foundDestinations: foundDestinations,
@@ -439,6 +434,7 @@ app.post("/", function (req, res) {
       firstLoad: false,
       checkboxStatus: checkboxStatusArray,
       foundDestinationsDestinationsOnlyTrf: foundDestinationsDestinationsOnly,
+      testvariable: [1, 2],
     });
   }
   Departingflight.find(
@@ -489,19 +485,23 @@ app.post("/", function (req, res) {
           resultingFlights = matchFlights(departingFlight, returnFlight);
           // foundFlights = resultingFlights[0]; // the info on position [0] is empty
           foundDestinations = resultingFlights[1]; // This contains the full array of information as separate objects
-          foundDestinationsDestinationsOnly = resultingFlights[2]; // this only contains the iata destination list as array
+          var allDestinations = resultingFlights[2]; // this only contains the iata destination list as array
+          console.log(allDestinations);
+
+          // this is to remove the duplicates in the array, but it only worked with destinations, not with the coordinates
+          var uniqueDestinations = [...new Set(allDestinations)];
+          console.log(uniqueDestinations);
+
+          // fetch coordinates for the airport
+          // similar to getDestinationInFull function
+          var airportCoordinates = [];
+          uniqueDestinations.forEach((element) => {
+            airportCoordinates.push(getReturnAirportCoordinates(element));
+          });
+
+          console.log(airportCoordinates);
+          foundDestinationsDestinationsOnly = airportCoordinates;
           console.log(foundDestinationsDestinationsOnly);
-
-          // // this is to remove the duplicates in the array, but it only worked with destinations, not with the coordinates
-          // var uniqueDestinations = [
-          //   ...new Set(foundDestinationsDestinationsOnly),
-          // ];
-          // console.log(uniqueDestinations);
-
-          // next: uniqueDestinations moeten nu
-          // 1. Coordinates krijgen
-          // 2. samen met de origin (als stad?) naar de frontend gestuurd worden
-          // Als alternatief, kunnen we ook rond regel 214 de data al gelijk opslaan - tempRetAirport
 
           displayFlights();
         }
