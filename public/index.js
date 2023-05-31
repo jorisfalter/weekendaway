@@ -4,9 +4,12 @@ function initMap() {
   var depAirport = document.getElementById("depAirportHidden").innerHTML;
   console.log("here we are logging index.js return airport: " + depAirport);
 
-  var retAirport = JSON.parse(
-    document.getElementById("retAirportHidden").innerHTML
+  var retAirportTest = document.getElementById("retAirportHidden").innerHTML;
+  console.log(
+    "here we are logging index.js return airport test: " + retAirportTest
   );
+
+  var retAirport = JSON.parse(JSON.stringify(retAirportTest));
   console.log("here we are logging index.js return airport: " + retAirport);
 
   const map = L.map("map").setView([13.7563, 100.5018], 5);
