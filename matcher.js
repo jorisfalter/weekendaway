@@ -160,17 +160,17 @@ function getDestinationInFull(destinationAirportAbbreviated) {
 }
 
 function getReturnAirportCoordinates(destinationAirportAbbreviated) {
-  var airportCoords = ["no x", "no y"];
-
+  var airportCoords = { lat: 0, lng: 0 };
   for (let i = 0; i < airportsListWithCoords.length; i++) {
     if (airportsListWithCoords[i][0] === destinationAirportAbbreviated) {
       var airportXCoor = airportsListV2[i][2];
       var airportyCoor = airportsListV2[i][3];
-      airportCoords = [airportXCoor, airportyCoor];
+      airportCoords = { lat: airportXCoor, lng: airportyCoor };
       i = airportsListWithCoords.length;
     }
   }
   return airportCoords;
+
   //// this is a test code to get airport data. Turns out this is way to expensive to do it like this.
   //// change function to an async function
   // const mapsKey = process.env.GOOGLE_MAPS_GEOCODER;
@@ -421,6 +421,7 @@ app.post("/", function (req, res) {
   var foundDestinationsDestinationsOnly = []; // dit wordt enkel de iata bestemming afkorting
 
   function displayFlights() {
+    console.log("foundDestinationsDestinationsOnly");
     console.log(foundDestinationsDestinationsOnly);
     res.render("index", {
       // foundFlights: foundFlights,
@@ -486,22 +487,31 @@ app.post("/", function (req, res) {
           // foundFlights = resultingFlights[0]; // the info on position [0] is empty
           foundDestinations = resultingFlights[1]; // This contains the full array of information as separate objects
           var allDestinations = resultingFlights[2]; // this only contains the iata destination list as array
-          console.log(allDestinations);
+          // console.log("allDestinations: " + allDestinations);
 
           // this is to remove the duplicates in the array, but it only worked with destinations, not with the coordinates
           var uniqueDestinations = [...new Set(allDestinations)];
-          console.log(uniqueDestinations);
+          console.log("uniqueDestinations: " + uniqueDestinations);
 
           // fetch coordinates for the airport
           // similar to getDestinationInFull function
+          var airportObj = {};
           var airportCoordinates = [];
-          uniqueDestinations.forEach((element) => {
-            airportCoordinates.push(getReturnAirportCoordinates(element));
-          });
+          var airportObj = {};
 
-          console.log(airportCoordinates);
-          foundDestinationsDestinationsOnly = airportCoordinates;
-          console.log(foundDestinationsDestinationsOnly);
+          uniqueDestinations.forEach((element) => {
+            airportCoordinates = getReturnAirportCoordinates(element);
+            airportObj[element] = airportCoordinates;
+          });
+          // console.log("airportObj");
+          // console.log(airportObj);
+
+          // console.log("airportCoordinates: " + airportCoordinates);
+          // console.log("airportObj: " + airportObj);
+
+          foundDestinationsDestinationsOnly = airportObj;
+          // console.log("foundDestinationsDestinationsOnly");
+          // console.log(foundDestinationsDestinationsOnly);
 
           displayFlights();
         }
