@@ -65,6 +65,9 @@ const Departingflight = mongoose.model(
 );
 const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 
+var airportObj = {};
+var originInputTrf = "";
+
 //////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////
@@ -128,7 +131,7 @@ app.get("/", function (req, res) {
     inputTime4: returnTimeEndInput,
     firstLoad: true,
     checkboxStatus: ["checked", "", ""],
-    foundDestinationsDestinationsOnlyTrf: [],
+    // foundDestinationsDestinationsOnlyTrf: [],
     testvariable: [1, 2],
   });
 });
@@ -284,6 +287,8 @@ app.post("/", function (req, res) {
   let returnTimeStartInput = req.body.returnTimeStartName;
   let returnTimeEndInput = req.body.returnTimeEndName;
 
+  originInputTrf = originInput; // to pass to the index.js
+
   // let originInputCode_iata = "";
 
   console.log("origin city name: " + originInput);
@@ -421,8 +426,6 @@ app.post("/", function (req, res) {
   var foundDestinationsDestinationsOnly = []; // dit wordt enkel de iata bestemming afkorting
 
   function displayFlights() {
-    console.log("foundDestinationsDestinationsOnly");
-    console.log(foundDestinationsDestinationsOnly);
     res.render("index", {
       // foundFlights: foundFlights,
       foundDestinations: foundDestinations,
@@ -434,7 +437,7 @@ app.post("/", function (req, res) {
       inputTime4: returnTimeEndInput,
       firstLoad: false,
       checkboxStatus: checkboxStatusArray,
-      foundDestinationsDestinationsOnlyTrf: foundDestinationsDestinationsOnly,
+      // foundDestinationsDestinationsOnlyTrf: foundDestinationsDestinationsOnly,
       testvariable: [1, 2],
     });
   }
@@ -495,24 +498,13 @@ app.post("/", function (req, res) {
 
           // fetch coordinates for the airport
           // similar to getDestinationInFull function
-          var airportObj = {};
           var airportCoordinates = [];
-          var airportObj = {};
 
           uniqueDestinations.forEach((element) => {
             airportCoordinates = getReturnAirportCoordinates(element);
             airportObj[element] = airportCoordinates;
           });
-          // console.log("airportObj");
-          // console.log(airportObj);
-
-          // console.log("airportCoordinates: " + airportCoordinates);
-          // console.log("airportObj: " + airportObj);
-
-          foundDestinationsDestinationsOnly = airportObj;
-          // console.log("foundDestinationsDestinationsOnly");
-          // console.log(foundDestinationsDestinationsOnly);
-
+          console.log(airportObj);
           displayFlights();
         }
       });
@@ -522,6 +514,11 @@ app.post("/", function (req, res) {
 
 app.get("/about", function (req, res) {
   res.render("about");
+});
+
+app.get("/variable", function (req, res) {
+  // console.log(airportObj);
+  res.send({ variable: airportObj, departureAirport: originInputTrf });
 });
 
 app.listen(process.env.PORT || 3000, function () {

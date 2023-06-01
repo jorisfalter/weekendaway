@@ -154,7 +154,7 @@ airportsList = [
   ["IND", "Indianapolis"],
   ["CVG", "Cincinnati"],
   ["OKC", "Will Rogers"],
-  ["", ""],
+  ["PVG", "Shanghai"],
   ["", ""],
   ["", ""],
   ["", ""],

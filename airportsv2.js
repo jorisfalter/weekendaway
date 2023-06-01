@@ -59,7 +59,7 @@ airportsListV2 = [
   ["BLQ", "Bologna", 44.5354, 11.2887],
   ["SID", "Sal Cape Verde", 16.7414, -22.9494],
   ["VXE", "Sao Vicente Cape Verde", 16.8332, -25.0553],
-  ["CGK", "Jakarta", 0, 0],
+  ["CGK", "Jakarta", -6.127, 106.6543],
   ["DFW", "Dallas Fort Worth", 32.8968, -97.038],
   ["IAD", "Washington Dulles", 38.9445, -77.4558],
   ["PHX", "Phoenix", 33.4343, -112.012],
@@ -154,5 +154,6 @@ airportsListV2 = [
   ["IND", "Indianapolis", 39.7173, -86.2944],
   ["CVG", "Cincinnati", 39.0488, -84.6678],
   ["OKC", "Will Rogers", 35.3931, -97.6007],
+  ["PVG", "Shanghai Pudong International Airport", 31.1443, 121.8083],
 ];
 module.exports = airportsListV2;
