@@ -91,7 +91,7 @@ airlinesList = [
   ["AC", "Air Canada"],
   ["G4", "Allegiant"],
   ["X5", "Air Europa Express"],
-  ["", ""],
+  ["F9", "Frontier"],
   ["", ""],
   ["", ""],
   ["", ""],
