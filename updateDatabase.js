@@ -23,12 +23,21 @@ for (let i = 0; i < airportsListWithCoords.length; i++) {
   }
 }
 
-const bufferArray = Buffer.from(zeroAirportsList);
-
-// console.log(zeroAirportsList);
-fs.writeFile("testfile.txt", bufferArray, (err) => {
-  if (err) throw err;
+var file = fs.createWriteStream("array.txt");
+file.on("error", function (err) {
+  /* error handling */
 });
+zeroAirportsList.forEach(function (v) {
+  file.write(v.join(", ") + "]\n[");
+});
+file.end();
+
+// const bufferArray = Buffer.from(zeroAirportsList);
+
+// // console.log(zeroAirportsList);
+// fs.writeFile("testfile.txt", bufferArray, (err) => {
+//   if (err) throw err;
+// });
 
 async function queryDatabase() {
   // console.log("db length: " + zeroAirportsList.length);
