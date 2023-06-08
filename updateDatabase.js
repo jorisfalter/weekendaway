@@ -1,11 +1,13 @@
 //jshint esversion:6
 require("dotenv").config();
+const fs = require("fs");
 
 const fetch = require("cross-fetch");
 
 const airportsListWithCoords = require("./airportsv2.js");
 
 require("dotenv").config();
+// const Buffer = require("buffer");
 
 const mapsKey = process.env.GOOGLE_MAPS_GEOCODER;
 let address = "";
@@ -20,7 +22,13 @@ for (let i = 0; i < airportsListWithCoords.length; i++) {
     zeroAirportsList.push(airportsListWithCoords[i]);
   }
 }
+
+const bufferArray = Buffer.from(zeroAirportsList);
+
 // console.log(zeroAirportsList);
+fs.writeFile("testfile.txt", bufferArray, (err) => {
+  if (err) throw err;
+});
 
 async function queryDatabase() {
   // console.log("db length: " + zeroAirportsList.length);
