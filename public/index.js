@@ -29,7 +29,7 @@ function getMidPoint(lat1, lng1, lat2, lng2) {
   var r = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2));
   var theta = Math.atan2(offsetY, offsetX);
 
-  var thetaOffset = 3.14 / 10;
+  var thetaOffset = 3.14 / 12;
 
   var r2 = r / 2 / Math.cos(thetaOffset);
   var theta2 = theta + thetaOffset;
@@ -38,6 +38,7 @@ function getMidPoint(lat1, lng1, lat2, lng2) {
   var midpointY = r2 * Math.sin(theta2) + latlng1[0];
 
   var midpointLatLng = [midpointY, midpointX];
+  return midpointLatLng;
 }
 
 function initMap() {
@@ -54,6 +55,7 @@ function initMap() {
 
       const map = L.map("map").setView(cityCoords, 5);
 
+      // attribution
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution:
           'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
@@ -62,9 +64,23 @@ function initMap() {
       // Draw lines for each pair of cities
       Object.keys(destinations).forEach((destinationName) => {
         const destination = destinations[destinationName];
-        const polyline = L.polyline(
-          [cityCoords, [destination.lat, destination.lng]],
-          { color: "red", weight: 1 }
+        var midPoint = getMidPoint(
+          cityCoords[0],
+          cityCoords[1],
+          destination.lat,
+          destination.lng
+        );
+        console.log(midPoint);
+        // const polyline = L.polyline(
+        //   [cityCoords, [destination.lat, destination.lng]],
+        //   { color: "red", weight: 1 }
+        // ).addTo(map);
+        var curvedPath = L.curve(
+          ["M", cityCoords, "Q", midPoint, [destination.lat, destination.lng]],
+          {
+            color: "red",
+            weight: 1,
+          }
         ).addTo(map);
       });
     });
