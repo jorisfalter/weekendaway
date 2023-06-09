@@ -159,5 +159,6 @@ airportsListV2 = [
   ["OSL", "Oslo", 60.1979, 11.0962],
   ["BGY", "Milan Bergamo", 45.6696, 9.7036],
   ["IBZ", "Ibiza", 38.8749, 1.3712],
+  ["TFS", "Tenerife South", 28.0468, -16.5725],
 ];
 module.exports = airportsListV2;

@@ -160,7 +160,7 @@ airportsList = [
   ["OSL", "Oslo"],
   ["BGY", "Milan Bergamo"],
   ["IBZ", "Ibiza"],
-  ["", ""],
+  ["TFS", "Tenerife South"],
   ["", ""],
   ["", ""],
   ["", ""],
