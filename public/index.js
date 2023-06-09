@@ -6,8 +6,6 @@ function getCoords(originInputInput) {
   switch (originInputInput) {
     case "Lisbon":
       originInputCoords = [38.7223, -9.1393];
-      console.log("in Lissabon");
-
       break;
     case "Bangkok":
       originInputCoords = [13.7563, 100.5018];
@@ -17,6 +15,29 @@ function getCoords(originInputInput) {
       break;
   }
   return originInputCoords;
+}
+
+function getMidPoint(lat1, lng1, lat2, lng2) {
+  var latlngs = [];
+
+  var latlng1 = [lat1, lng1];
+  var latlng2 = [lat2, lng2];
+
+  var offsetX = latlng2[1] - latlng1[1];
+  var offsetY = latlng2[0] - latlng1[0];
+
+  var r = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2));
+  var theta = Math.atan2(offsetY, offsetX);
+
+  var thetaOffset = 3.14 / 10;
+
+  var r2 = r / 2 / Math.cos(thetaOffset);
+  var theta2 = theta + thetaOffset;
+
+  var midpointX = r2 * Math.cos(theta2) + latlng1[1];
+  var midpointY = r2 * Math.sin(theta2) + latlng1[0];
+
+  var midpointLatLng = [midpointY, midpointX];
 }
 
 function initMap() {

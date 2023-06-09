@@ -279,6 +279,7 @@ function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
 }
 
 app.post("/", function (req, res) {
+  airportObj = {};
   let originInput = req.body.originName; // city name (eg Lisbon)
   let departureDateInput = req.body.departureDateName;
   let departureTimeStartInput = req.body.departureTimeStartName;
