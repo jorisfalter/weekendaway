@@ -1,4 +1,2 @@
-OSL, Oslo, 0]
-[BGY, Milan Bergamo, 0]
-[IBZ, Ibiza, 0]
+KNO, Medan]
 [

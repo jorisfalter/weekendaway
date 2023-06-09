@@ -18,7 +18,8 @@ let ycor = "";
 var zeroAirportsList = [];
 
 for (let i = 0; i < airportsListWithCoords.length; i++) {
-  if (airportsListWithCoords[i][2] === 0) {
+  // if (airportsListWithCoords[i][2] === 0) {
+  if (airportsListWithCoords[i].length == 2) {
     zeroAirportsList.push(airportsListWithCoords[i]);
   }
 }

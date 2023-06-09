@@ -67,6 +67,7 @@ const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 
 var airportObj = {};
 var originInputTrf = "";
+var missingAirports = [];
 
 //////////////////////////////////////////////////////////////////////
 
@@ -138,13 +139,16 @@ app.get("/", function (req, res) {
 
 function getAirlineName(flightNumber) {
   var airlineName = "Unknown Airline";
+  // console.log(flightNumber);
+  // sometimes flight numbers are zero
+  if (flightNumber !== null) {
+    var flightNumberCut = flightNumber.slice(0, 2);
 
-  var flightNumberCut = flightNumber.slice(0, 2);
-
-  for (let i = 0; i < airlinesList.length; i++) {
-    if (airlinesList[i][0] === flightNumberCut) {
-      airlineName = airlinesList[i][1];
-      i = airlinesList.length;
+    for (let i = 0; i < airlinesList.length; i++) {
+      if (airlinesList[i][0] === flightNumberCut) {
+        airlineName = airlinesList[i][1];
+        i = airlinesList.length;
+      }
     }
   }
   return airlineName;
@@ -158,6 +162,13 @@ function getDestinationInFull(destinationAirportAbbreviated) {
       longAirportName = airportsList[i][1];
       i = airportsList.length;
     }
+  }
+  if (
+    longAirportName === "Unknown Airport" &&
+    !missingAirports.includes(destinationAirportAbbreviated)
+  ) {
+    missingAirports.push(destinationAirportAbbreviated);
+    console.log(missingAirports);
   }
   return longAirportName;
 }
