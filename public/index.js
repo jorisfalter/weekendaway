@@ -75,6 +75,7 @@ function initMap() {
         //   [cityCoords, [destination.lat, destination.lng]],
         //   { color: "red", weight: 1 }
         // ).addTo(map);
+
         var curvedPath = L.curve(
           ["M", cityCoords, "Q", midPoint, [destination.lat, destination.lng]],
           {
