@@ -79,6 +79,13 @@ function initMap() {
         var curvedPath = L.curve(
           ["M", cityCoords, "Q", midPoint, [destination.lat, destination.lng]],
           {
+            animate: {
+              duration: 2000,
+              iterations: 1,
+              easting: "ease-in-out",
+            },
+          },
+          {
             color: "red",
             weight: 1,
           }
