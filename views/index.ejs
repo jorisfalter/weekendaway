@@ -44,7 +44,7 @@
 
     <style>
         #map {
-            height: 400px;
+            height: 500px;
         }
     </style>
 </head>
@@ -180,25 +180,19 @@
 
 
 
-                    <div class="container">
-                        <!-- <h1>Your Destinations</h1> -->
-                        <!-- <div class="destination-summary"> -->
-                        <% let uniqueList=[] %>
-                            <% for (const child of foundDestinations){ %>
-                                <% if (!uniqueList.includes(child.retAirport)){ %>
-                                    <% uniqueList.push(child.retAirport) %>
-                                        <% if (child.destinationInFull !=="Unknown Airport" ){ %>
-                                            <%= child.destinationInFull %><br>
-                                                <% } else { %>
-                                                    <%= child.retAirport %><br>
-                                                        <% } %>
-                                                            <% } %>
-                                                                <% } %>
-
-
-
-                                                                    <!-- </div> -->
-                    </div>
+                    <!-- <div class="container"> -->
+                    <!-- <% let uniqueList=[] %> -->
+                    <!-- <% for (const child of foundDestinations){ %> -->
+                    <!-- <% if (!uniqueList.includes(child.retAirport)){ %> -->
+                    <!-- <% uniqueList.push(child.retAirport) %> -->
+                    <!-- <% if (child.destinationInFull !=="Unknown Airport" ){ %> -->
+                    <!-- <%= child.destinationInFull %><br> -->
+                    <!-- <% } else { %> -->
+                    <!-- <%= child.retAirport %><br> -->
+                    <!-- <% } %> -->
+                    <!-- <% } %> -->
+                    <!-- <% } %> -->
+                    <!-- </div> -->
                 </div>
 
                 <br><br>

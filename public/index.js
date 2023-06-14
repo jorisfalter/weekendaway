@@ -53,7 +53,7 @@ function initMap() {
       var cityCoords = getCoords(origin);
       console.log(cityCoords);
 
-      const map = L.map("map").setView(cityCoords, 5);
+      const map = L.map("map").setView(cityCoords, 4);
 
       // attribution
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
