@@ -80,13 +80,12 @@ function initMap() {
           ["M", cityCoords, "Q", midPoint, [destination.lat, destination.lng]],
           {
             animate: {
-              duration: 2000,
+              duration: 3000,
               iterations: 1,
               easting: "ease-in-out",
             },
-          },
-          {
-            color: "red",
+
+            color: "green",
             weight: 1,
           }
         ).addTo(map);
