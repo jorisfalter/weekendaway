@@ -83,6 +83,7 @@ function initMap() {
               duration: 3000,
               iterations: 1,
               easting: "ease-in-out",
+              delay: 2000,
             },
 
             color: "green",
