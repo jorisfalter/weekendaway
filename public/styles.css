@@ -51,7 +51,7 @@ a:hover {
 .departure-note{
   font-size:0.6rem;
   color:black;
-  font-style: italic;
+  /* font-style: italic; */
 
 }
 

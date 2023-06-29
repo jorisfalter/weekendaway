@@ -22,11 +22,17 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700&family=Quicksand:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;700&family=Quicksand:wght@300;400;500;600;700&display=swap');
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
@@ -67,21 +73,19 @@
                         <div class=origin-note>
                             Origin: <br>
                             <p><span class="departure-note">
-                                    We have 3 departure locations (behind the scenes, we're expanding our offering, but
-                                    this
-                                    data is crazy expensive
-                                </span>🤔<span class="departure-note">)</span>
+                                    We have <s>three</s> <b>one</b> departure location as this data is crazy expensive
+                                </span>🤔<span class="departure-note"></span>
                             </p>
 
                             <!-- <br>Lisbon -->
                         </div>
                         <label class="radio-inline">
                             <input class="radio-button-button" type="radio" name="originName" value="Lisbon"
-                                <%=checkboxStatus[0]%>>Lisbon 🥧
+                                <%=checkboxStatus[0]%>><s>Lisbon 🥧</s>
                         </label>
                         <label class="radio-inline">
                             <input class="radio-button-button" type="radio" name="originName" value="Austin"
-                                <%=checkboxStatus[1]%>>Austin 🤠
+                                <%=checkboxStatus[1]%>><s>Austin 🤠</s>
                         </label>
                         <label class="radio-inline">
                             <input class="radio-button-button" type="radio" name="originName" value="Bangkok"
