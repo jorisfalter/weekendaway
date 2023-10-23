@@ -192,5 +192,11 @@ airportsListV2 = [
   ["BOM", "Mumbai", 19.0975, 72.8747],
   ["THS", "Sukhothai", 17.2326, 99.8205],
   ["LPT", "Lampang", 18.2778, 99.5059],
+  ["CCU", "Kolkata - Netaji Subhash Chandra Bose", 22.6536, 88.4451],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
 ];
 module.exports = airportsListV2;
