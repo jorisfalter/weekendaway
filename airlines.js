@@ -106,8 +106,8 @@ airlinesList = [
   ["MU", "China Eastern"],
   ["SG", "SpiceJet"],
   ["B3", "Bhutan Airlines"],
-  ["", ""],
-  ["", ""],
+  ["ZH", "Shenzen Airlines"],
+  ["FY", "Firefly"],
   ["", ""],
   ["", ""],
 ];
