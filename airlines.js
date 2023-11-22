@@ -108,6 +108,11 @@ airlinesList = [
   ["B3", "Bhutan Airlines"],
   ["ZH", "Shenzen Airlines"],
   ["FY", "Firefly"],
+  ["8M", "Myanmar Airways"],
+  ["PR", "Philippine Airlines"],
+  ["KY", "Kunming Airlines"],
+  ["", ""],
+  ["", ""],
   ["", ""],
   ["", ""],
 ];
