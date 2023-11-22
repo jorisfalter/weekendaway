@@ -387,6 +387,10 @@ app.post("/", function (req, res) {
       originInputTimeZone = "Asia/Bangkok";
       checkboxStatusArray = ["", "", "checked"];
       break;
+    // case "Phuket":
+    //   originInputTimeZone = "Asia/Bangkok";
+    //   checkboxStatusArray = ["", "", "checked"];
+    //   break;
   }
 
   var departure_start_zulu = calculateLocalTime(

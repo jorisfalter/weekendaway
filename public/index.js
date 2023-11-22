@@ -13,6 +13,9 @@ function getCoords(originInputInput) {
     case "Austin":
       originInputCoords = [30.2672, -97.7431];
       break;
+    case "Phuket":
+      originInputCoords = [8.108, 98.3168];
+      break;
   }
   return originInputCoords;
 }
