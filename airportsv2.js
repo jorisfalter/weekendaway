@@ -193,7 +193,7 @@ airportsListV2 = [
   ["THS", "Sukhothai", 17.2326, 99.8205],
   ["LPT", "Lampang", 18.2778, 99.5059],
   ["CCU", "Kolkata - Netaji Subhash Chandra Bose", 22.6536, 88.4451],
-  ["", "", ,],
+  ["SZX", "Shenzhen Bao'an", 22.6368, 113.8146],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],
