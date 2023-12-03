@@ -195,7 +195,7 @@ airportsListV2 = [
   ["CCU", "Kolkata - Netaji Subhash Chandra Bose", 22.6536, 88.4451],
   ["SZX", "Shenzhen Bao'an", 22.6368, 113.8146],
   ["DMK", "Bangkok Don Mueang", 13.9199, 100.6019],
-  ["BKK", "Bangkok Suvarnabhumi", ,],
+  ["BKK", "Bangkok Suvarnabhumi", 13.6819, 100.7469],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],
