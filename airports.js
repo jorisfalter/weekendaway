@@ -195,5 +195,11 @@ airportsList = [
   ["LPT", "Lampang"],
   ["", ""],
   ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
 ];
 module.exports = airportsList;
