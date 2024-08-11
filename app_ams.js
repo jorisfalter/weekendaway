@@ -18,9 +18,9 @@ app.use(
 //
 const airportsList = [
   {
-    originAirport_city: "Bangkok",
-    originAirport_iata: "BKK", // Suvarnabhumi
-    originTimeZone: "Asia/Bangkok",
+    originAirport_city: "Amsterdam",
+    originAirport_iata: "AMS",
+    originTimeZone: "Europe/Amsterdam",
   },
 ];
 
