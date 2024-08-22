@@ -210,7 +210,7 @@ airportsListV2 = [
   ["ACE", "Lanzarote", 29.95, 13.6],
   ["SAW", "Istanbul Sabiha", 40.91, 29.32],
   ["ATH", "Athens", 37.94, 23.95],
-  ["", "", ,],
+  ["ABZ", "Aberdeen", 57.2, 2.2],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],

@@ -209,7 +209,7 @@ airportsList = [
   ["ACE", "Lanzarote"],
   ["SAW", "Istanbul Sabiha"],
   ["ATH", "Athens"],
-  ["", ""],
+  ["ABZ", "Aberdeen"],
   ["", ""],
   ["", ""],
 ];
