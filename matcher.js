@@ -131,7 +131,7 @@ app.get("/", function (req, res) {
     inputTime3: returnTimeStartInput,
     inputTime4: returnTimeEndInput,
     firstLoad: true,
-    checkboxStatus: ["", "", "", "checked"],
+    checkboxStatus: ["", "", "", "", "checked"],
     // foundDestinationsDestinationsOnlyTrf: [],
     testvariable: [1, 2],
   });
