@@ -377,19 +377,23 @@ app.post("/", function (req, res) {
   switch (originInput) {
     case "Lisbon":
       originInputTimeZone = "Europe/Lisbon";
-      checkboxStatusArray = ["checked", "", "", ""];
+      checkboxStatusArray = ["checked", "", "", "", ""];
       break;
     case "Austin":
       originInputTimeZone = "America/Chicago";
-      checkboxStatusArray = ["", "checked", "", ""];
+      checkboxStatusArray = ["", "checked", "", "", ""];
       break;
     case "Bangkok":
       originInputTimeZone = "Asia/Bangkok";
-      checkboxStatusArray = ["", "", "checked", ""];
+      checkboxStatusArray = ["", "", "checked", "", ""];
       break;
     case "Phuket":
       originInputTimeZone = "Asia/Bangkok";
-      checkboxStatusArray = ["", "", "", "checked"];
+      checkboxStatusArray = ["", "", "", "checked", ""];
+      break;
+    case "Amsterdam":
+      originInputTimeZone = "Europe/Amsterdam";
+      checkboxStatusArray = ["", "", "", "", "checked"];
       break;
   }
 
