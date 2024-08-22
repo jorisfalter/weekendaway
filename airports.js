@@ -210,6 +210,11 @@ airportsList = [
   ["SAW", "Istanbul Sabiha"],
   ["ATH", "Athens"],
   ["ABZ", "Aberdeen"],
+  ["KRK", "Krakow"],
+  ["BLL", "Billund"],
+  ["POZ", "Poznan"],
+  ["BGO", "Bergen"],
+  ["GOA", "Genova"],
   ["", ""],
   ["", ""],
 ];
