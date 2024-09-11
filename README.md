@@ -4,7 +4,12 @@ WeekendAway is a matching engine to find flights which fit your available free t
 
 ## Technology
 
-Node.js, Express.
+Node.js, Express, MongoDb, FlightAware data
+Heroku
+
+## Link
+
+www.flightsforflaneurs.com
 
 ## How To Launch
 
