@@ -1,13 +1,13 @@
 //jshint esversion:6
 require("dotenv").config();
-var http = require("https");
+var https = require("https");
 
-// purpose of this is to fetch the data using the Schiphol api rather than flightaware. This script uses the example from Schiphol
+// purpose of this is to fetch the data using the Schiphol API rather than flightaware. This script uses the example from Schiphol
 
 var options = {
   method: "GET",
   hostname: "api.schiphol.nl",
-  port: null,
+  port: 443,
   path: "/public-flights/flights",
   headers: {
     Accept: "application/json",
@@ -17,7 +17,7 @@ var options = {
   },
 };
 
-var req = http.request(options, function (res) {
+var req = https.request(options, function (res) {
   var chunks = [];
 
   res.on("data", function (chunk) {
@@ -25,9 +25,22 @@ var req = http.request(options, function (res) {
   });
 
   res.on("end", function () {
-    var body = Buffer.concat(chunks);
-    console.log(body.toString());
+    var body = Buffer.concat(chunks).toString();
+
+    try {
+      // Parse the JSON response
+      var jsonData = JSON.parse(body);
+
+      // Pretty-print the JSON data with 2 spaces for indentation
+      console.log(JSON.stringify(jsonData, null, 2));
+    } catch (error) {
+      console.error("Error parsing JSON:", error);
+    }
   });
+});
+
+req.on("error", function (e) {
+  console.error(e.message);
 });
 
 req.end();
