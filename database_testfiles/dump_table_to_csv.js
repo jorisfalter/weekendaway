@@ -57,8 +57,20 @@ const fireItAllUp = async () => {
 
   // Function to export data from a collection to CSV
   const exportToCSV = async (model, fileName, filter) => {
-    const data = await model.find(filter);
-    const json2csvParser = new Parser();
+    const data = await model.find(filter).lean(); // use .lean() to get plain JSON objects
+    const json2csvParser = new Parser({
+      fields: [
+        "TimeOfEntry",
+        "departureAirport_city",
+        "departureAirport_iata",
+        "arrivalAirport_city",
+        "arrivalAirport_iata",
+        "departureTimeZulu",
+        "departureTimeLocal",
+        "departureTimeDayOfWeek",
+        "flightNumber",
+      ],
+    });
     const csv = json2csvParser.parse(data);
 
     fs.writeFileSync(fileName, csv);
