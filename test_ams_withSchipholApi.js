@@ -6,8 +6,9 @@ const fetch = require("node-fetch");
 const { setTimeout } = require("timers/promises");
 const mongoose = require("mongoose");
 const internal = require("stream");
-
 const app = express();
+
+// purpose of this is to fetch the data using the Schiphol api rather than flightaware
 
 app.use(
   bodyParser.urlencoded({
