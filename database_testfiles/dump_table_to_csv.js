@@ -1,5 +1,5 @@
 //jshint esversion:6
-require("dotenv").config();
+require("dotenv").config({ path: "../.env" });
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
@@ -7,6 +7,8 @@ const fs = require("fs");
 const { Parser } = require("json2csv");
 
 const app = express();
+
+// this supporting file dumps the mongo db entries from FlightAware from last 7 days into a DB
 
 app.use(
   bodyParser.urlencoded({
@@ -55,8 +57,8 @@ const fireItAllUp = async () => {
   );
   const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
 
-  // Function to export data from a collection to CSV
-  const exportToCSV = async (model, fileName, filter) => {
+  // Function to export departing data from a collection to CSV
+  const exportDepartToCSV = async (model, fileName, filter) => {
     const data = await model.find(filter).lean(); // use .lean() to get plain JSON objects
     const json2csvParser = new Parser({
       fields: [
@@ -77,6 +79,28 @@ const fireItAllUp = async () => {
     console.log(`${fileName} successfully written.`);
   };
 
+  // Function to export return data from a collection to CSV
+  const exportReturnToCSV = async (model, fileName, filter) => {
+    const data = await model.find(filter).lean(); // use .lean() to get plain JSON objects
+    const json2csvParser = new Parser({
+      fields: [
+        "TimeOfEntry",
+        "departureAirport_city",
+        "departureAirport_iata",
+        "arrivalAirport_city",
+        "arrivalAirport_iata",
+        "arrivalTimeZulu",
+        "arrivalTimeLocal",
+        "arrivalTimeDayOfWeek",
+        "flightNumber",
+      ],
+    });
+    const csv = json2csvParser.parse(data);
+
+    fs.writeFileSync(fileName, csv);
+    console.log(`${fileName} successfully written.`);
+  };
+
   // Calculate the date one week ago from today
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -87,8 +111,16 @@ const fireItAllUp = async () => {
   };
 
   // Dump data from both collections with the last week's entries
-  await exportToCSV(Departingflight, "departingFlights_lastWeek.csv", filter);
-  await exportToCSV(Returnflight, "returnFlights_lastWeek.csv", filter);
+  await exportDepartToCSV(
+    Departingflight,
+    "dump_departingFlights_lastWeek.csv",
+    filter
+  );
+  await exportReturnToCSV(
+    Returnflight,
+    "dump_returnFlights_lastWeek.csv",
+    filter
+  );
 
   console.log("Data export for the last week completed.");
 };
