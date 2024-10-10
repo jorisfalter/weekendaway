@@ -8,14 +8,18 @@ const app = express();
 // deletes the mongodb flightaware table from everything before 15 days
 // need to manually adjust to clean Departing and Return
 
-const fifteenDaysAgo = new Date(new Date().setDate(new Date().getDate() - 15));
+// const fifteenDaysAgo = new Date(new Date().setDate(new Date().getDate() - 15));
+
+//!!! currently set to delete everything!!
+const fifteenDaysAgo = new Date(new Date().setDate(new Date().getDate()));
+
 console.log(fifteenDaysAgo);
 
 const fireItAllUp = async () => {
   await mongoose.connect(
     "mongodb+srv://joris-mongo:" +
       process.env.ATLAS_KEY +
-      "@cluster1.dkcnhgi.mongodb.net/flightsDB",
+      "@cluster1.dkcnhgi.mongodb.net/flightsDB-SchipholAPI",
     { useNewUrlParser: true, useUnifiedTopology: true }
   );
   console.log("mongoose fired up");
@@ -25,33 +29,38 @@ const fireItAllUp = async () => {
 
   // setup departure collection
   const departingFlightSchema = new mongoose.Schema({
-    TimeOfEntry: Date,
-    departureAirport: String,
-    departureAirport_iata: String,
-    arrivalAirport: String,
-    departureTimeZulu: Date,
-    departureTimeLocal: String,
-    departureTimeDayOfWeek: Number,
-    flightNumber: String,
+    // TimeOfEntry: Date,
+    // departureAirport: String,
+    // departureAirport_iata: String,
+    // arrivalAirport: String,
+    // departureTimeZulu: Date,
+    // departureTimeLocal: String,
+    // departureTimeDayOfWeek: Number,
+    // flightNumber: String,
   });
 
   // setup return collection
   const returnFlightSchema = new mongoose.Schema({
-    TimeOfEntry: Date,
-    departureAirport: String,
-    arrivalAirport: String,
-    arrivalAirport_iata: String,
-    arrivalTimeZulu: Date,
-    arrivalTimeLocal: String,
-    arrivalTimeDayOfWeek: Number,
-    flightNumber: String,
+    // TimeOfEntry: Date,
+    // departureAirport: String,
+    // arrivalAirport: String,
+    // arrivalAirport_iata: String,
+    // arrivalTimeZulu: Date,
+    // arrivalTimeLocal: String,
+    // arrivalTimeDayOfWeek: Number,
+    // flightNumber: String,
   });
 
   const Departingflight = mongoose.model(
     "Departingflight",
-    departingFlightSchema
+    departingFlightSchema,
+    "departingflights"
   );
-  const Returnflight = mongoose.model("Returnflight", returnFlightSchema);
+  const Returnflight = mongoose.model(
+    "Returnflight",
+    returnFlightSchema,
+    "returnflights"
+  );
 
   // delete data
   try {

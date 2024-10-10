@@ -9,6 +9,7 @@ const internal = require("stream");
 const app = express();
 
 // purpose of this is to fetch the data using the Schiphol api rather than flightaware
+// pending getting the data from Schiphol
 
 app.use(
   bodyParser.urlencoded({
@@ -37,7 +38,7 @@ const fireItAllUp = async () => {
   await mongoose.connect(
     "mongodb+srv://joris-mongo:" +
       process.env.ATLAS_KEY +
-      "@cluster1.dkcnhgi.mongodb.net/flightsDB",
+      "@cluster1.dkcnhgi.mongodb.net/flightsDB-SchipholAPI",
     { useNewUrlParser: true, useUnifiedTopology: true }
   );
   console.log("mongoose fired up");
@@ -94,38 +95,6 @@ const fireItAllUp = async () => {
       }
     });
   }
-
-  function multiAirport() {
-    for (let j = 0; j < airportsList.length; j++) {
-      let originAirport_iata = airportsList[j].originAirport_iata;
-      let departureUrl =
-        "https://aeroapi.flightaware.com/aeroapi/airports/" +
-        airportsList[j].originAirport_iata +
-        "/flights/scheduled_departures?type=Airline";
-      let returnUrl =
-        "https://aeroapi.flightaware.com/aeroapi/airports/" +
-        airportsList[j].originAirport_iata +
-        "/flights/scheduled_arrivals?type=Airline";
-      let originTimeZone = airportsList[j].originTimeZone;
-      // console.log(originAirport_iata)
-      // console.log(returnUrl)
-      // console.log(originTimeZone)
-      if (j === airportsList.length - 1) {
-        endOfTheList = true;
-      }
-
-      // Initial API Call
-      fetchAirportData(
-        departureUrl,
-        "departure",
-        0,
-        originTimeZone,
-        returnUrl,
-        originAirport_iata
-      );
-    }
-  }
-  multiAirport();
 
   // Create the function for API Call
   // direction is either "departure" or "return"; url is either "departureUrl" or "returnUrl"
