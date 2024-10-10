@@ -33,21 +33,31 @@ async function connectToMongo() {
 
 // Function to insert flight into the correct collection
 async function insertFlight(db, flight) {
-  console.log(flight);
+  // console.log(flight); // uncomment to see the flight
   const collectionName =
     flight.flightDirection === "A" ? "returnflights" : "departingflights";
-  console.log("flight.flightDirection");
-  console.log(flight.flightDirection);
-  console.log("db");
-  console.log(db);
+
   const collection = db.collection(collectionName);
 
   // Insert the flight into the correct collection
+
+  // NEED IF ELSE BASED on flightDirection!!!
+  // currently doing it based on departingflights
+  // departureTimeZulu still todo
+  // departureTimeDayOfWeek still todo
+
   await collection.insertOne({
-    scheduleDateTime: flight.scheduleDateTime || "NULL",
-    destinations: flight.route?.destinations || ["NULL"],
-    mainFlight: flight.mainFlight || "NULL",
-    flightDirection: flight.flightDirection || "NULL",
+    TimeOfEntry: new Date(),
+    departureAirport_city: "Amsterdam", // we might not actually use this one
+    departureAirport_iata: "AMS",
+    arrivalAirport_city: "", // we might not actually use this one, so if it's not there, maybe it's not a problem
+    arrivalAirport_iata: flight.route?.destinations[0] || ["NULL"], // we only take the first destination, this is something I should solve
+    departureTimeZulu: "",
+    // departureTimeLocal: new Date(flight.scheduleDateTime) || "NULL", // if I do it like this, it will assume it's in GMT timezone, so it will deduct two hours
+    departureTimeLocal: new Date(flight.scheduleDateTime) || "NULL",
+    departureTimeDayOfWeek: "",
+    flightNumber: flight.mainFlight || "NULL",
+    flightDirection: flight.flightDirection || "NULL", // just to check
   });
 }
 
@@ -132,7 +142,7 @@ async function fetchPage(url, db, allFlights = []) {
 async function main() {
   console.log("Starting MongoDB connection...");
   const db = await connectToMongo(); // Wait for MongoDB connection
-  console.log("MongoDB connection result:", db); // This should log either the db object or null
+  // console.log("MongoDB connection result:", db); // This should log either the db object or null
 
   if (db) {
     console.log("MongoDB connected successfully, starting fetchPage...");
