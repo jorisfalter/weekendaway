@@ -19,7 +19,7 @@ const options = {
 };
 
 let pageCount = 0;
-const maxPages = 80; // 203 was vorige keer de limit
+const maxPages = 50; // 203 was vorige keer de limit
 
 // Function to fetch a single page of data
 async function fetchPage(url, allFlights = []) {
@@ -114,8 +114,24 @@ function processArrivalFlights(allFlights) {
     );
 
   console.log(
-    "First 10 arrival flights with estimated landing times (sorted):",
-    arrivalFlights.slice(0, 10)
+    "First 2 arrival flights (full details):",
+    JSON.stringify(arrivalFlights.slice(0, 2), null, 2)
+  );
+
+  const filteredArrivalFlights = arrivalFlights.map((flight) => ({
+    iataMain: flight.aircraftType.iataMain,
+    iataSub: flight.aircraftType.iataSub,
+    mainFlight: flight.mainFlight,
+    codeshares: flight.codeshares?.codeshares || [],
+    estimatedLandingTime: flight.estimatedLandingTime,
+    flightName: flight.flightName,
+    airlineCode: flight.airlineCode,
+    destinations: flight.route.destinations,
+  }));
+
+  console.log(
+    "First 10 arrival flights (filtered fields):",
+    JSON.stringify(filteredArrivalFlights.slice(0, 10), null, 2)
   );
 }
 
