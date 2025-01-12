@@ -48,10 +48,10 @@ async function fetchPage(url, allFlights = []) {
         // Check for pagination in the 'link' header
         const linkHeader = res.headers["link"];
         if (linkHeader && pageCount < maxPages) {
-          const prevPageMatch = linkHeader.match(/<([^>]+)>;\s*rel="prev"/);
-          if (prevPageMatch && prevPageMatch[1]) {
-            console.log("Fetching previous page:", prevPageMatch[1]);
-            fetchPage(prevPageMatch[1], allFlights); // Recursively fetch previous page
+          const nextPageMatch = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
+          if (nextPageMatch && nextPageMatch[1]) {
+            console.log("Fetching next page:", nextPageMatch[1]);
+            fetchPage(nextPageMatch[1], allFlights); // Recursively fetch next page
           } else {
             console.log("No more pages.");
             processArrivalFlights(allFlights);
@@ -121,17 +121,27 @@ function processArrivalFlights(allFlights) {
 
 // Main function to start the process
 async function main() {
-  // First make a request to get the last page URL
+  let maxPages = 80; // This will be updated based on the quarter calculation
   const initialReq = https.request(options, function (res) {
     const linkHeader = res.headers["link"];
     if (linkHeader) {
       const lastPageMatch = linkHeader.match(/<([^>]+)>;\s*rel="last"/);
-      if (lastPageMatch && lastPageMatch[1]) {
-        console.log("Starting from last page:", lastPageMatch[1]);
-        fetchPage(lastPageMatch[1]);
-      } else {
-        console.log("No last page found, starting from first page");
-        fetchPage();
+      if (lastPageMatch) {
+        const lastPageUrl = lastPageMatch[1];
+        const pageNumMatch = lastPageUrl.match(/page=(\d+)/);
+        const totalPages = pageNumMatch ? parseInt(pageNumMatch[1]) : 80;
+
+        console.log("Total pages available:", totalPages);
+
+        // Calculate the second quarter of pages
+        const quarterSize = Math.floor(totalPages / 4);
+        const startPage = quarterSize;
+        const endPage = quarterSize * 2;
+        maxPages = endPage - startPage + 1;
+
+        console.log(`Starting fetch from page ${startPage} to ${endPage}`);
+        const targetUrl = `/public-flights/flights?page=${startPage}`;
+        fetchPage(targetUrl);
       }
     } else {
       console.log("No pagination headers found, starting from first page");
