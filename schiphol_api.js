@@ -125,12 +125,12 @@ function processArrivalFlights(allFlights) {
   // display flights to see the json format
   // console.log(
   //   "First 2 arrival flights (full details):",
-  //   JSON.stringify(arrivalFlights.slice(0, 2), null, 2)
+  //   JSON.stringify(arrivalFlights.slice(0, 1), null, 2)
   // );
 
   // display all flights
   // console.log("Full details:", JSON.stringify(arrivalFlights, null, 2));
-
+  //
   const filteredArrivalFlights = arrivalFlights.map((flight) => ({
     // iataMain: flight.aircraftType.iataMain,
     mainFlight: flight.mainFlight,
@@ -146,6 +146,10 @@ function processArrivalFlights(allFlights) {
     // airlineCode: flight.airlineCode,
     pageNumber: flight.pageNumber,
   }));
+  // console.log(
+  //   "filtered details:",
+  //   JSON.stringify(filteredArrivalFlights, null, 2)
+  // );
 
   // Create HTML table
   const htmlContent = `
