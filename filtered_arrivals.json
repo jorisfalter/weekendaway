@@ -1,0 +1,155 @@
+[
+  {
+    "iataMain": "737",
+    "iataSub": "73H",
+    "mainFlight": "RO361",
+    "codeshares": [],
+    "estimatedLandingTime": "2025-01-13T10:18:27.000+01:00",
+    "flightName": "RO361",
+    "airlineCode": 239,
+    "destinations": [
+      "OTP"
+    ]
+  },
+  {
+    "iataMain": "EMJ",
+    "iataSub": "E7W",
+    "mainFlight": "KL1352",
+    "codeshares": [
+      "CI9594",
+      "DL9433",
+      "GA9363"
+    ],
+    "estimatedLandingTime": "2025-01-13T10:19:52.000+01:00",
+    "flightName": "CI9594",
+    "airlineCode": 44,
+    "destinations": [
+      "PRG"
+    ]
+  },
+  {
+    "iataMain": "330",
+    "iataSub": "332",
+    "mainFlight": "KL0696",
+    "codeshares": [
+      "AF8267",
+      "DL9698",
+      "VS7165"
+    ],
+    "estimatedLandingTime": "2025-01-13T10:20:00.000+01:00",
+    "flightName": "AF8267",
+    "airlineCode": 80,
+    "destinations": [
+      "YYZ"
+    ]
+  },
+  {
+    "iataMain": "330",
+    "iataSub": "333",
+    "mainFlight": "DL0236",
+    "codeshares": [
+      "AF3592",
+      "KL6105",
+      "VS3728"
+    ],
+    "estimatedLandingTime": "2025-01-13T10:21:51.000+01:00",
+    "flightName": "AF3592",
+    "airlineCode": 80,
+    "destinations": [
+      "TPA"
+    ]
+  },
+  {
+    "iataMain": "330",
+    "iataSub": "339",
+    "mainFlight": "DL0090",
+    "codeshares": [
+      "AF3582",
+      "KL6123",
+      "VS3950"
+    ],
+    "estimatedLandingTime": "2025-01-13T10:24:03.000+01:00",
+    "flightName": "AF3582",
+    "airlineCode": 80,
+    "destinations": [
+      "MCO"
+    ]
+  },
+  {
+    "iataMain": "330",
+    "iataSub": "333",
+    "mainFlight": "DL0136",
+    "codeshares": [
+      "AF5604",
+      "KL6034",
+      "VS3945"
+    ],
+    "estimatedLandingTime": "2025-01-13T10:24:06.000+01:00",
+    "flightName": "AF5604",
+    "airlineCode": 80,
+    "destinations": [
+      "DTW"
+    ]
+  },
+  {
+    "iataMain": "32S",
+    "iataSub": "319",
+    "mainFlight": "BA430",
+    "codeshares": [],
+    "estimatedLandingTime": "2025-01-13T10:26:03.000+01:00",
+    "flightName": "BA430",
+    "airlineCode": 31,
+    "destinations": [
+      "LHR"
+    ]
+  },
+  {
+    "iataMain": "777",
+    "iataSub": "77W",
+    "mainFlight": "KL0598",
+    "codeshares": [
+      "AF8362",
+      "DL9486"
+    ],
+    "estimatedLandingTime": "2025-01-13T10:27:25.000+01:00",
+    "flightName": "AF8362",
+    "airlineCode": 80,
+    "destinations": [
+      "CPT"
+    ]
+  },
+  {
+    "iataMain": "32S",
+    "iataSub": "32N",
+    "mainFlight": "SK2551",
+    "codeshares": [],
+    "estimatedLandingTime": "2025-01-13T10:29:24.000+01:00",
+    "flightName": "SK2551",
+    "airlineCode": 150,
+    "destinations": [
+      "CPH"
+    ]
+  },
+  {
+    "iataMain": "EMJ",
+    "iataSub": "E7W",
+    "mainFlight": "KL1918",
+    "codeshares": [
+      "AM6447",
+      "CZ1352",
+      "DL9280",
+      "G35595",
+      "KQ1954",
+      "MF9725",
+      "MH5662",
+      "MU1782",
+      "SK6629"
+    ],
+    "estimatedLandingTime": "2025-01-13T10:30:54.000+01:00",
+    "flightName": "AM6447",
+    "airlineCode": 794,
+    "destinations": [
+      "ZRH"
+    ]
+  }
+]

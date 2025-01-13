@@ -1,6 +1,7 @@
 //jshint esversion:6
 require("dotenv").config();
 const https = require("https");
+const fs = require("fs");
 
 // purpose is to test the Schiphol API only, for another project
 
@@ -19,13 +20,14 @@ const options = {
 };
 
 let pageCount = 0;
-const maxPages = 50; // 203 was vorige keer de limit
+let maxPages; // 203 was vorige keer de limit
 
 // Function to fetch a single page of data
 async function fetchPage(url, allFlights = []) {
   if (pageCount >= maxPages) {
     console.log("Reached page limit of", maxPages);
-    return; // Stop fetching more pages after reaching the limit
+    processArrivalFlights(allFlights); // Process flights when reaching page limit
+    return;
   }
 
   const currentOptions = { ...options, path: url || options.path };
@@ -42,26 +44,27 @@ async function fetchPage(url, allFlights = []) {
 
       try {
         const jsonData = JSON.parse(body);
-        allFlights.push(...jsonData.flights); // Accumulate flights
+        // console.log(jsonData);
+        allFlights.push(...jsonData.flights);
         pageCount++;
 
-        // Check for pagination in the 'link' header
         const linkHeader = res.headers["link"];
         if (linkHeader && pageCount < maxPages) {
           const nextPageMatch = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
           if (nextPageMatch && nextPageMatch[1]) {
             console.log("Fetching next page:", nextPageMatch[1]);
-            fetchPage(nextPageMatch[1], allFlights); // Recursively fetch next page
+            fetchPage(nextPageMatch[1], allFlights);
           } else {
             console.log("No more pages.");
-            processArrivalFlights(allFlights);
+            processArrivalFlights(allFlights); // Process when no more pages
           }
         } else {
           console.log("No more pages or reached limit.");
-          processArrivalFlights(allFlights);
+          processArrivalFlights(allFlights); // Process when no more pages or reached limit
         }
       } catch (error) {
         console.error("Error parsing JSON:", error);
+        processArrivalFlights(allFlights); // Process even if there's an error
       }
     });
   });
@@ -72,7 +75,8 @@ async function fetchPage(url, allFlights = []) {
 
   req.end();
 
-  // console.log(allFlights);
+  // Write allFlights to a JSON file
+  // fs.writeFileSync("flights.json", JSON.stringify(allFlights, null, 2), "utf8");
 }
 
 // Helper function to process arrival flights (to avoid code duplication)
@@ -113,31 +117,79 @@ function processArrivalFlights(allFlights) {
         new Date(a.estimatedLandingTime) - new Date(b.estimatedLandingTime)
     );
 
-  console.log(
-    "First 2 arrival flights (full details):",
-    JSON.stringify(arrivalFlights.slice(0, 2), null, 2)
-  );
+  // display flights to see the json format
+  // console.log(
+  //   "First 2 arrival flights (full details):",
+  //   JSON.stringify(arrivalFlights.slice(0, 2), null, 2)
+  // );
+
+  // display all flights
+  // console.log("Full details:", JSON.stringify(arrivalFlights, null, 2));
 
   const filteredArrivalFlights = arrivalFlights.map((flight) => ({
-    iataMain: flight.aircraftType.iataMain,
-    iataSub: flight.aircraftType.iataSub,
+    // iataMain: flight.aircraftType.iataMain,
     mainFlight: flight.mainFlight,
-    codeshares: flight.codeshares?.codeshares || [],
-    estimatedLandingTime: flight.estimatedLandingTime,
-    flightName: flight.flightName,
-    airlineCode: flight.airlineCode,
     destinations: flight.route.destinations,
+    runwayOrCoordinates: "na",
+    minutesUntilLanding: Math.round(
+      (new Date(flight.estimatedLandingTime) - new Date()) / 60000
+    ),
+    // estimatedLandingTime: flight.estimatedLandingTime,
+    iataSub: flight.aircraftType.iataSub,
+    // codeshares: flight.codeshares?.codeshares || [],
+    // flightName: flight.flightName,
+    // airlineCode: flight.airlineCode,
   }));
 
-  console.log(
-    "First 10 arrival flights (filtered fields):",
-    JSON.stringify(filteredArrivalFlights.slice(0, 10), null, 2)
-  );
+  // Create HTML table
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Arrival Flights</title>
+    <meta http-equiv="refresh" content="60">
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2>Upcoming Arrivals</h2>
+    <p>Last updated: ${new Date().toLocaleString()}</p>
+    <table>
+        <tr>
+            <th>Main Flight</th>
+            <th>Destinations</th>
+            <th>Minutes Until Landing</th>
+            <th>Aircraft Type</th>
+        </tr>
+        ${filteredArrivalFlights
+          .slice(0, 10)
+          .map(
+            (flight) => `
+        <tr>
+            <td>${flight.mainFlight}</td>
+            <td>${flight.destinations.join(", ")}</td>
+            <td>${flight.minutesUntilLanding}</td>
+            <td>${flight.iataSub}</td>
+        </tr>
+        `
+          )
+          .join("")}
+    </table>
+</body>
+</html>
+`;
+
+  // Write HTML file instead of JSON
+  fs.writeFileSync("arrivals.html", htmlContent, "utf8");
+
+  console.log("HTML file generated: arrivals.html");
 }
 
 // Main function to start the process
 async function main() {
-  let maxPages = 80; // This will be updated based on the quarter calculation
   const initialReq = https.request(options, function (res) {
     const linkHeader = res.headers["link"];
     if (linkHeader) {
@@ -149,10 +201,10 @@ async function main() {
 
         console.log("Total pages available:", totalPages);
 
-        // Calculate the second quarter of pages
-        const quarterSize = Math.floor(totalPages / 4);
-        const startPage = quarterSize;
-        const endPage = quarterSize * 2;
+        // Calculate the first half of pages
+        const halfSize = Math.floor(totalPages / 2);
+        const startPage = 0;
+        const endPage = halfSize;
         maxPages = endPage - startPage + 1;
 
         console.log(`Starting fetch from page ${startPage} to ${endPage}`);
@@ -172,5 +224,18 @@ async function main() {
   initialReq.end();
 }
 
-// Start the process
-main();
+async function startScheduler() {
+  console.log("Starting scheduler...");
+
+  // Run immediately on start
+  await main();
+
+  // Then run every minute
+  setInterval(async () => {
+    console.log("\n--- Running scheduled update ---");
+    pageCount = 0; // Reset the page counter
+    await main();
+  }, 60000); // 60000 ms = 1 minute
+}
+
+startScheduler();
