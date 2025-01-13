@@ -19,6 +19,7 @@ const options = {
   },
 };
 
+const startPage = 50;
 let pageCount = 0;
 let maxPages; // 203 was vorige keer de limit
 
@@ -47,7 +48,7 @@ async function fetchPage(url, allFlights = []) {
         // Add page number to each flight entry
         const flightsWithPage = jsonData.flights.map((flight) => ({
           ...flight,
-          pageNumber: pageCount,
+          pageNumber: pageCount + startPage,
         }));
         allFlights.push(...flightsWithPage);
         pageCount++;
@@ -209,9 +210,8 @@ async function main() {
         console.log("Total pages available:", totalPages);
 
         // Calculate the first half of pages
-        const halfSize = Math.floor(totalPages / 2);
-        const startPage = 0;
-        const endPage = halfSize;
+        // const halfSize = Math.floor(totalPages / 2);
+        const endPage = 150;
         maxPages = endPage - startPage + 1;
 
         console.log(`Starting fetch from page ${startPage} to ${endPage}`);
