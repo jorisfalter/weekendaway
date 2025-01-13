@@ -44,8 +44,12 @@ async function fetchPage(url, allFlights = []) {
 
       try {
         const jsonData = JSON.parse(body);
-        // console.log(jsonData);
-        allFlights.push(...jsonData.flights);
+        // Add page number to each flight entry
+        const flightsWithPage = jsonData.flights.map((flight) => ({
+          ...flight,
+          pageNumber: pageCount,
+        }));
+        allFlights.push(...flightsWithPage);
         pageCount++;
 
         const linkHeader = res.headers["link"];
@@ -139,6 +143,7 @@ function processArrivalFlights(allFlights) {
     // codeshares: flight.codeshares?.codeshares || [],
     // flightName: flight.flightName,
     // airlineCode: flight.airlineCode,
+    pageNumber: flight.pageNumber,
   }));
 
   // Create HTML table
@@ -160,9 +165,10 @@ function processArrivalFlights(allFlights) {
     <table>
         <tr>
             <th>Main Flight</th>
-            <th>Destinations</th>
+            <th>Provenance</th>
             <th>Minutes Until Landing</th>
             <th>Aircraft Type</th>
+            <th>Page Number</th>
         </tr>
         ${filteredArrivalFlights
           .slice(0, 10)
@@ -173,6 +179,7 @@ function processArrivalFlights(allFlights) {
             <td>${flight.destinations.join(", ")}</td>
             <td>${flight.minutesUntilLanding}</td>
             <td>${flight.iataSub}</td>
+            <td>${flight.pageNumber}</td>
         </tr>
         `
           )
