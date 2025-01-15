@@ -2,6 +2,8 @@
 require("dotenv").config();
 const https = require("https");
 const fs = require("fs");
+const airports = require("./airportsv2.js");
+const airlines = require("./airlines.js");
 
 // purpose is to test the Schiphol API only, for another project
 
@@ -19,7 +21,7 @@ const options = {
   },
 };
 
-const startPage = 50;
+const startPage = 120;
 let pageCount = 0;
 let maxPages; // 203 was vorige keer de limit
 
@@ -132,18 +134,17 @@ function processArrivalFlights(allFlights) {
   // console.log("Full details:", JSON.stringify(arrivalFlights, null, 2));
   //
   const filteredArrivalFlights = arrivalFlights.map((flight) => ({
-    // iataMain: flight.aircraftType.iataMain,
     mainFlight: flight.mainFlight,
+    airlineName: getAirlineName(flight.mainFlight),
     destinations: flight.route.destinations,
+    destinationNames: flight.route.destinations.map((code) =>
+      getAirportName(code)
+    ),
     runwayOrCoordinates: "na",
     minutesUntilLanding: Math.round(
       (new Date(flight.estimatedLandingTime) - new Date()) / 60000
     ),
-    // estimatedLandingTime: flight.estimatedLandingTime,
     iataSub: flight.aircraftType.iataSub,
-    // codeshares: flight.codeshares?.codeshares || [],
-    // flightName: flight.flightName,
-    // airlineCode: flight.airlineCode,
     pageNumber: flight.pageNumber,
   }));
   // console.log(
@@ -180,8 +181,12 @@ function processArrivalFlights(allFlights) {
           .map(
             (flight) => `
         <tr>
-            <td>${flight.mainFlight}</td>
-            <td>${flight.destinations.join(", ")}</td>
+            <td>${flight.mainFlight} (${flight.airlineName})</td>
+            <td>${flight.destinations
+              .map(
+                (code, index) => `${code} (${flight.destinationNames[index]})`
+              )
+              .join(", ")}</td>
             <td>${flight.minutesUntilLanding}</td>
             <td>${flight.iataSub}</td>
             <td>${flight.pageNumber}</td>
@@ -200,6 +205,19 @@ function processArrivalFlights(allFlights) {
   console.log("HTML file generated: arrivals.html");
 }
 
+// Helper function to find airport name by code
+function getAirportName(code) {
+  const airport = airports.find((airport) => airport[0] === code);
+  return airport ? airport[1] : code;
+}
+
+// Helper function to find airline name by code
+function getAirlineName(flightNumber) {
+  const airlineCode = flightNumber.substring(0, 2);
+  const airline = airlines.find((airline) => airline[0] === airlineCode);
+  return airline ? airline[1] : airlineCode;
+}
+
 // Main function to start the process
 async function main() {
   const initialReq = https.request(options, function (res) {
@@ -215,7 +233,7 @@ async function main() {
 
         // Calculate the first half of pages
         // const halfSize = Math.floor(totalPages / 2);
-        const endPage = 150;
+        const endPage = 300;
         maxPages = endPage - startPage + 1;
 
         console.log(`Starting fetch from page ${startPage} to ${endPage}`);

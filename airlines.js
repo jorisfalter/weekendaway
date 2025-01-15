@@ -133,7 +133,7 @@ airlinesList = [
   ["PC", "Pegasus"],
   ["AZ", "ITA Airways"],
   ["A3", "Aegean Airlines"],
-  ["", ""],
+  ["MF", "Xiamen Air"],
   ["", ""],
   ["", ""],
   ["", ""],
