@@ -220,10 +220,10 @@ airportsListV2 = [
   ["LPL", "Liverpool", ,],
   ["ADB", "Izmir", ,],
   ["MEX", "Mexico City", ,],
-  ["", "", ,],
-  ["", "", ,],
-  ["", "", ,],
-  ["", "", ,],
+  ["SJO", "San Jose", ,],
+  ["CAI", "Cairo", ,],
+  ["GLA", "Glasgow", ,],
+  ["PRN", "Pristina", ,],
   ["", "", ,],
 ];
 module.exports = airportsListV2;

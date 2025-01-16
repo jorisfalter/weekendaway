@@ -135,6 +135,12 @@ airlinesList = [
   ["A3", "Aegean Airlines"],
   ["MF", "Xiamen Air"],
   ["EZ", "Easyjet"],
+  ["MS", "EgyptAir"],
+  ["EJ", "EasyJet Europe"],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
   ["", ""],
   ["", ""],
 ];

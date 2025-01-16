@@ -5,7 +5,7 @@ const fs = require("fs");
 const airports = require("./airportsv2.js");
 const airlines = require("./airlines.js");
 
-// purpose is to test the Schiphol API only, for another project
+// purpose is to test the Schiphol API only, for the project on Schiphol landings
 
 // HTTPS request options
 const options = {
@@ -21,7 +21,7 @@ const options = {
   },
 };
 
-const startPage = 120;
+const startPage = 100;
 let pageCount = 0;
 let maxPages; // 203 was vorige keer de limit
 
