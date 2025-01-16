@@ -134,7 +134,7 @@ airlinesList = [
   ["AZ", "ITA Airways"],
   ["A3", "Aegean Airlines"],
   ["MF", "Xiamen Air"],
-  ["", ""],
+  ["EZ", "Easyjet"],
   ["", ""],
   ["", ""],
 ];
