@@ -219,7 +219,7 @@ airportsListV2 = [
   ["KTT", "Kittilä", ,],
   ["LPL", "Liverpool", ,],
   ["ADB", "Izmir", ,],
-  ["", "", ,],
+  ["MEX", "Mexico City", ,],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],
