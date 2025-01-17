@@ -224,6 +224,17 @@ airportsListV2 = [
   ["CAI", "Cairo", ,],
   ["GLA", "Glasgow", ,],
   ["PRN", "Pristina", ,],
+  ["BON", "Bonaire", ,],
+  ["CUR", "Curacao", ,],
+  ["ZAG", "Zagreb", ,],
+  ["TRD", "Trondheim", ,],
+  ["SCL", "Santiago", ,],
+  ["EZE", "Buenos Aires", ,],
+  ["BOG", "Bogota", ,],
+  ["CTG", "Cartagena", ,],
+  ["", "", ,],
+  ["", "", ,],
+
   ["", "", ,],
 ];
 module.exports = airportsListV2;

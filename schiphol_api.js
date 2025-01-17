@@ -21,9 +21,9 @@ const options = {
   },
 };
 
-const startPage = 100;
+const startPage = 0;
 let pageCount = 0;
-let maxPages; // 203 was vorige keer de limit
+let maxPages = 80; // 203 was vorige keer de limit
 
 // Function to fetch a single page of data
 async function fetchPage(url, allFlights = []) {
@@ -234,7 +234,7 @@ async function main() {
         // Calculate the first half of pages
         // const halfSize = Math.floor(totalPages / 2);
         const endPage = 300;
-        maxPages = endPage - startPage + 1;
+        // maxPages = endPage - startPage + 1;
 
         console.log(`Starting fetch from page ${startPage} to ${endPage}`);
         const targetUrl = `/public-flights/flights?page=${startPage}`;
