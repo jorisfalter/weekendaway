@@ -15,6 +15,24 @@ import os
 def get_flight_data():
     api = FlightRadar24API()
 
+    # Fetch a list of current flights (assuming such a method exists)
+    flights = api.get_flights(
+        aircraft_type = "A21N",
+        airline = "KLM",
+    )  # Fetch only the first 3 flights
+
+    # Debugging: Print the raw response
+    print(f"Raw response for current flights: {flights}")
+
+    # Check if flights is valid before proceeding
+    if flights is None or not isinstance(flights, list) or len(flights) == 0:
+        print("Error: No valid flight data returned.")
+        return None
+
+    # Get the first three flights and print their flight numbers
+    # for flight in flights:  # Get the first 3 flights
+    #     flight_number = flight.get('flight_number')  # Adjust based on the actual structure
+    #     print(f"Flight number: {flight_number}")
 
     # Load environment variables from .env file
     load_dotenv()
@@ -24,13 +42,25 @@ def get_flight_data():
 
 
 
-    for flight in api.get_flights(bounds = bounds):
-    # for flight in api.get_flights(aircraft_type="A388"):
-        flight_details = api.get_flight_details(flight)
+    # flight_details = api.get_flight_details(flight_number)
 
+    # # Debugging: Print the raw response
+    # print(f"Raw response for flight number {flight_number}: {flight_details}")
 
-        with open('flight_details.json', 'w') as f:
-            json.dump(flight_details, indent=2, fp=f)
+    # # Check if flight_details is valid before proceeding
+    # if flight_details is None:
+    #     print(f"Error: No valid flight details returned for {flight_number}.")
+    #     return None
+
+    # try:
+    #     # Attempt to parse the flight details as JSON
+    #     flight_details_json = json.loads(flight_details)
+    # except json.JSONDecodeError:
+    #     print(f"Error: Failed to decode JSON for flight number {flight_number}. Response: {flight_details}")
+    #     return None
+
+    # with open('flight_details.json', 'w') as f:
+    #     json.dump(flight_details_json, indent=2, fp=f)
 
 
 
