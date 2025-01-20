@@ -2,14 +2,6 @@
 
 from FlightRadar24 import FlightRadar24API
 import json
-import time
-import datetime
-import pytz
-import csv
-import pymongo
-import certifi
-from dotenv import load_dotenv
-import os
 
 
 def get_flight_data():
@@ -23,11 +15,10 @@ def get_flight_data():
         airline = "KLM",
         bounds = bounds
     )  
-    # "A21N"
 
-    zone = api.get_zones()["europe"]
-    test_bounds = api.get_bounds(zone)
-    print(test_bounds)
+    # zone = api.get_zones()["europe"]
+    # test_bounds = api.get_bounds(zone)
+    # print(test_bounds)
     # Europe: 72.57,33.57,-16.96,53.05
     # 72.57 waarschijnlijk noord
     # 33.57 waarschijnlijk zuid
@@ -50,35 +41,17 @@ def get_flight_data():
     for flight in flights:  
         flight_details = api.get_flight_details(flight)  
         flight_details_json = json.dumps(flight_details, indent=2)  # Convert flight details to JSON format
+        flight_details_dict = json.loads(flight_details_json)  # Parse JSON string back to dictionary
+        
+        # Print the default flight number and callsign
+        default_number = flight_details_dict["identification"]["number"]["default"]
+        callsign = flight_details_dict["identification"]["callsign"]
+        print(f"Flight Number: {default_number}, Callsign: {callsign}")
         # print(f"Flight details: {flight_details_json}")  # Print flight details in JSON format
         with open('flight_details.json', 'a') as f:  # Open the file in append mode
             f.write(flight_details_json + "\n")  # Write flight details to the file
 
-    # Load environment variables from .env file
-    load_dotenv()
-    # bounds = api.get_bounds_by_point(52.3169, 4.7459, 50000) # schiphol coordinates + 50km radius - doesn't work
 
-
-
-    # flight_details = api.get_flight_details(flight_number)
-
-    # # Debugging: Print the raw response
-    # print(f"Raw response for flight number {flight_number}: {flight_details}")
-
-    # # Check if flight_details is valid before proceeding
-    # if flight_details is None:
-    #     print(f"Error: No valid flight details returned for {flight_number}.")
-    #     return None
-
-    # try:
-    #     # Attempt to parse the flight details as JSON
-    #     flight_details_json = json.loads(flight_details)
-    # except json.JSONDecodeError:
-    #     print(f"Error: Failed to decode JSON for flight number {flight_number}. Response: {flight_details}")
-    #     return None
-
-    # with open('flight_details.json', 'w') as f:
-    #     json.dump(flight_details_json, indent=2, fp=f)
 
 
 

@@ -4,6 +4,8 @@ const https = require("https");
 const fs = require("fs");
 const airports = require("./airportsv2.js");
 const airlines = require("./airlines.js");
+const { FlightRadar24API } = require("flightradarapi");
+const api = new FlightRadar24API();
 
 // purpose is to test the Schiphol API only, for the project on Schiphol landings
 
@@ -21,7 +23,7 @@ const options = {
   },
 };
 
-const startPage = 0;
+const startPage = 20;
 let pageCount = 0;
 let maxPages = 80; // 203 was vorige keer de limit
 
@@ -87,7 +89,7 @@ async function fetchPage(url, allFlights = []) {
 }
 
 // Helper function to process arrival flights (to avoid code duplication)
-function processArrivalFlights(allFlights) {
+async function processArrivalFlights(allFlights) {
   // First deduplicate by id
   const uniqueFlights = Array.from(
     new Map(allFlights.map((flight) => [flight.id, flight])).values()
@@ -119,11 +121,14 @@ function processArrivalFlights(allFlights) {
         flight.estimatedLandingTime &&
         !flight.actualLandingTime
     )
+    // sort by time to landing
     .sort(
       (a, b) =>
         new Date(a.estimatedLandingTime) - new Date(b.estimatedLandingTime)
     );
 
+  // display flights to see the json format
+  // console.log(
   // display flights to see the json format
   // console.log(
   //   "First 2 arrival flights (full details):",
@@ -133,20 +138,29 @@ function processArrivalFlights(allFlights) {
   // display all flights
   // console.log("Full details:", JSON.stringify(arrivalFlights, null, 2));
   //
-  const filteredArrivalFlights = arrivalFlights.map((flight) => ({
-    mainFlight: flight.mainFlight,
-    airlineName: getAirlineName(flight.mainFlight),
-    destinations: flight.route.destinations,
-    destinationNames: flight.route.destinations.map((code) =>
-      getAirportName(code)
-    ),
-    runwayOrCoordinates: "na",
-    minutesUntilLanding: Math.round(
-      (new Date(flight.estimatedLandingTime) - new Date()) / 60000
-    ),
-    iataSub: flight.aircraftType.iataSub,
-    pageNumber: flight.pageNumber,
-  }));
+  const filteredArrivalFlights = arrivalFlights
+    .map((flight) => ({
+      mainFlight: flight.mainFlight,
+      airlineName: getAirlineName(flight.mainFlight),
+      destinations: flight.route.destinations,
+      destinationNames: flight.route.destinations.map((code) =>
+        getAirportName(code)
+      ),
+      runwayOrCoordinates: "na",
+      minutesUntilLanding: Math.round(
+        (new Date(flight.estimatedLandingTime) - new Date()) / 60000
+      ),
+      iataSub: flight.aircraftType.iataSub,
+      pageNumber: flight.pageNumber,
+      registration: flight.aircraftRegistration,
+      coordinates: [],
+    }))
+    .slice(0, 10); // Keep only the first 10 flights
+
+  for (const flight of filteredArrivalFlights) {
+    flight.coordinates = await getFlightData(flight.registration); // Append coordinates to the flight object
+  }
+
   // console.log(
   //   "filtered details:",
   //   JSON.stringify(filteredArrivalFlights, null, 2)
@@ -175,9 +189,11 @@ function processArrivalFlights(allFlights) {
             <th>Minutes Until Landing</th>
             <th>Aircraft Type</th>
             <th>Page Number</th>
+            <th>Registration</th>
+            <th>Coordinates</th>
+
         </tr>
         ${filteredArrivalFlights
-          .slice(0, 10)
           .map(
             (flight) => `
         <tr>
@@ -190,6 +206,9 @@ function processArrivalFlights(allFlights) {
             <td>${flight.minutesUntilLanding}</td>
             <td>${flight.iataSub}</td>
             <td>${flight.pageNumber}</td>
+            <td>${flight.registration}</td>
+            <td>${flight.coordinates}</td>
+
         </tr>
         `
           )
@@ -199,7 +218,7 @@ function processArrivalFlights(allFlights) {
 </html>
 `;
 
-  // Write HTML file instead of JSON
+  // Write HTML file
   fs.writeFileSync("arrivals.html", htmlContent, "utf8");
 
   console.log("HTML file generated: arrivals.html");
@@ -216,6 +235,78 @@ function getAirlineName(flightNumber) {
   const airlineCode = flightNumber.substring(0, 2);
   const airline = airlines.find((airline) => airline[0] === airlineCode);
   return airline ? airline[1] : airlineCode;
+}
+
+// function which fetches coordinates from flightradar24
+async function getFlightData(registration_input) {
+  // const bounds = "52.8,51.5,2.5,7.75"; // [noord zuid west oost denk ik]
+  // const aircraft_type = "A21N"; //   ("E190");
+  // const airline = "KLM";
+  const registration = registration_input; //"EI-SCB";
+
+  try {
+    // Fetch a list of current flights
+
+    // from the fr repo:   async getFlights(airline = null, bounds = null, registration = null, aircraftType = null, details = false) {
+    // const response = await api.getFlights(airline, bounds, null, aircraft_type);
+    console.log("registrationAsIs", registration);
+    const response = await api.getFlights(
+      null,
+      null,
+      registration,
+      null,
+      false
+    );
+
+    // Check if flights is valid before proceeding
+    if (!response || !Array.isArray(response) || response.length === 0) {
+      console.log("Error: No valid flight data returned.");
+
+      // Attempt to modify the registration with hyphens
+      const registrationWithHyphen1 =
+        registration_input.slice(0, 1) + "-" + registration_input.slice(1);
+      console.log("registrationWithHyphen1", registrationWithHyphen1);
+      const response1 = await api.getFlights(
+        null,
+        null,
+        registrationWithHyphen1,
+        null,
+        false
+      );
+      // console.log("response1:", response1);
+      if (response1 && Array.isArray(response1) && response1.length > 0) {
+        return [response1[0].latitude, response1[0].longitude];
+      }
+
+      const registrationWithHyphen2 =
+        registration_input.slice(0, 2) + "-" + registration_input.slice(2);
+      console.log("registrationWithHyphen2", registrationWithHyphen2);
+      const response2 = await api.getFlights(
+        null,
+        null,
+        registrationWithHyphen2,
+        null,
+        false
+      );
+      // console.log("response2:", response2);
+      if (response2 && Array.isArray(response2) && response2.length > 0) {
+        return [response2[0].latitude, response2[0].longitude];
+      }
+
+      return null; // Return null if no valid data
+    }
+    return [response[0].latitude, response[0].longitude];
+
+    // Check if response contains valid latitude and longitude
+    // if (!response || !response.latitude || !response.longitude) {
+    //   console.error(
+    //     "Error: No valid flight data returned or missing coordinates."
+    //   );
+    //   return null; // Return null if no valid data
+    // }
+  } catch (error) {
+    console.error("Error fetching flight data:", error);
+  }
 }
 
 // Main function to start the process
