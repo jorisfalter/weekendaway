@@ -180,7 +180,7 @@ async function processArrivalFlights(allFlights) {
     </style>
 </head>
 <body>
-    <h2>Upcoming Arrivals</h2>
+    <h2>Upcoming Schiphol Arrivals</h2>
     <p>Last updated: ${new Date().toLocaleString()}</p>
     <table>
         <tr>
