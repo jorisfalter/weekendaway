@@ -262,8 +262,8 @@ airportsListV2 = [
   ["GIG", "Rio de Janeiro", ,],
   ["BSL", "Basel", ,],
   ["NCL", "Newcastle", ,],
-  ["", "", ,],
-  ["", "", ,],
+  ["LIS", "Lisbon", ,],
+  ["HUY", "Humberside", ,],
   ["", "", ,],
   ["", "", ,],
 ];

@@ -23,7 +23,7 @@ const options = {
   },
 };
 
-const startPage = 20;
+const startPage = 80;
 let pageCount = 0;
 let maxPages = 80; // 203 was vorige keer de limit
 

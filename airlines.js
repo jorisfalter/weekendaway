@@ -150,7 +150,7 @@ airlinesList = [
   ["FI", "Icelandair"],
   ["GA", "Garuda Indonesia"],
   ["VF", "AJet"],
-  ["", ""],
+  ["CD", "Corendon"],
   ["", ""],
   ["", ""],
   ["", ""],
