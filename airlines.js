@@ -147,6 +147,13 @@ airlinesList = [
   ["WA", "KLM"],
   ["OG", "Play"],
   ["XC", "Corendon"],
+  ["FI", "Icelandair"],
+  ["GA", "Garuda Indonesia"],
+  ["VF", "AJet"],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
   ["", ""],
   ["", ""],
 ];
