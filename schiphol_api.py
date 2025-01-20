@@ -16,11 +16,23 @@ def get_flight_data():
     api = FlightRadar24API()
 
     # Fetch a list of current flights (assuming such a method exists)
+    bounds = "52.8,51.5,2.5,7.75" # [noord zuid west oost denk ik]
+
     flights = api.get_flights(
         aircraft_type = "E190" ,
         airline = "KLM",
+        bounds = bounds
     )  
     # "A21N"
+
+    zone = api.get_zones()["europe"]
+    test_bounds = api.get_bounds(zone)
+    print(test_bounds)
+    # Europe: 72.57,33.57,-16.96,53.05
+    # 72.57 waarschijnlijk noord
+    # 33.57 waarschijnlijk zuid
+    # - 16.96 waarschijnlijk west
+    # 53.05 waarschijnlijk oost
 
     # Debugging: Print the raw response
     print(f"Raw response for current flights: {flights}")
@@ -45,8 +57,6 @@ def get_flight_data():
     # Load environment variables from .env file
     load_dotenv()
     # bounds = api.get_bounds_by_point(52.3169, 4.7459, 50000) # schiphol coordinates + 50km radius - doesn't work
-    bounds = "54.4,2.3,51.4,7.2" # [north latitude, west longitude, east longitude, south latitude]
-    # bounds = api.get_bounds(zone)
 
 
 
