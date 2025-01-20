@@ -151,7 +151,7 @@ airlinesList = [
   ["GA", "Garuda Indonesia"],
   ["VF", "AJet"],
   ["CD", "Corendon"],
-  ["", ""],
+  ["AM", "AeroMexico"],
   ["", ""],
   ["", ""],
   ["", ""],

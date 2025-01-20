@@ -264,6 +264,11 @@ airportsListV2 = [
   ["NCL", "Newcastle", ,],
   ["LIS", "Lisbon", ,],
   ["HUY", "Humberside", ,],
+  ["BQN", "Aguadilla", ,],
+  ["UIO", "Quito", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
   ["", "", ,],
   ["", "", ,],
 ];
