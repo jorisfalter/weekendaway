@@ -17,12 +17,16 @@ def get_flight_data():
 
     # Fetch a list of current flights (assuming such a method exists)
     flights = api.get_flights(
-        aircraft_type = "A21N",
+        aircraft_type = "E190" ,
         airline = "KLM",
-    )  # Fetch only the first 3 flights
+    )  
+    # "A21N"
 
     # Debugging: Print the raw response
     print(f"Raw response for current flights: {flights}")
+
+    # Print the length of the flights array
+    print(f"Number of flights retrieved: {len(flights)}")
 
     # Check if flights is valid before proceeding
     if flights is None or not isinstance(flights, list) or len(flights) == 0:
@@ -30,9 +34,13 @@ def get_flight_data():
         return None
 
     # Get the first three flights and print their flight numbers
-    # for flight in flights:  # Get the first 3 flights
-    #     flight_number = flight.get('flight_number')  # Adjust based on the actual structure
-    #     print(f"Flight number: {flight_number}")
+    
+    for flight in flights:  
+        flight_details = api.get_flight_details(flight)  
+        flight_details_json = json.dumps(flight_details, indent=2)  # Convert flight details to JSON format
+        # print(f"Flight details: {flight_details_json}")  # Print flight details in JSON format
+        with open('flight_details.json', 'a') as f:  # Open the file in append mode
+            f.write(flight_details_json + "\n")  # Write flight details to the file
 
     # Load environment variables from .env file
     load_dotenv()
