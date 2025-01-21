@@ -152,8 +152,8 @@ airlinesList = [
   ["VF", "AJet"],
   ["CD", "Corendon"],
   ["AM", "AeroMexico"],
-  ["", ""],
-  ["", ""],
+  ["3O", "Air Arabia"],
+  ["JU", "Getjet"],
   ["", ""],
   ["", ""],
 ];
