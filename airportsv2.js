@@ -286,7 +286,7 @@ airportsListV2 = [
   ["POS", "Port Of Spain (Trinidad)", ,],
   ["TLV", "Tel Aviv-Yafo", ,],
   ["TNG", "Tangier", ,],
-  ["", "", ,],
+  ["KRS", "Kristiansand", ,],
   ["", "", ,],
   ["", "", ,],
 ];
