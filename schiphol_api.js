@@ -261,7 +261,7 @@ async function getFlightData(registration_input) {
 
     // Check if flights is valid before proceeding
     if (!response || !Array.isArray(response) || response.length === 0) {
-      console.log("Error: No valid flight data returned.");
+      // console.log("Error: No valid flight data returned.");
 
       // Attempt to modify the registration with hyphens
       const registrationWithHyphen1 =
