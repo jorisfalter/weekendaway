@@ -5,6 +5,7 @@ const fs = require("fs");
 const airports = require("./airportsv2.js");
 const airlines = require("./airlines.js");
 const { FlightRadar24API } = require("flightradarapi");
+const { urlencoded } = require("body-parser");
 const api = new FlightRadar24API();
 
 // purpose is to test the Schiphol API only, for the project on Schiphol landings
@@ -23,7 +24,24 @@ const options = {
   },
 };
 
-const startPage = new Date().getHours() < 12 ? 0 : 110; // Set startPage based on current time
+const currentHour = new Date().getHours();
+let startPage;
+
+if (currentHour < 9) {
+  startPage = 0; // Before 9 AM
+} else if (currentHour < 11) {
+  startPage = 20; // At 9 AM
+} else if (currentHour < 13) {
+  startPage = 60; // At 11 AM
+} else if (currentHour < 15) {
+  startPage = 90; // At 1 PM
+} else if (currentHour < 17) {
+  startPage = 110; // At 3 PM
+} else if (currentHour < 18) {
+  startPage = 130; // At 5 PM
+} else {
+  startPage = 150; // At 6 PM and later
+}
 let pageCount = 0;
 let maxPages = 80; // rond 230 is de limit
 
@@ -229,7 +247,7 @@ async function processArrivalFlights(allFlights) {
             // Append the button after the table
             const table = document.querySelector("table");
             table.insertAdjacentElement("afterend", toggleButton);
-            toggleButton.style.margin = "10px 20px";
+            toggleButton.style.margin-top = "10px";
 
             toggleButton.addEventListener("click", function() {
                 const registrationCells = document.querySelectorAll(".toggle-columns");
@@ -395,7 +413,7 @@ function calculateRunway(coordinates) {
     case longitude < 4.76 && longitude > 4.73:
       return "18C Zwanenburgbaan"; // Example runway based on latitude
     case longitude >= 4.76:
-      return "18C Zwanenburgbaan (expected)"; // Example runway based on latitude
+      return "18C or 18R (expected)"; // Example runway based on latitude
     case longitude < 4.73 && longitude > 4.7:
       return "18R Polderbaan"; // Example runway based on latitude
     case longitude < 4.7:
