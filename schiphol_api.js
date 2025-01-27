@@ -147,11 +147,9 @@ async function processArrivalFlights(allFlights) {
         new Date(a.estimatedLandingTime) - new Date(b.estimatedLandingTime)
     );
 
-  // display flights to see the json format
+  // // display flights to see the json format
   // console.log(
-  // display flights to see the json format
-  // console.log(
-  //   "First 2 arrival flights (full details):",
+  //   "First arrival flight (full details):",
   //   JSON.stringify(arrivalFlights.slice(0, 1), null, 2)
   // );
 
@@ -404,7 +402,7 @@ async function startScheduler() {
 // Function to calculate runway based on coordinates
 function calculateRunway(coordinates) {
   if (!coordinates || coordinates.length < 2) {
-    return "Unknown"; // Return "Unknown" if coordinates are invalid
+    return "Coordinates Error"; // Return "Unknown" if coordinates are invalid
   }
 
   // Example logic (replace with actual runway calculation)
