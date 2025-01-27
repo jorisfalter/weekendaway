@@ -247,7 +247,7 @@ async function processArrivalFlights(allFlights) {
             // Append the button after the table
             const table = document.querySelector("table");
             table.insertAdjacentElement("afterend", toggleButton);
-            toggleButton.style.margin-top = "10px";
+            toggleButton.style.marginTop = "10px";
 
             toggleButton.addEventListener("click", function() {
                 const registrationCells = document.querySelectorAll(".toggle-columns");
