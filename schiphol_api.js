@@ -25,7 +25,9 @@ const options = {
 
 const startPage = new Date().getHours() < 12 ? 0 : 110; // Set startPage based on current time
 let pageCount = 0;
-let maxPages = 120; // rond 230 is de limit
+let maxPages = 80; // rond 230 is de limit
+
+// om 9u zitten we rond pagina 50
 
 // Function to fetch a single page of data
 async function fetchPage(url, allFlights = []) {
@@ -227,7 +229,7 @@ async function processArrivalFlights(allFlights) {
             // Append the button after the table
             const table = document.querySelector("table");
             table.insertAdjacentElement("afterend", toggleButton);
-            toggleButton.style.padding = "10px"; // Add padding around the button
+            toggleButton.style.margin = "10px 20px";
 
             toggleButton.addEventListener("click", function() {
                 const registrationCells = document.querySelectorAll(".toggle-columns");
@@ -393,11 +395,11 @@ function calculateRunway(coordinates) {
     case longitude < 4.76 && longitude > 4.73:
       return "18C Zwanenburgbaan"; // Example runway based on latitude
     case longitude >= 4.76:
-      return "Probably 18C Zwanenburgbaan"; // Example runway based on latitude
+      return "18C Zwanenburgbaan (expected)"; // Example runway based on latitude
     case longitude < 4.73 && longitude > 4.7:
       return "18R Polderbaan"; // Example runway based on latitude
     case longitude < 4.7:
-      return "Probably 18R Polderbaan"; // Example runway based on latitude
+      return "18R Polderbaan (expected)"; // Example runway based on latitude
     case latitude < 52.33 &&
       latitude > 52.31 &&
       longitude < 4.9 &&
