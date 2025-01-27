@@ -23,9 +23,9 @@ const options = {
   },
 };
 
-const startPage = 135;
+const startPage = new Date().getHours() < 12 ? 0 : 110; // Set startPage based on current time
 let pageCount = 0;
-let maxPages = 80; // 203 was vorige keer de limit
+let maxPages = 120; // rond 230 is de limit
 
 // Function to fetch a single page of data
 async function fetchPage(url, allFlights = []) {
@@ -154,11 +154,14 @@ async function processArrivalFlights(allFlights) {
       pageNumber: flight.pageNumber,
       registration: flight.aircraftRegistration,
       coordinates: [],
+      runway: "",
     }))
     .slice(0, 10); // Keep only the first 10 flights
 
   for (const flight of filteredArrivalFlights) {
     flight.coordinates = await getFlightData(flight.registration); // Append coordinates to the flight object
+    console.log(flight.coordinates);
+    // flight.runway = calculateRunway(flight.coordinates); // Calculate runway using coordinates
   }
 
   // console.log(
@@ -357,6 +360,24 @@ async function startScheduler() {
     pageCount = 0; // Reset the page counter
     await main();
   }, 60000); // 60000 ms = 1 minute
+}
+
+// Function to calculate runway based on coordinates
+function calculateRunway(coordinates) {
+  // Implement your logic to determine the runway based on coordinates
+  // For example, you might use a mapping of coordinates to runway identifiers
+  // This is a placeholder implementation
+  if (!coordinates || coordinates.length < 2) {
+    return "Unknown"; // Return "Unknown" if coordinates are invalid
+  }
+
+  // Example logic (replace with actual runway calculation)
+  const [latitude, longitude] = coordinates;
+  if (latitude > 52.3) {
+    return "Runway 18C"; // Example runway based on latitude
+  } else {
+    return "Runway 36L"; // Example runway based on latitude
+  }
 }
 
 startScheduler();
