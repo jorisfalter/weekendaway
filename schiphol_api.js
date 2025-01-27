@@ -160,8 +160,8 @@ async function processArrivalFlights(allFlights) {
 
   for (const flight of filteredArrivalFlights) {
     flight.coordinates = await getFlightData(flight.registration); // Append coordinates to the flight object
-    console.log(flight.coordinates);
-    // flight.runway = calculateRunway(flight.coordinates); // Calculate runway using coordinates
+    // console.log(flight.coordinates);
+    flight.runway = calculateRunway(flight.coordinates); // Calculate runway using coordinates
   }
 
   // console.log(
@@ -181,6 +181,7 @@ async function processArrivalFlights(allFlights) {
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -188,36 +189,54 @@ async function processArrivalFlights(allFlights) {
     <p>Last updated: ${new Date().toLocaleString()}</p>
     <table>
         <tr>
-            <th>Main Flight</th>
+            <th>Flight Number</th>
+            <th>Airline</th>
+            <th class="toggle-columns">Provenance Code</th>
             <th>Provenance</th>
             <th>Minutes Until Landing</th>
             <th>Aircraft Type</th>
-            <th>Page Number</th>
-            <th>Registration</th>
-            <th>Coordinates</th>
-
+            <th class="toggle-columns">Page Number</th>
+            <th class="toggle-columns">Registration</th>
+            <th class="toggle-columns">Coordinates</th>
+            <th>Runway</th>
         </tr>
         ${filteredArrivalFlights
           .map(
             (flight) => `
         <tr>
-            <td>${flight.mainFlight} (${flight.airlineName})</td>
-            <td>${flight.destinations
-              .map(
-                (code, index) => `${code} (${flight.destinationNames[index]})`
-              )
-              .join(", ")}</td>
+            <td>${flight.mainFlight}</td>
+            <td>${flight.airlineName}</td>
+            <td class="toggle-columns">${flight.destinations}</td>
+       
+            <td>${flight.destinationNames}</td>
             <td>${flight.minutesUntilLanding}</td>
             <td>${flight.iataSub}</td>
-            <td>${flight.pageNumber}</td>
-            <td>${flight.registration}</td>
-            <td>${flight.coordinates}</td>
-
+            <td class="toggle-columns">${flight.pageNumber}</td>
+            <td class="toggle-columns">${flight.registration}</td>
+            <td class="toggle-columns">${flight.coordinates}</td>
+            <td>${flight.runway}</td>
         </tr>
         `
           )
           .join("")}
     </table>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleButton = document.createElement("button");
+            toggleButton.textContent = "Toggle Columns";
+            // Append the button after the table
+            const table = document.querySelector("table");
+            table.insertAdjacentElement("afterend", toggleButton);
+            toggleButton.style.padding = "10px"; // Add padding around the button
+
+            toggleButton.addEventListener("click", function() {
+                const registrationCells = document.querySelectorAll(".toggle-columns");
+                registrationCells.forEach(cell => {
+                    cell.classList.toggle("hidden");
+                });
+            });
+        });
+    </script>
 </body>
 </html>
 `;
@@ -364,19 +383,32 @@ async function startScheduler() {
 
 // Function to calculate runway based on coordinates
 function calculateRunway(coordinates) {
-  // Implement your logic to determine the runway based on coordinates
-  // For example, you might use a mapping of coordinates to runway identifiers
-  // This is a placeholder implementation
   if (!coordinates || coordinates.length < 2) {
     return "Unknown"; // Return "Unknown" if coordinates are invalid
   }
 
   // Example logic (replace with actual runway calculation)
   const [latitude, longitude] = coordinates;
-  if (latitude > 52.3) {
-    return "Runway 18C"; // Example runway based on latitude
-  } else {
-    return "Runway 36L"; // Example runway based on latitude
+  switch (true) {
+    case longitude < 4.76 && longitude > 4.73:
+      return "18C Zwanenburgbaan"; // Example runway based on latitude
+    case longitude >= 4.76:
+      return "Probably 18C Zwanenburgbaan"; // Example runway based on latitude
+    case longitude < 4.73 && longitude > 4.7:
+      return "18R Polderbaan"; // Example runway based on latitude
+    case longitude < 4.7:
+      return "Probably 18R Polderbaan"; // Example runway based on latitude
+    case latitude < 52.33 &&
+      latitude > 52.31 &&
+      longitude < 4.9 &&
+      longitude > 4.75:
+      return "27 Buitenveldertbaan";
+
+    // de uitzondering voor baan 22 als ze last minute afdraaien
+    // er is ook een uitzondering waar 24 en buitenveldertbaan overlappen
+
+    default:
+      return ""; // Default runway
   }
 }
 

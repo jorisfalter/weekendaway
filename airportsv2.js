@@ -287,7 +287,16 @@ airportsListV2 = [
   ["TLV", "Tel Aviv-Yafo", ,],
   ["TNG", "Tangier", ,],
   ["KRS", "Kristiansand", ,],
-  ["Puj", "Punta Cana", ,],
+  ["PUJ", "Punta Cana", ,],
+  ["BUD", "Budapest", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
   ["", "", ,],
 ];
 module.exports = airportsListV2;

@@ -9,133 +9,182 @@
         table { border-collapse: collapse; width: 100%; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <h2>Upcoming Schiphol Arrivals</h2>
-    <p>Last updated: 1/27/2025, 8:33:31 AM</p>
+    <p>Last updated: 1/27/2025, 9:14:43 AM</p>
     <table>
         <tr>
-            <th>Main Flight</th>
+            <th>Flight Number</th>
+            <th>Airline</th>
+            <th class="toggle-columns">Provenance Code</th>
             <th>Provenance</th>
             <th>Minutes Until Landing</th>
             <th>Aircraft Type</th>
-            <th>Page Number</th>
-            <th>Registration</th>
-            <th>Coordinates</th>
-
+            <th class="toggle-columns">Page Number</th>
+            <th class="toggle-columns">Registration</th>
+            <th class="toggle-columns">Coordinates</th>
+            <th>Runway</th>
         </tr>
         
         <tr>
-            <td>EZY2511 (Easyjet)</td>
-            <td>LTN (London Luton)</td>
+            <td>BT961</td>
+            <td>Air Baltic</td>
+            <td class="toggle-columns">VNO</td>
+       
+            <td>Vilnius</td>
             <td>-1</td>
-            <td>32N</td>
-            <td>35</td>
-            <td>GUZHZ</td>
-            <td>52.339,4.7126</td>
-
+            <td>223</td>
+            <td class="toggle-columns">44</td>
+            <td class="toggle-columns">YLABT</td>
+            <td class="toggle-columns">52.3152,4.741</td>
+            <td>18C Zwanenburgbaan</td>
         </tr>
         
         <tr>
-            <td>EJU5281 (EasyJet Europe)</td>
-            <td>BER (Berlin)</td>
-            <td>-1</td>
-            <td>320</td>
-            <td>32</td>
-            <td>OEIDO</td>
-            <td>52.3175,4.7392</td>
-
-        </tr>
-        
-        <tr>
-            <td>AF1794 (Air France)</td>
-            <td>LYS (Lyon)</td>
-            <td>0</td>
-            <td>E70</td>
-            <td>37</td>
-            <td>FHBXL</td>
-            <td>52.3529,4.7111</td>
-
-        </tr>
-        
-        <tr>
-            <td>KL1660 (KLM)</td>
-            <td>BLQ (Bologna)</td>
-            <td>1</td>
-            <td>E90</td>
-            <td>29</td>
-            <td>PHEZP</td>
-            <td>52.3581,4.7424</td>
-
-        </tr>
-        
-        <tr>
-            <td>EJU3851 (EasyJet Europe)</td>
-            <td>MXP (Milan Malpensa)</td>
-            <td>2</td>
-            <td>320</td>
-            <td>39</td>
-            <td>OEIZH</td>
-            <td>52.409,4.7162</td>
-
-        </tr>
-        
-        <tr>
-            <td>EJU7830 (EasyJet Europe)</td>
-            <td>LIN (Milan Linate)</td>
-            <td>2</td>
-            <td>319</td>
-            <td>35</td>
-            <td>OELQG</td>
-            <td>52.4093,4.7473</td>
-
-        </tr>
-        
-        <tr>
-            <td>EI602 (Aer Lingus)</td>
-            <td>DUB (Dublin)</td>
-            <td>2</td>
-            <td>320</td>
-            <td>38</td>
-            <td>EIDVK</td>
-            <td>52.4626,4.7211</td>
-
-        </tr>
-        
-        <tr>
-            <td>KL1000 (KLM)</td>
-            <td>LHR (London Heathrow)</td>
+            <td>UA909</td>
+            <td>United Airlines</td>
+            <td class="toggle-columns">ORD</td>
+       
+            <td>Chicago O'Hare</td>
             <td>4</td>
-            <td>73H</td>
-            <td>37</td>
-            <td>PHBXE</td>
-            <td>52.5233,4.7267</td>
-
-        </tr>
-        
-        <tr>
-            <td>KL1150 (KLM)</td>
-            <td>TRD (Trondheim)</td>
-            <td>4</td>
-            <td>295</td>
-            <td>34</td>
-            <td>PHNXV</td>
-            <td>52.4814,4.7541</td>
-
-        </tr>
-        
-        <tr>
-            <td>OR757 (TUI)</td>
-            <td>PUJ (PUJ), CUR (Curacao)</td>
-            <td>6</td>
             <td>788</td>
-            <td>23</td>
-            <td>PHTFM</td>
-            <td>52.5874,4.6114</td>
-
+            <td class="toggle-columns">44</td>
+            <td class="toggle-columns">N26902</td>
+            <td class="toggle-columns">52.5014,4.7247</td>
+            <td>18R Polderbaan</td>
+        </tr>
+        
+        <tr>
+            <td>VY8300</td>
+            <td>Vueling</td>
+            <td class="toggle-columns">BCN</td>
+       
+            <td>Barcelona</td>
+            <td>6</td>
+            <td>320</td>
+            <td class="toggle-columns">53</td>
+            <td class="toggle-columns">ECKDH</td>
+            <td class="toggle-columns">52.488,4.5519</td>
+            <td>Probably 18R Polderbaan</td>
+        </tr>
+        
+        <tr>
+            <td>VY8354</td>
+            <td>Vueling</td>
+            <td class="toggle-columns">BIO</td>
+       
+            <td>Bilbao</td>
+            <td>8</td>
+            <td>320</td>
+            <td class="toggle-columns">58</td>
+            <td class="toggle-columns">ECMBY</td>
+            <td class="toggle-columns">52.3134,4.4517</td>
+            <td>Probably 18R Polderbaan</td>
+        </tr>
+        
+        <tr>
+            <td>OR822</td>
+            <td>TUI</td>
+            <td class="toggle-columns">CUN</td>
+       
+            <td>Cancun</td>
+            <td>10</td>
+            <td>788</td>
+            <td class="toggle-columns">57</td>
+            <td class="toggle-columns">OOJDL</td>
+            <td class="toggle-columns">52.4738,4.1792</td>
+            <td>Probably 18R Polderbaan</td>
+        </tr>
+        
+        <tr>
+            <td>KL0602</td>
+            <td>KLM</td>
+            <td class="toggle-columns">LAX</td>
+       
+            <td>Los Angeles</td>
+            <td>11</td>
+            <td>781</td>
+            <td class="toggle-columns">41</td>
+            <td class="toggle-columns">PHBKO</td>
+            <td class="toggle-columns">52.515,4.0099</td>
+            <td>Probably 18R Polderbaan</td>
+        </tr>
+        
+        <tr>
+            <td>KL1752</td>
+            <td>KLM</td>
+            <td class="toggle-columns">HAM</td>
+       
+            <td>Hamburg</td>
+            <td>14</td>
+            <td>E7W</td>
+            <td class="toggle-columns">49</td>
+            <td class="toggle-columns">PHEXI</td>
+            <td class="toggle-columns">52.5344,5.6544</td>
+            <td>Probably 18C Zwanenburgbaan</td>
+        </tr>
+        
+        <tr>
+            <td>KL0618</td>
+            <td>KLM</td>
+            <td class="toggle-columns">BOS</td>
+       
+            <td>Boston Logan</td>
+            <td>16</td>
+            <td>772</td>
+            <td class="toggle-columns">54</td>
+            <td class="toggle-columns">PHBQA</td>
+            <td class="toggle-columns">52.6768,3.2526</td>
+            <td>Probably 18R Polderbaan</td>
+        </tr>
+        
+        <tr>
+            <td>SK821</td>
+            <td>SAS</td>
+            <td class="toggle-columns">OSL</td>
+       
+            <td>Oslo</td>
+            <td>18</td>
+            <td>319</td>
+            <td class="toggle-columns">59</td>
+            <td class="toggle-columns">OYKBO</td>
+            <td class="toggle-columns">52.6581,5.8147</td>
+            <td>Probably 18C Zwanenburgbaan</td>
+        </tr>
+        
+        <tr>
+            <td>KL0978</td>
+            <td>KLM</td>
+            <td class="toggle-columns">LCY</td>
+       
+            <td>London City</td>
+            <td>20</td>
+            <td>E90</td>
+            <td class="toggle-columns">56</td>
+            <td class="toggle-columns">PHEZS</td>
+            <td class="toggle-columns">52.2541,2.875</td>
+            <td>Probably 18R Polderbaan</td>
         </tr>
         
     </table>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleButton = document.createElement("button");
+            toggleButton.textContent = "Toggle Column";
+            // Append the button after the table
+            const table = document.querySelector("table");
+            table.insertAdjacentElement("afterend", toggleButton);
+
+            toggleButton.addEventListener("click", function() {
+                const registrationCells = document.querySelectorAll(".toggle-columns");
+                registrationCells.forEach(cell => {
+                    cell.classList.toggle("hidden");
+                });
+            });
+        });
+    </script>
 </body>
 </html>
