@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schiphol Arrival Flights</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Upcoming Schiphol Arrivals</h2>
+    <p id="last-updated">Last updated: ${new Date().toLocaleString()}</p>
+    <table id="flights-table" style="margin: 0 20px;">
+        <tr>
+            <th>Flight Number</th>
+            <th>Airline</th>
+            <th class="toggle-columns hidden">Provenance Code</th>
+            <th>Provenance</th>
+            <th>Minutes Until Landing</th>
+            <th>Aircraft Type</th>
+            <th class="toggle-columns hidden">Page Number</th>
+            <th class="toggle-columns hidden">Registration</th>
+            <th class="toggle-columns hidden">Coordinates</th>
+            <th>Runway</th>
+        </tr>
+        <!-- Flight data will be populated here -->
+    </table>
+    <script>
+        const ws = new WebSocket('ws://localhost:3000'); // Adjust the URL as needed
+
+        ws.onmessage = function (event) {
+            const updatedFlights = JSON.parse(event.data);
+            updateFlightsTable(updatedFlights);
+            // Update the last updated time when new data is received
+            document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()}`;
+        };
+
+        function updateFlightsTable(flights) {
+            const table = document.getElementById('flights-table');
+            // Clear existing rows except for the header
+            table.innerHTML = `
+                <tr>
+                    <th>Flight Number</th>
+                    <th>Airline</th>
+                    <th class="toggle-columns hidden">Provenance Code</th>
+                    <th>Provenance</th>
+                    <th>Minutes Until Landing</th>
+                    <th>Aircraft Type</th>
+                    <th class="toggle-columns hidden">Page Number</th>
+                    <th class="toggle-columns hidden">Registration</th>
+                    <th class="toggle-columns hidden">Coordinates</th>
+                    <th>Runway</th>
+                </tr>
+            `;
+
+            flights.forEach(flight => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${flight.mainFlight}</td>
+                    <td>${flight.airlineName}</td>
+                    <td class="toggle-columns hidden">${flight.destinations}</td>
+                    <td>${flight.destinationNames.join(', ')}</td>
+                    <td>${flight.minutesUntilLanding}</td>
+                    <td>${flight.iataSub}</td>
+                    <td class="toggle-columns hidden">${flight.pageNumber}</td>
+                    <td class="toggle-columns hidden">${flight.registration}</td>
+                    <td class="toggle-columns hidden">${flight.coordinates.join(', ')}</td>
+                    <td>${flight.runway}</td>
+                `;
+                table.appendChild(row);
+            });
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const toggleButton = document.createElement("button");
+            toggleButton.textContent = "Toggle Columns";
+            toggleButton.style.margin = "10px"; // Updated margin style
+            // Append the button after the table
+            const table = document.querySelector("table");
+            table.insertAdjacentElement("afterend", toggleButton);
+
+            // Toggle button functionality
+            const registrationCells = document.querySelectorAll(".toggle-columns");
+            toggleButton.addEventListener("click", function () {
+                registrationCells.forEach(cell => {
+                    cell.classList.toggle("hidden");
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

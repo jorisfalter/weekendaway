@@ -8,6 +8,8 @@ const { FlightRadar24API } = require("flightradarapi");
 const { urlencoded } = require("body-parser");
 const api = new FlightRadar24API();
 const http = require("http");
+const WebSocket = require("ws");
+const path = require("path");
 
 // purpose is to test the Schiphol API only, for the project on Schiphol landings
 
@@ -119,7 +121,7 @@ function serveHtml(res, filteredArrivalFlights) {
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <meta http-equiv="refresh" content="60">
     <style>
-        table { border-collapse: collapse; width: 100%; }
+        table { border-collapse: collapse; width: auto; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
         .hidden { display: none; }
@@ -187,6 +189,46 @@ function serveHtml(res, filteredArrivalFlights) {
 }
 
 let server; // Declare server variable outside
+let wss; // Declare WebSocket server variable outside
+
+// Move the WebSocket server setup here
+wss = new WebSocket.Server({ noServer: true });
+
+// Initialize the HTTP server
+server = http.createServer(async (req, res) => {
+  if (req.url === "/arrivals") {
+    console.log("in the /arrivals");
+    // Fetch the latest data before serving
+    await main(); // Ensure this fetches and updates filteredArrivalFlights
+  } else if (req.url === "/") {
+    // Serve the HTML file on the root route
+    fs.readFile(path.join(__dirname, "schiphol_api.html"), (err, data) => {
+      // Adjust the filename if necessary
+      if (err) {
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("500 Internal Server Error");
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(data);
+    });
+  } else {
+    res.writeHead(404, { "Content-Type": "text/plain" });
+    res.end("404 Not Found");
+  }
+});
+
+// Ensure the WebSocket server is set up correctly
+server.on("upgrade", (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit("connection", ws, request);
+  });
+});
+
+// Start the server
+server.listen(3000, () => {
+  console.log("Server running at http://localhost:3000/");
+});
 
 // Helper function to process arrival flights (to avoid code duplication)
 async function processArrivalFlights(allFlights) {
@@ -262,7 +304,9 @@ async function processArrivalFlights(allFlights) {
   }
 
   console.log("got coordinates and runway");
-  console.log(filteredArrivalFlights);
+  // console.log(filteredArrivalFlights);
+  // serveHtml(res, filteredArrivalFlights);
+  sendUpdatedFlights(filteredArrivalFlights); // Send updated flights to clients
 
   // Serve the HTML content instead of writing to a file
   if (!server) {
@@ -271,18 +315,37 @@ async function processArrivalFlights(allFlights) {
     server = http.createServer(async (req, res) => {
       if (req.url === "/arrivals") {
         console.log("in the /arrivals");
-
         // Fetch the latest data before serving
-        // await main(); // Ensure this fetches and updates filteredArrivalFlights
-        serveHtml(res, filteredArrivalFlights);
+        await main(); // Ensure this fetches and updates filteredArrivalFlights
+      } else if (req.url === "/") {
+        // Serve the HTML file on the root route
+        fs.readFile(path.join(__dirname, "schiphol_api.html"), (err, data) => {
+          // Adjust the filename if necessary
+          if (err) {
+            res.writeHead(500, { "Content-Type": "text/plain" });
+            res.end("500 Internal Server Error");
+            return;
+          }
+          res.writeHead(200, { "Content-Type": "text/html" });
+          res.end(data);
+        });
       } else {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("404 Not Found");
       }
     });
 
+    // Move the WebSocket server setup here
+    const wss = new WebSocket.Server({ noServer: true });
+
+    server.on("upgrade", (request, socket, head) => {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit("connection", ws, request);
+      });
+    });
+
     server.listen(3000, () => {
-      console.log("Server running at http://localhost:3000/arrivals");
+      console.log("Server running at http://localhost:3000/");
     });
   }
 }
@@ -372,7 +435,7 @@ async function getFlightData(registration_input) {
   }
 }
 
-// Main function to start the process
+//
 async function main() {
   const initialReq = https.request(options, function (res) {
     const linkHeader = res.headers["link"];
@@ -385,11 +448,7 @@ async function main() {
 
         console.log("Total pages available:", totalPages);
 
-        // Calculate the first half of pages
-        // const halfSize = Math.floor(totalPages / 2);
         const lastPage = startPage + maxPages;
-        // maxPages = endPage - startPage + 1;
-
         console.log(`Starting fetch from page ${startPage} to ${lastPage}`);
         const targetUrl = `/public-flights/flights?page=${startPage}`;
         fetchPage(targetUrl);
@@ -450,6 +509,21 @@ function calculateRunway(coordinates) {
     default:
       return ""; // Default runway
   }
+}
+
+// Function to send updated flights to all connected clients
+function sendUpdatedFlights(flights) {
+  console.log("sendUpdatedFlights function");
+  console.log(new Date().toLocaleString());
+
+  const flightsData = JSON.stringify(flights);
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      console.log("in websocket");
+
+      client.send(flightsData);
+    }
+  });
 }
 
 startScheduler();

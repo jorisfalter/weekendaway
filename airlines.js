@@ -155,6 +155,16 @@ airlinesList = [
   ["3O", "Air Arabia"],
   ["JU", "Getjet"],
   ["LY", "El Al"],
+  ["XQ", "SunExpress"],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
+  ["", ""],
   ["", ""],
 ];
 module.exports = airlinesList;
