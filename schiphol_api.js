@@ -7,6 +7,7 @@ const airlines = require("./airlines.js");
 const { FlightRadar24API } = require("flightradarapi");
 const { urlencoded } = require("body-parser");
 const api = new FlightRadar24API();
+const http = require("http");
 
 // purpose is to test the Schiphol API only, for the project on Schiphol landings
 
@@ -108,6 +109,85 @@ async function fetchPage(url, allFlights = []) {
   // fs.writeFileSync("flights.json", JSON.stringify(allFlights, null, 2), "utf8");
 }
 
+// Function to serve HTML content
+function serveHtml(res, filteredArrivalFlights) {
+  const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Schiphol Arrival Flights</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta http-equiv="refresh" content="60">
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h2>Upcoming Schiphol Arrivals</h2>
+    <p>Last updated: ${new Date().toLocaleString()}</p>
+    <table style="margin: 0 20px;">
+        <tr>
+            <th>Flight Number</th>
+            <th>Airline</th>
+            <th class="toggle-columns hidden">Provenance Code</th>
+            <th>Provenance</th>
+            <th>Minutes Until Landing</th>
+            <th>Aircraft Type</th>
+            <th class="toggle-columns hidden">Page Number</th>
+            <th class="toggle-columns hidden">Registration</th>
+            <th class="toggle-columns hidden">Coordinates</th>
+            <th>Runway</th>
+        </tr>
+        ${filteredArrivalFlights
+          .map(
+            (flight) => `
+        <tr>
+            <td>${flight.mainFlight}</td>
+            <td>${flight.airlineName}</td>
+            <td class="toggle-columns hidden">${flight.destinations}</td>
+            <td>${flight.destinationNames}</td>
+            <td>${flight.minutesUntilLanding}</td>
+            <td>${flight.iataSub}</td>
+            <td class="toggle-columns hidden">${flight.pageNumber}</td>
+            <td class="toggle-columns hidden">${flight.registration}</td>
+            <td class="toggle-columns hidden">${flight.coordinates}</td>
+            <td>${flight.runway}</td>
+        </tr>
+        `
+          )
+          .join("")}
+    </table>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleButton = document.createElement("button");
+            toggleButton.textContent = "Toggle Columns";
+            toggleButton.style.margin = "10px"; // Updated margin style
+            // Append the button after the table
+            const table = document.querySelector("table");
+            table.insertAdjacentElement("afterend", toggleButton);
+
+            // Toggle button functionality
+            const registrationCells = document.querySelectorAll(".toggle-columns");
+            toggleButton.addEventListener("click", function() {
+                registrationCells.forEach(cell => {
+                    cell.classList.toggle("hidden");
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+`;
+
+  res.writeHead(200, { "Content-Type": "text/html" });
+  res.end(htmlContent);
+}
+
+let server; // Declare server variable outside
+
 // Helper function to process arrival flights (to avoid code duplication)
 async function processArrivalFlights(allFlights) {
   // First deduplicate by id
@@ -178,91 +258,33 @@ async function processArrivalFlights(allFlights) {
 
   for (const flight of filteredArrivalFlights) {
     flight.coordinates = await getFlightData(flight.registration); // Append coordinates to the flight object
-    // console.log(flight.coordinates);
     flight.runway = calculateRunway(flight.coordinates); // Calculate runway using coordinates
   }
 
-  // console.log(
-  //   "filtered details:",
-  //   JSON.stringify(filteredArrivalFlights, null, 2)
-  // );
+  console.log("got coordinates and runway");
+  console.log(filteredArrivalFlights);
 
-  // Create HTML table
-  const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Schiphol Arrival Flights</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <meta http-equiv="refresh" content="60">
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
-    <h2>Upcoming Schiphol Arrivals</h2>
-    <p>Last updated: ${new Date().toLocaleString()}</p>
-    <table>
-        <tr>
-            <th>Flight Number</th>
-            <th>Airline</th>
-            <th class="toggle-columns">Provenance Code</th>
-            <th>Provenance</th>
-            <th>Minutes Until Landing</th>
-            <th>Aircraft Type</th>
-            <th class="toggle-columns">Page Number</th>
-            <th class="toggle-columns">Registration</th>
-            <th class="toggle-columns">Coordinates</th>
-            <th>Runway</th>
-        </tr>
-        ${filteredArrivalFlights
-          .map(
-            (flight) => `
-        <tr>
-            <td>${flight.mainFlight}</td>
-            <td>${flight.airlineName}</td>
-            <td class="toggle-columns">${flight.destinations}</td>
-       
-            <td>${flight.destinationNames}</td>
-            <td>${flight.minutesUntilLanding}</td>
-            <td>${flight.iataSub}</td>
-            <td class="toggle-columns">${flight.pageNumber}</td>
-            <td class="toggle-columns">${flight.registration}</td>
-            <td class="toggle-columns">${flight.coordinates}</td>
-            <td>${flight.runway}</td>
-        </tr>
-        `
-          )
-          .join("")}
-    </table>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const toggleButton = document.createElement("button");
-            toggleButton.textContent = "Toggle Columns";
-            // Append the button after the table
-            const table = document.querySelector("table");
-            table.insertAdjacentElement("afterend", toggleButton);
-            toggleButton.style.marginTop = "10px";
+  // Serve the HTML content instead of writing to a file
+  if (!server) {
+    // Check if server is already initialized
+    console.log("in the !server");
+    server = http.createServer(async (req, res) => {
+      if (req.url === "/arrivals") {
+        console.log("in the /arrivals");
 
-            toggleButton.addEventListener("click", function() {
-                const registrationCells = document.querySelectorAll(".toggle-columns");
-                registrationCells.forEach(cell => {
-                    cell.classList.toggle("hidden");
-                });
-            });
-        });
-    </script>
-</body>
-</html>
-`;
+        // Fetch the latest data before serving
+        // await main(); // Ensure this fetches and updates filteredArrivalFlights
+        serveHtml(res, filteredArrivalFlights);
+      } else {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("404 Not Found");
+      }
+    });
 
-  // Write HTML file
-  fs.writeFileSync("arrivals.html", htmlContent, "utf8");
-
-  console.log("HTML file generated: arrivals.html");
+    server.listen(3000, () => {
+      console.log("Server running at http://localhost:3000/arrivals");
+    });
+  }
 }
 
 // Helper function to find airport name by code
@@ -365,10 +387,10 @@ async function main() {
 
         // Calculate the first half of pages
         // const halfSize = Math.floor(totalPages / 2);
-        const endPage = 300;
+        const lastPage = startPage + maxPages;
         // maxPages = endPage - startPage + 1;
 
-        console.log(`Starting fetch from page ${startPage} to ${endPage}`);
+        console.log(`Starting fetch from page ${startPage} to ${lastPage}`);
         const targetUrl = `/public-flights/flights?page=${startPage}`;
         fetchPage(targetUrl);
       }

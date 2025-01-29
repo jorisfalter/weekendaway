@@ -289,7 +289,7 @@ airportsListV2 = [
   ["KRS", "Kristiansand", ,],
   ["PUJ", "Punta Cana", ,],
   ["BUD", "Budapest", ,],
-  ["", "", ,],
+  ["SZG", "Salzburg", ,],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],
