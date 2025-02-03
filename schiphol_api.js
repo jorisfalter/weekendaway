@@ -192,6 +192,7 @@ function serveHtml(res, filteredArrivalFlights) {
 
 // Initialize the HTTP server
 const server = http.createServer(async (req, res) => {
+  // I believe the arrivals route is legacy
   if (req.url === "/arrivals") {
     console.log("in the /arrivals");
     // Fetch the latest data before serving
@@ -199,7 +200,6 @@ const server = http.createServer(async (req, res) => {
   } else if (req.url === "/") {
     // Serve the HTML file on the root route
     fs.readFile(path.join(__dirname, "schiphol_arrivals.html"), (err, data) => {
-      // Adjust the filename if necessary
       if (err) {
         res.writeHead(500, { "Content-Type": "text/plain" });
         res.end("500 Internal Server Error");
@@ -216,14 +216,39 @@ const server = http.createServer(async (req, res) => {
 
 // Ensure the WebSocket server is set up correctly
 server.on("upgrade", (request, socket, head) => {
-  wss.handleUpgrade(request, socket, head, (ws) => {
-    wss.emit("connection", ws, request);
-  });
+  if (request.url === "/ws") {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit("connection", ws, request);
+    });
+  } else {
+    socket.destroy(); // Reject other upgrade requests
+  }
 });
 
 // Start the server
 server.listen(3000, () => {
   console.log("Server running at http://localhost:3000/");
+});
+
+wss.on("connection", (ws) => {
+  console.log("New WebSocket client connected");
+
+  // Send latest flight data immediately if available
+
+  if (latestFlightData.length > 0) {
+    console.log("📡 Sending cached flight data to new client...");
+    ws.send(JSON.stringify(latestFlightData));
+  }
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
+
+  ws.on("error", (err) => {
+    console.error("WebSocket error:", err);
+  });
+
+  ws.send(JSON.stringify({ message: "Connected to Schiphol WebSocket!" }));
 });
 
 // Helper function to process arrival flights (to avoid code duplication)
@@ -304,7 +329,7 @@ async function processArrivalFlights(allFlights) {
   // serveHtml(res, filteredArrivalFlights);
   sendUpdatedFlights(filteredArrivalFlights); // Send updated flights to clients
 
-  // Serve the HTML content instead of writing to a file
+  // I could probably archive this
   if (!server) {
     // Check if server is already initialized
     console.log("in the !server");
@@ -332,26 +357,6 @@ async function processArrivalFlights(allFlights) {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("404 Not Found");
       }
-    });
-
-    wss.on("connection", (ws) => {
-      console.log("New WebSocket client connected");
-
-      // Send latest flight data immediately if available
-      if (latestFlightData.length > 0) {
-        console.log("📡 Sending cached flight data to new client...");
-        ws.send(JSON.stringify(latestFlightData));
-      }
-
-      ws.on("close", () => {
-        console.log("Client disconnected");
-      });
-
-      ws.on("error", (err) => {
-        console.error("WebSocket error:", err);
-      });
-
-      ws.send(JSON.stringify({ message: "Connected to Schiphol WebSocket!" }));
     });
 
     server.on("upgrade", (request, socket, head) => {
@@ -523,10 +528,7 @@ function sendUpdatedFlights(flights) {
 
   const flightsData = JSON.stringify(flights);
   wss.clients.forEach((client) => {
-    console.log("searching clients");
     if (client.readyState === WebSocket.OPEN) {
-      console.log("in websocket");
-
       client.send(flightsData);
     }
   });
