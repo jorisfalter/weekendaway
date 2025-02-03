@@ -9,7 +9,9 @@ const { urlencoded } = require("body-parser");
 const api = new FlightRadar24API();
 const http = require("http");
 const WebSocket = require("ws");
+const wss = new WebSocket.Server({ noServer: true });
 const path = require("path");
+let latestFlightData = []; // Store the latest flights
 
 // purpose is to test the Schiphol API only, for the project on Schiphol landings
 
@@ -188,21 +190,15 @@ function serveHtml(res, filteredArrivalFlights) {
   res.end(htmlContent);
 }
 
-let server; // Declare server variable outside
-let wss; // Declare WebSocket server variable outside
-
-// Move the WebSocket server setup here
-wss = new WebSocket.Server({ noServer: true });
-
 // Initialize the HTTP server
-server = http.createServer(async (req, res) => {
+const server = http.createServer(async (req, res) => {
   if (req.url === "/arrivals") {
     console.log("in the /arrivals");
     // Fetch the latest data before serving
     await main(); // Ensure this fetches and updates filteredArrivalFlights
   } else if (req.url === "/") {
     // Serve the HTML file on the root route
-    fs.readFile(path.join(__dirname, "schiphol_api.html"), (err, data) => {
+    fs.readFile(path.join(__dirname, "schiphol_arrivals.html"), (err, data) => {
       // Adjust the filename if necessary
       if (err) {
         res.writeHead(500, { "Content-Type": "text/plain" });
@@ -319,24 +315,44 @@ async function processArrivalFlights(allFlights) {
         await main(); // Ensure this fetches and updates filteredArrivalFlights
       } else if (req.url === "/") {
         // Serve the HTML file on the root route
-        fs.readFile(path.join(__dirname, "schiphol_api.html"), (err, data) => {
-          // Adjust the filename if necessary
-          if (err) {
-            res.writeHead(500, { "Content-Type": "text/plain" });
-            res.end("500 Internal Server Error");
-            return;
+        fs.readFile(
+          path.join(__dirname, "schiphol_arrivals.html"),
+          (err, data) => {
+            // Adjust the filename if necessary
+            if (err) {
+              res.writeHead(500, { "Content-Type": "text/plain" });
+              res.end("500 Internal Server Error");
+              return;
+            }
+            res.writeHead(200, { "Content-Type": "text/html" });
+            res.end(data);
           }
-          res.writeHead(200, { "Content-Type": "text/html" });
-          res.end(data);
-        });
+        );
       } else {
         res.writeHead(404, { "Content-Type": "text/plain" });
         res.end("404 Not Found");
       }
     });
 
-    // Move the WebSocket server setup here
-    const wss = new WebSocket.Server({ noServer: true });
+    wss.on("connection", (ws) => {
+      console.log("New WebSocket client connected");
+
+      // Send latest flight data immediately if available
+      if (latestFlightData.length > 0) {
+        console.log("📡 Sending cached flight data to new client...");
+        ws.send(JSON.stringify(latestFlightData));
+      }
+
+      ws.on("close", () => {
+        console.log("Client disconnected");
+      });
+
+      ws.on("error", (err) => {
+        console.error("WebSocket error:", err);
+      });
+
+      ws.send(JSON.stringify({ message: "Connected to Schiphol WebSocket!" }));
+    });
 
     server.on("upgrade", (request, socket, head) => {
       wss.handleUpgrade(request, socket, head, (ws) => {
@@ -466,20 +482,6 @@ async function main() {
   initialReq.end();
 }
 
-async function startScheduler() {
-  console.log("Starting scheduler...");
-
-  // Run immediately on start
-  await main();
-
-  // Then run every minute
-  setInterval(async () => {
-    console.log("\n--- Running scheduled update ---");
-    pageCount = 0; // Reset the page counter
-    await main();
-  }, 60000); // 60000 ms = 1 minute
-}
-
 // Function to calculate runway based on coordinates
 function calculateRunway(coordinates) {
   if (!coordinates || coordinates.length < 2) {
@@ -516,14 +518,41 @@ function sendUpdatedFlights(flights) {
   console.log("sendUpdatedFlights function");
   console.log(new Date().toLocaleString());
 
+  // Store the latest flight data
+  latestFlightData = flights;
+
   const flightsData = JSON.stringify(flights);
   wss.clients.forEach((client) => {
+    console.log("searching clients");
     if (client.readyState === WebSocket.OPEN) {
       console.log("in websocket");
 
       client.send(flightsData);
     }
   });
+}
+
+async function startScheduler() {
+  console.log("Starting scheduler...");
+
+  // Run immediately on start
+  await main();
+  // const checkClients = setInterval(() => {
+  //   if (wss && wss.clients.size > 0) {
+  //     console.log("WebSocket clients detected. Starting data fetch.");
+  //     clearInterval(checkClients);
+  //     main(); // Start fetching flights once clients are connected
+  //   } else {
+  //     console.log("Waiting for WebSocket clients...");
+  //   }
+  // }, 2000); // Check every 2 seconds
+
+  // Then run every minute
+  setInterval(async () => {
+    console.log("\n--- Running scheduled update ---");
+    pageCount = 0; // Reset the page counter
+    await main();
+  }, 60000); // 60000 ms = 1 minute
 }
 
 startScheduler();
