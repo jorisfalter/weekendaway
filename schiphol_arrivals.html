@@ -52,7 +52,7 @@
         <!-- Flight data will be populated here -->
     </table>
     <script>
-        const ws = new WebSocket('http://localhost:3000'); // Adjust the URL as needed
+        const ws = new WebSocket('ws://localhost:3000/ws'); // Use /ws
 
         ws.onopen = function () {
             console.log("WebSocket connection established.");
@@ -60,7 +60,9 @@
 
 
         ws.onmessage = function (event) {
-            console.log("Received WebSocket message:", event.data);
+            // console.log("Received WebSocket message:", event.data);
+            console.log("Received WebSocket message");
+
 
             const updatedFlights = JSON.parse(event.data);
             updateFlightsTable(updatedFlights);
@@ -78,39 +80,40 @@
 
         function updateFlightsTable(flights) {
             const table = document.getElementById('flights-table');
-            // Clear existing rows except for the header
-            table.innerHTML = `
-                <tr>
-                    <th>Flight Number</th>
-                    <th>Airline</th>
-                    <th class="toggle-columns hidden">Provenance Code</th>
-                    <th>Provenance</th>
-                    <th>Minutes Until Landing</th>
-                    <th>Aircraft Type</th>
-                    <th class="toggle-columns hidden">Page Number</th>
-                    <th class="toggle-columns hidden">Registration</th>
-                    <th class="toggle-columns hidden">Coordinates</th>
-                    <th>Runway</th>
-                </tr>
-            `;
+
+            // Remove any existing tbody if present
+            let oldTbody = table.querySelector("tbody");
+            if (oldTbody) {
+                table.removeChild(oldTbody);
+            }
+
+            // Create a new tbody
+            let tbody = document.createElement("tbody");
+
+            console.log("flights")
+            console.log(flights)
 
             flights.forEach(flight => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${flight.mainFlight}</td>
-                    <td>${flight.airlineName}</td>
-                    <td class="toggle-columns hidden">${flight.destinations}</td>
-                    <td>${flight.destinationNames.join(', ')}</td>
-                    <td>${flight.minutesUntilLanding}</td>
-                    <td>${flight.iataSub}</td>
-                    <td class="toggle-columns hidden">${flight.pageNumber}</td>
-                    <td class="toggle-columns hidden">${flight.registration}</td>
-                    <td class="toggle-columns hidden">${flight.coordinates.join(', ')}</td>
-                    <td>${flight.runway}</td>
-                `;
-                table.appendChild(row);
+            <td>${flight.mainFlight}</td>
+            <td>${flight.airlineName}</td>
+            <td class="toggle-columns hidden">${flight.destinations}</td>
+            <td>${flight.destinationNames.join(', ')}</td>
+            <td>${flight.minutesUntilLanding}</td>
+            <td>${flight.iataSub}</td>
+            <td class="toggle-columns hidden">${flight.pageNumber}</td>
+            <td class="toggle-columns hidden">${flight.registration}</td>
+            <td class="toggle-columns hidden">${flight.coordinates.join(', ')}</td>
+            <td>${flight.runway}</td>
+        `;
+                tbody.appendChild(row);
             });
+
+            // Append the new tbody to the table
+            table.appendChild(tbody);
         }
+
         document.addEventListener("DOMContentLoaded", function () {
             const toggleButton = document.createElement("button");
             toggleButton.textContent = "Toggle Columns";

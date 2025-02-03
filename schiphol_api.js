@@ -237,6 +237,7 @@ wss.on("connection", (ws) => {
 
   if (latestFlightData.length > 0) {
     console.log("📡 Sending cached flight data to new client...");
+    console.log(JSON.stringify(latestFlightData));
     ws.send(JSON.stringify(latestFlightData));
   }
 
@@ -327,8 +328,11 @@ async function processArrivalFlights(allFlights) {
   console.log("got coordinates and runway");
   // console.log(filteredArrivalFlights);
   // serveHtml(res, filteredArrivalFlights);
-  sendUpdatedFlights(filteredArrivalFlights); // Send updated flights to clients
-
+  if (filteredArrivalFlights.length > 0) {
+    sendUpdatedFlights(filteredArrivalFlights); // Send only if there are flights
+  } else {
+    console.log("⚠️ No valid flights found. Skipping WebSocket update.");
+  }
   // I could probably archive this
   if (!server) {
     // Check if server is already initialized
@@ -522,6 +526,12 @@ function calculateRunway(coordinates) {
 function sendUpdatedFlights(flights) {
   console.log("sendUpdatedFlights function");
   console.log(new Date().toLocaleString());
+
+  // Prevent sending empty data
+  if (!Array.isArray(flights) || flights.length === 0) {
+    console.warn("⚠️ Attempted to send empty flight data. Skipping...");
+    return;
+  }
 
   // Store the latest flight data
   latestFlightData = flights;
