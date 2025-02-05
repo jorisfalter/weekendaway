@@ -37,19 +37,23 @@
 
     </span>
     <table id="flights-table" style="margin: 0 20px;">
-        <tr>
-            <th>Flight Number</th>
-            <th>Airline</th>
-            <th class="toggle-columns hidden">Provenance Code</th>
-            <th>Provenance</th>
-            <th>Minutes Until Landing</th>
-            <th>Aircraft Type</th>
-            <th class="toggle-columns hidden">Page Number</th>
-            <th class="toggle-columns hidden">Registration</th>
-            <th class="toggle-columns hidden">Coordinates</th>
-            <th>Runway</th>
-        </tr>
-        <!-- Flight data will be populated here -->
+        <thead>
+            <tr>
+                <th>Flight Number</th>
+                <th>Airline</th>
+                <th class="toggle-columns hidden">Provenance Code</th>
+                <th>Provenance</th>
+                <th>Minutes Until Landing</th>
+                <th>Aircraft Type</th>
+                <th class="toggle-columns hidden">Page Number</th>
+                <th class="toggle-columns hidden">Registration</th>
+                <th class="toggle-columns hidden">Coordinates</th>
+                <th>Runway</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Flight data will be populated here -->
+        </tbody>
     </table>
     <script>
         const ws = new WebSocket('ws://localhost:3000/ws'); // Use /ws
@@ -64,10 +68,23 @@
             console.log("Received WebSocket message");
 
 
-            const updatedFlights = JSON.parse(event.data);
-            updateFlightsTable(updatedFlights);
-            // Update the last updated time when new data is received
-            document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()} (Updates Every Minute)`;
+            try {
+                const updatedFlights = JSON.parse(event.data);
+
+                // Ensure the received data is an array before updating the table
+                if (Array.isArray(updatedFlights)) {
+                    console.log("✅ Valid flight data received.");
+                    updateFlightsTable(updatedFlights);
+                } else {
+                    console.warn("⚠️ Received non-flight data:", updatedFlights);
+                }
+
+                // Update last updated time
+                document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()} (Updates Every Minute)`;
+
+            } catch (error) {
+                console.error("⚠️ Error parsing WebSocket message:", error);
+            }
         };
 
         ws.onerror = function (error) {
@@ -104,7 +121,7 @@
             <td>${flight.iataSub}</td>
             <td class="toggle-columns hidden">${flight.pageNumber}</td>
             <td class="toggle-columns hidden">${flight.registration}</td>
-            <td class="toggle-columns hidden">${flight.coordinates.join(', ')}</td>
+            <td class="toggle-columns hidden">${Array.isArray(flight.coordinates) ? flight.coordinates.join(', ') : 'Unknown'}</td>
             <td>${flight.runway}</td>
         `;
                 tbody.appendChild(row);

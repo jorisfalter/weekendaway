@@ -296,7 +296,7 @@ airportsListV2 = [
   ["RNS", "Rennes", ,],
   ["GDN", "Gdansk", ,],
   ["FUE", "Fuerteventura", ,],
-  ["", "", ,],
+  ["FMM", "Memmingen", ,],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],
