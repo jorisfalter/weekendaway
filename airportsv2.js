@@ -301,7 +301,7 @@ airportsListV2 = [
   ["PKX", "Beijing Daxing", ,],
   ["RVN", "Rovaniemi", ,],
   ["KWI", "Kuwait", ,],
-  ["", "", ,],
+  ["GRX", "Granada", ,],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],
