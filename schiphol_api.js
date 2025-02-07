@@ -193,10 +193,10 @@ function serveHtml(res, filteredArrivalFlights) {
 // Initialize the HTTP server
 const server = http.createServer(async (req, res) => {
   // I believe the arrivals route is legacy
-  if (req.url === "/arrivals") {
-    console.log("in the /arrivals");
-    // Fetch the latest data before serving
-    await main(); // Ensure this fetches and updates filteredArrivalFlights
+  // if (req.url === "/arrivals") {
+  //   console.log("in the /arrivals");
+  //   // Fetch the latest data before serving
+  //   await main(); // Ensure this fetches and updates filteredArrivalFlights
   } else if (req.url === "/") {
     // Serve the HTML file on the root route
     fs.readFile(path.join(__dirname, "schiphol_arrivals.html"), (err, data) => {
@@ -347,6 +347,9 @@ async function processArrivalFlights(allFlights) {
         await main(); // Ensure this fetches and updates filteredArrivalFlights
       } else if (req.url === "/") {
         // Serve the HTML file on the root route
+
+        const filePath = path.resolve(__dirname, "schiphol_arrivals.html");
+        console.log("Trying to serve HTML from:", filePath);
         fs.readFile(
           path.join(__dirname, "schiphol_arrivals.html"),
           (err, data) => {
@@ -372,7 +375,7 @@ async function processArrivalFlights(allFlights) {
       });
     });
 
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT || 8080;
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
