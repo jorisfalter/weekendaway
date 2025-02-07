@@ -501,7 +501,7 @@ function calculateRunway(coordinates, minutesUntilLanding) {
     return "Coordinates Error"; // Return "Unknown" if coordinates are invalid
   }
   if (minutesUntilLanding > 10) {
-    return "too far out";
+    return "Too far out";
   }
 
   // Example logic (replace with actual runway calculation)
