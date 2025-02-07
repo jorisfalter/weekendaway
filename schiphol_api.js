@@ -120,7 +120,7 @@ function serveHtml(res, filteredArrivalFlights) {
 <html>
 <head>
     <title>Schiphol Arrival Flights</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <meta http-equiv="refresh" content="60">
     <style>
         table { border-collapse: collapse; width: auto; }
