@@ -194,10 +194,11 @@ function serveHtml(res, filteredArrivalFlights) {
 const server = http.createServer(async (req, res) => {
   // I believe the arrivals route is legacy
   // if (req.url === "/arrivals") {
-  //   console.log("in the /arrivals");
-  //   // Fetch the latest data before serving
-  //   await main(); // Ensure this fetches and updates filteredArrivalFlights
-  } else if (req.url === "/") {
+  // //   console.log("in the /arrivals");
+  // //   // Fetch the latest data before serving
+  // //   await main(); // Ensure this fetches and updates filteredArrivalFlights
+  // } else
+  if (req.url === "/") {
     // Serve the HTML file on the root route
     fs.readFile(path.join(__dirname, "schiphol_arrivals.html"), (err, data) => {
       if (err) {
