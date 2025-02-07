@@ -322,7 +322,10 @@ async function processArrivalFlights(allFlights) {
 
   for (const flight of filteredArrivalFlights) {
     flight.coordinates = await getFlightData(flight.registration); // Append coordinates to the flight object
-    flight.runway = calculateRunway(flight.coordinates); // Calculate runway using coordinates
+    flight.runway = calculateRunway(
+      flight.coordinates,
+      flight.minutesUntilLanding
+    ); // Calculate runway using coordinates
   }
 
   console.log("got coordinates and runway");
@@ -369,8 +372,9 @@ async function processArrivalFlights(allFlights) {
       });
     });
 
-    server.listen(3000, () => {
-      console.log("Server running at http://localhost:3000/");
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
   }
 }
@@ -492,9 +496,12 @@ async function main() {
 }
 
 // Function to calculate runway based on coordinates
-function calculateRunway(coordinates) {
+function calculateRunway(coordinates, minutesUntilLanding) {
   if (!coordinates || coordinates.length < 2) {
     return "Coordinates Error"; // Return "Unknown" if coordinates are invalid
+  }
+  if (minutesUntilLanding > 10) {
+    return "too far out";
   }
 
   // Example logic (replace with actual runway calculation)

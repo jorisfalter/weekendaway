@@ -300,7 +300,7 @@ airportsListV2 = [
   ["LCA", "Larnaca", ,],
   ["PKX", "Beijing Daxing", ,],
   ["RVN", "Rovaniemi", ,],
-  ["", "", ,],
+  ["KWI", "Kuwait", ,],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],
