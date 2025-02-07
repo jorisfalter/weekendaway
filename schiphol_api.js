@@ -500,20 +500,27 @@ function calculateRunway(coordinates) {
   // Example logic (replace with actual runway calculation)
   const [latitude, longitude] = coordinates;
   switch (true) {
-    case longitude < 4.76 && longitude > 4.73:
+    case longitude < 4.76 && longitude > 4.73 && latitude > 52.34:
       return "18C Zwanenburgbaan"; // Example runway based on latitude
-    case longitude >= 4.76:
+    case longitude >= 4.76 && latitude > 52.34:
       return "18C or 18R (expected)"; // Example runway based on latitude
-    case longitude < 4.73 && longitude > 4.7:
+    case longitude < 4.73 && longitude > 4.7 && latitude > 52.34:
       return "18R Polderbaan"; // Example runway based on latitude
-    case longitude < 4.7:
+    case longitude < 4.7 && latitude > 52.34:
       return "18R Polderbaan (expected)"; // Example runway based on latitude
     case latitude < 52.33 &&
       latitude > 52.31 &&
       longitude < 4.9 &&
       longitude > 4.75:
       return "27 Buitenveldertbaan";
+    case latitude < 52.34 && longitude < 4.72:
+      return "06 Kaagbaan";
+    case latitude < 52.34 && longitude > 4.72 && longitude < 4.74:
+      return "36C Zwanenburgbaan";
+    case latitude < 52.34 && longitude > 4.74:
+      return "36R Aalsmeerbaan";
 
+    // 32.34
     // de uitzondering voor baan 22 als ze last minute afdraaien
     // er is ook een uitzondering waar 24 en buitenveldertbaan overlappen
 
@@ -564,7 +571,7 @@ async function startScheduler() {
     console.log("\n--- Running scheduled update ---");
     pageCount = 0; // Reset the page counter
     await main();
-  }, 60000); // 60000 ms = 1 minute
+  }, 6000000); // 60000 ms = 1 minute
 }
 
 startScheduler();

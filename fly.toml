@@ -1,0 +1,10 @@
+app = "weekendaway"
+primary_region = "ams"
+
+[[services]]
+  internal_port = 3000
+  protocol = "tcp"
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
