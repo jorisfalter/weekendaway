@@ -227,8 +227,10 @@ server.on("upgrade", (request, socket, head) => {
 });
 
 // Start the server
-server.listen(3000, () => {
-  console.log("Server running at http://localhost:3000/");
+const PORT = process.env.PORT || 8080;
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
 });
 
 wss.on("connection", (ws) => {
@@ -376,9 +378,11 @@ async function processArrivalFlights(allFlights) {
       });
     });
 
+    // Start the server
     const PORT = process.env.PORT || 8080;
-    server.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
     });
   }
 }
