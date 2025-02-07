@@ -582,7 +582,7 @@ async function startScheduler() {
     console.log("\n--- Running scheduled update ---");
     pageCount = 0; // Reset the page counter
     await main();
-  }, 6000000); // 60000 ms = 1 minute
+  }, 60000); // 60000 ms = 1 minute
 }
 
 startScheduler();

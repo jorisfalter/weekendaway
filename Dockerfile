@@ -1,23 +1,50 @@
-# Use the latest Node.js version
-FROM node:18
+# syntax = docker/dockerfile:1
 
-# Set the working directory inside the container
+# Adjust NODE_VERSION as desired
+ARG NODE_VERSION=20.18.0
+FROM node:${NODE_VERSION}-slim as base
+
+LABEL fly_launch_runtime="NodeJS"
+
+# NodeJS app lives here
 WORKDIR /app
 
-# Copy package.json first to leverage Docker caching
-COPY package*.json ./
+# Set production environment
+ENV NODE_ENV=production
+
+
+# Throw-away build stage to reduce size of final image
+FROM base as build
+
+# Install packages needed to build node modules
+RUN apt-get update -qq && \
+    apt-get install -y python-is-python3 pkg-config build-essential 
+
+# Install node modules
+COPY --link package.json package-lock.json .
+RUN npm install
+
+# Copy application code
+COPY --link . .
+
+# Final stage for app image
+FROM base
+
+# Copy built application
+COPY --from=build /app /app
 
 # Install dependencies
 RUN npm install
-
-# Copy all project files
-COPY . .
-
-# Ensure schiphol_arrivals.html is explicitly copied
-COPY schiphol_arrivals.html /app/
 
 # Expose port 8080 (Fly.io default)
 EXPOSE 8080
 
 # Start the server
 CMD ["node", "schiphol_api.js"]
+
+
+
+
+
+
+
