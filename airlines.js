@@ -158,7 +158,7 @@ airlinesList = [
   ["XQ", "SunExpress"],
   ["7L", "Silk Way West Airlines"],
   ["KQ", "Kenya Airways"],
-  ["", ""],
+  ["GQ", "SKY express"],
   ["", ""],
   ["", ""],
   ["", ""],
