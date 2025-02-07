@@ -303,7 +303,7 @@ airportsListV2 = [
   ["KWI", "Kuwait", ,],
   ["GRX", "Granada", ,],
   ["WRO", "Wrocław", ,],
-  ["", "", ,],
+  ["LIM", "Lima", ,],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],
