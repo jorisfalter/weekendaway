@@ -115,9 +115,18 @@
 
             flights.forEach(flight => {
                 const row = document.createElement('tr');
+
+                // Check if a logoPath exists, if not, show a placeholder
+                const logoHTML = flight.logoPath
+                    ? `<img src="${flight.logoPath}" alt="${flight.airlineName} logo" style="height: 20px; vertical-align: middle;"> `
+                    : '';
+
+                // <td>${logoHTML}${flight.airlineName}</td> <!-- Show logo next to airline -->
+
+
                 row.innerHTML = `
             <td>${flight.mainFlight}</td>
-            <td>${flight.airlineName}</td>
+            <td>${flight.airlineName}</td> <!-- Show logo next to airline -->
             <td class="toggle-columns hidden">${flight.destinations}</td>
             <td>${flight.destinationNames.join(', ')}</td>
             <td>${flight.minutesUntilLanding}</td>

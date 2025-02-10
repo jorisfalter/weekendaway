@@ -29,6 +29,10 @@ const options = {
   },
 };
 
+const express = require("express");
+const app = express();
+app.use(express.static(path.join(__dirname, "public")));
+
 const currentHour = new Date().getHours();
 let startPage;
 
@@ -303,10 +307,13 @@ async function processArrivalFlights(allFlights) {
   // display all flights
   // console.log("Full details:", JSON.stringify(arrivalFlights, null, 2));
   //
+  const logoDirectory = path.join(__dirname, "airlines_logos");
+
   const filteredArrivalFlights = arrivalFlights
     .map((flight) => ({
       mainFlight: flight.mainFlight,
       airlineName: getAirlineName(flight.mainFlight),
+      logoPath: "",
       destinations: flight.route.destinations,
       destinationNames: flight.route.destinations.map((code) =>
         getAirportName(code)
@@ -329,6 +336,15 @@ async function processArrivalFlights(allFlights) {
       flight.coordinates,
       flight.minutesUntilLanding
     ); // Calculate runway using coordinates
+    const airlineName = flight.airlineName;
+    console.log(airlineName);
+    const logoFile = `${airlineName.replace(/\s+/g, "_")}.webp`; // Replace spaces with underscores
+    console.log(logoFile);
+    const logoPath = fs.existsSync(path.join(logoDirectory, logoFile))
+      ? `/airlines_logos/${logoFile}`
+      : null;
+    console.log(logoPath);
+    flight.logoPath = logoPath;
   }
 
   console.log("got coordinates and runway");

@@ -160,7 +160,7 @@ airlinesList = [
   ["KQ", "Kenya Airways"],
   ["GQ", "SKY express"],
   ["MP", "MartinAir"],
-  ["", ""],
+  ["PY", "Surinaamse Luchtvaart Maatschappij"],
   ["", ""],
   ["", ""],
   ["", ""],

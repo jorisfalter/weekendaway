@@ -308,6 +308,13 @@ airportsListV2 = [
   ["INV", "Inverness", ,],
   ["GYE", "Guayaquil", ,],
   ["TRN", "Torino", ,],
+  ["PBM", "Paramaribo", ,],
+  ["SEN", "London Southend", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
+  ["", "", ,],
   ["", "", ,],
   ["", "", ,],
 ];
