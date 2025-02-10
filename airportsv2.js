@@ -306,8 +306,8 @@ airportsListV2 = [
   ["LIM", "Lima", ,],
   ["ESB", "Ankara Esenboğa", ,],
   ["INV", "Inverness", ,],
-  ["", "", ,],
-  ["", "", ,],
+  ["GYE", "Guayaquil", ,],
+  ["TRN", "Torino", ,],
   ["", "", ,],
   ["", "", ,],
 ];
