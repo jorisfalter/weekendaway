@@ -34,8 +34,8 @@
     <h2>Upcoming Schiphol Arrivals</h2>
     <span>
         <p id="last-updated">Last updated: ${new Date().toLocaleString()} (Updates Every Minute)</p>
-
     </span>
+    <p id="loading-message">Loading flight data...</p>
     <table id="flights-table"
         style="border-collapse: collapse; width: calc(100% - 40px); margin: 0 auto; max-width: 100%;">
         <thead>
@@ -67,6 +67,9 @@
 
 
         ws.onmessage = function (event) {
+            // Hide loading message when data is received
+            document.getElementById('loading-message').style.display = 'none';
+
             // console.log("Received WebSocket message:", event.data);
             console.log("Received WebSocket message");
 
@@ -144,6 +147,8 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
+            // Show loading message on page load
+            document.getElementById('loading-message').style.display = 'block';
             const toggleButton = document.createElement("button");
             toggleButton.textContent = "Toggle Columns";
             toggleButton.style.margin = "10px"; // Updated margin style
