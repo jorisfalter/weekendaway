@@ -27,6 +27,13 @@
         .hidden {
             display: none;
         }
+
+        /* Add styles for airline logos */
+        .airline-logo {
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
     </style>
 </head>
 
@@ -119,17 +126,19 @@
             flights.forEach(flight => {
                 const row = document.createElement('tr');
 
-                // Check if a logoPath exists, if not, show a placeholder
-                const logoHTML = flight.logoPath
-                    ? `<img src="${flight.logoPath}" alt="${flight.airlineName} logo" style="height: 20px; vertical-align: middle;"> `
-                    : '';
-
-                // <td>${logoHTML}${flight.airlineName}</td> <!-- Show logo next to airline -->
-
+                // Create logo HTML with error handling
+                let logoHTML = '';
+                if (flight.airlineCode) {
+                    logoHTML = `
+                        <img src="/airlines_logos/${flight.airlineCode.toLowerCase()}.webp" 
+                             alt="${flight.airlineName} logo" 
+                             class="airline-logo"
+                             onerror="this.style.display='none'">`; // Hide image if it fails to load
+                }
 
                 row.innerHTML = `
             <td>${flight.mainFlight}</td>
-            <td>${flight.airlineName}</td> <!-- Show logo next to airline -->
+            <td>${logoHTML}${flight.airlineName}</td>
             <td class="toggle-columns hidden">${flight.destinations}</td>
             <td>${flight.destinationNames.join(', ')}</td>
             <td>${flight.minutesUntilLanding}</td>

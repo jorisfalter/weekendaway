@@ -9,7 +9,6 @@ const { urlencoded } = require("body-parser");
 const api = new FlightRadar24API();
 const http = require("http");
 const WebSocket = require("ws");
-const wss = new WebSocket.Server({ noServer: true });
 const path = require("path");
 let latestFlightData = []; // Store the latest flights
 
@@ -31,7 +30,15 @@ const options = {
 
 const express = require("express");
 const app = express();
+
+// Set up static file serving
 app.use(express.static(path.join(__dirname, "public")));
+
+// Create server using Express app
+const server = http.createServer(app);
+
+// Set up WebSocket server with the HTTP server
+const wss = new WebSocket.Server({ server });
 
 const currentHour = new Date().getHours();
 let startPage;
@@ -117,122 +124,23 @@ async function fetchPage(url, allFlights = []) {
   // fs.writeFileSync("flights.json", JSON.stringify(allFlights, null, 2), "utf8");
 }
 
-// Function to serve HTML content
-function serveHtml(res, filteredArrivalFlights) {
-  const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Schiphol Arrival Flights</title>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <meta http-equiv="refresh" content="60">
-    <style>
-        table { border-collapse: collapse; width: auto; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
-    <h2>Upcoming Schiphol Arrivals</h2>
-    <p>Last updated: ${new Date().toLocaleString()}</p>
-    <table style="margin: 0 20px;">
-        <tr>
-            <th>Flight Number</th>
-            <th>Airline</th>
-            <th class="toggle-columns hidden">Provenance Code</th>
-            <th>Provenance</th>
-            <th>Minutes Until Landing</th>
-            <th>Aircraft Type</th>
-            <th class="toggle-columns hidden">Page Number</th>
-            <th class="toggle-columns hidden">Registration</th>
-            <th class="toggle-columns hidden">Coordinates</th>
-            <th>Runway</th>
-        </tr>
-        ${filteredArrivalFlights
-          .map(
-            (flight) => `
-        <tr>
-            <td>${flight.mainFlight}</td>
-            <td>${flight.airlineName}</td>
-            <td class="toggle-columns hidden">${flight.destinations}</td>
-            <td>${flight.destinationNames}</td>
-            <td>${flight.minutesUntilLanding}</td>
-            <td>${flight.iataSub}</td>
-            <td class="toggle-columns hidden">${flight.pageNumber}</td>
-            <td class="toggle-columns hidden">${flight.registration}</td>
-            <td class="toggle-columns hidden">${flight.coordinates}</td>
-            <td>${flight.runway}</td>
-        </tr>
-        `
-          )
-          .join("")}
-    </table>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const toggleButton = document.createElement("button");
-            toggleButton.textContent = "Toggle Columns";
-            toggleButton.style.margin = "10px"; // Updated margin style
-            // Append the button after the table
-            const table = document.querySelector("table");
-            table.insertAdjacentElement("afterend", toggleButton);
-
-            // Toggle button functionality
-            const registrationCells = document.querySelectorAll(".toggle-columns");
-            toggleButton.addEventListener("click", function() {
-                registrationCells.forEach(cell => {
-                    cell.classList.toggle("hidden");
-                });
-            });
-        });
-    </script>
-</body>
-</html>
-`;
-
-  res.writeHead(200, { "Content-Type": "text/html" });
-  res.end(htmlContent);
-}
-
-// Initialize the HTTP server
-const server = http.createServer(async (req, res) => {
-  // I believe the arrivals route is legacy
-  // if (req.url === "/arrivals") {
-  // //   console.log("in the /arrivals");
-  // //   // Fetch the latest data before serving
-  // //   await main(); // Ensure this fetches and updates filteredArrivalFlights
-  // } else
-  if (req.url === "/") {
-    // Serve the HTML file on the root route
-    fs.readFile(path.join(__dirname, "schiphol_arrivals.html"), (err, data) => {
-      if (err) {
-        res.writeHead(500, { "Content-Type": "text/plain" });
-        res.end("500 Internal Server Error");
-        return;
-      }
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(data);
-    });
-  } else {
-    res.writeHead(404, { "Content-Type": "text/plain" });
-    res.end("404 Not Found");
-  }
+// Add Express route for the root path
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "schiphol_arrivals.html"), (err) => {
+    if (err) {
+      console.error("Error sending HTML file:", err);
+      res.status(500).send("500 Internal Server Error");
+    }
+  });
 });
 
-// Ensure the WebSocket server is set up correctly
-server.on("upgrade", (request, socket, head) => {
-  if (request.url === "/ws") {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit("connection", ws, request);
-    });
-  } else {
-    socket.destroy(); // Reject other upgrade requests
-  }
+// Add a catch-all route for 404s
+app.use((req, res) => {
+  res.status(404).send("404 Not Found");
 });
 
 // Start the server
 const PORT = process.env.PORT || 8080;
-
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
 });
@@ -313,7 +221,7 @@ async function processArrivalFlights(allFlights) {
     .map((flight) => ({
       mainFlight: flight.mainFlight,
       airlineName: getAirlineName(flight.mainFlight),
-      logoPath: "",
+      airlineCode: flight.mainFlight.substring(0, 2).toLowerCase(),
       destinations: flight.route.destinations,
       destinationNames: flight.route.destinations.map((code) =>
         getAirportName(code)
