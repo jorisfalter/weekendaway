@@ -136,7 +136,7 @@ airlinesList = [
   ["MF", "Xiamen Air"],
   ["EZ", "Easyjet"],
   ["MS", "EgyptAir"],
-  ["EJ", "EasyJet Europe"],
+  ["EJ", "EasyJet"],
   ["BT", "Air Baltic"],
   ["KM", "Malta Airlines"],
   ["LO", "LOT"],
