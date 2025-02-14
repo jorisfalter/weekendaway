@@ -34,15 +34,52 @@
             vertical-align: middle;
             margin-right: 8px;
         }
+
+        /* Add styles for loading message */
+        #loading-message {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+            color: #666;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            margin: 20px auto;
+            max-width: 80%;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
 <body>
     <h2>Upcoming Schiphol Arrivals</h2>
     <span>
-        <p id="last-updated">Last updated: ${new Date().toLocaleString()} (Updates Every Minute)</p>
+        <p id="last-updated">Last updated: Waiting for data...</p>
     </span>
-    <p id="loading-message">Loading flight data...</p>
+    <div id="loading-message">
+        <div class="loading-spinner"></div>
+        Loading flight data... Please wait
+    </div>
     <table id="flights-table"
         style="border-collapse: collapse; width: calc(100% - 40px); margin: 0 auto; max-width: 100%;">
         <thead>
@@ -74,26 +111,29 @@
 
 
         ws.onmessage = function (event) {
-            // Hide loading message when data is received
-            document.getElementById('loading-message').style.display = 'none';
-
-            // console.log("Received WebSocket message:", event.data);
-            console.log("Received WebSocket message");
-
-
             try {
                 const updatedFlights = JSON.parse(event.data);
 
-                // Ensure the received data is an array before updating the table
-                if (Array.isArray(updatedFlights)) {
+                // Only hide loading message if we received valid flight data
+                if (Array.isArray(updatedFlights) && updatedFlights.length > 0) {
+                    document.getElementById('loading-message').style.display = 'none';
                     console.log("✅ Valid flight data received.");
                     updateFlightsTable(updatedFlights);
+                } else if (updatedFlights.message) {
+                    // Show connecting message for initial WebSocket connection
+                    document.getElementById('loading-message').innerHTML = `
+                        <div class="loading-spinner"></div>
+                        Connected to server, waiting for flight data...
+                    `;
                 } else {
                     console.warn("⚠️ Received non-flight data:", updatedFlights);
                 }
 
-                // Update last updated time
-                document.getElementById('last-updated').textContent = `Last updated: ${new Date().toLocaleString()} (Updates Every Minute)`;
+                // Update last updated time only if we received flight data
+                if (Array.isArray(updatedFlights) && updatedFlights.length > 0) {
+                    document.getElementById('last-updated').textContent =
+                        `Last updated: ${new Date().toLocaleString()} (Updates Every Minute)`;
+                }
 
             } catch (error) {
                 console.error("⚠️ Error parsing WebSocket message:", error);
