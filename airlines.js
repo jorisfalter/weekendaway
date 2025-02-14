@@ -161,7 +161,7 @@ airlinesList = [
   ["GQ", "SKY express"],
   ["MP", "MartinAir"],
   ["PY", "Surinaamse Luchtvaart Maatschappij"],
-  ["", ""],
+  ["IZ", "Arkia"],
   ["", ""],
   ["", ""],
   ["", ""],
