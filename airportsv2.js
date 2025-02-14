@@ -310,7 +310,7 @@ airportsListV2 = [
   ["TRN", "Torino", ,],
   ["PBM", "Paramaribo", ,],
   ["SEN", "London Southend", ,],
-  ["", "", ,],
+  ["LOS", "Lagos", ,],
   ["", "", ,],
   ["", "", ,],
   ["", "", ,],
