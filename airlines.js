@@ -139,7 +139,7 @@ airlinesList = [
   ["EJ", "EasyJet"],
   ["BT", "Air Baltic"],
   ["KM", "Malta Airlines"],
-  ["LO", "LOT"],
+  ["LO", "LOT Polish Airlines"],
   ["MN", "MNG Airlines"],
   ["OU", "Croatia Airlines"],
   ["RO", "Tarom"],
