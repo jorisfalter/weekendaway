@@ -32,6 +32,30 @@ mongoose.connect(
 );
 console.log("mongoose fired up");
 
+// Add a simple test query to verify database connectivity and data
+mongoose.connection.once("open", async () => {
+  console.log("MongoDB connected successfully");
+  try {
+    const depCount = await Departingflight.countDocuments();
+    const retCount = await Returnflight.countDocuments();
+    console.log(
+      `Database contains ${depCount} departing flights and ${retCount} return flights`
+    );
+
+    // Show sample data
+    const sampleDep = await Departingflight.findOne();
+    if (sampleDep) {
+      console.log("Sample departing flight structure:", {
+        departureAirport_city: sampleDep.departureAirport_city,
+        arrivalAirport_city: sampleDep.arrivalAirport_city,
+        departureTimeZulu: sampleDep.departureTimeZulu,
+      });
+    }
+  } catch (error) {
+    console.log("Database test error:", error);
+  }
+});
+
 // setup departure collection
 const departingFlightSchema = new mongoose.Schema({
   TimeOfEntry: Date,
@@ -177,8 +201,8 @@ function getReturnAirportCoordinates(destinationAirportAbbreviated) {
   var airportCoords = { lat: 0, lng: 0 };
   for (let i = 0; i < airportsListWithCoords.length; i++) {
     if (airportsListWithCoords[i][0] === destinationAirportAbbreviated) {
-      var airportXCoor = airportsListV2[i][2];
-      var airportyCoor = airportsListV2[i][3];
+      var airportXCoor = airportsListWithCoords[i][2]; // Fixed: was airportsListV2
+      var airportyCoor = airportsListWithCoords[i][3]; // Fixed: was airportsListV2
       airportCoords = { lat: airportXCoor, lng: airportyCoor };
       i = airportsListWithCoords.length;
     }
@@ -484,6 +508,10 @@ app.post("/", function (req, res) {
     if (err) {
       console.log(err);
     } else {
+      console.log("Found " + departingFlight.length + " departing flights");
+      if (departingFlight.length > 0) {
+        console.log("Sample departing flight:", departingFlight[0]);
+      }
       Returnflight.find(
         // old code when not filtering on the airport
         // {
@@ -506,6 +534,10 @@ app.post("/", function (req, res) {
         if (err) {
           console.log(err);
         } else {
+          console.log("Found " + returnFlight.length + " return flights");
+          if (returnFlight.length > 0) {
+            console.log("Sample return flight:", returnFlight[0]);
+          }
           resultingFlights = matchFlights(departingFlight, returnFlight);
           // foundFlights = resultingFlights[0]; // the info on position [0] is empty
           foundDestinations = resultingFlights[1]; // This contains the full array of information as separate objects
