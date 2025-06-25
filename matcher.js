@@ -51,6 +51,64 @@ mongoose.connection.once("open", async () => {
         departureTimeZulu: sampleDep.departureTimeZulu,
       });
     }
+
+    // Check date ranges in the database
+    const oldestDep = await Departingflight.findOne().sort({
+      departureTimeZulu: 1,
+    });
+    const newestDep = await Departingflight.findOne().sort({
+      departureTimeZulu: -1,
+    });
+    const oldestRet = await Returnflight.findOne().sort({ arrivalTimeZulu: 1 });
+    const newestRet = await Returnflight.findOne().sort({
+      arrivalTimeZulu: -1,
+    });
+
+    console.log("Date ranges in database:");
+    if (oldestDep && newestDep) {
+      console.log(
+        `Departing flights: ${oldestDep.departureTimeZulu} to ${newestDep.departureTimeZulu}`
+      );
+    }
+    if (oldestRet && newestRet) {
+      console.log(
+        `Return flights: ${oldestRet.arrivalTimeZulu} to ${newestRet.arrivalTimeZulu}`
+      );
+    }
+
+    // Check for Amsterdam specifically
+    const amsDepCount = await Departingflight.countDocuments({
+      departureAirport_city: "Amsterdam",
+    });
+    const amsRetCount = await Returnflight.countDocuments({
+      arrivalAirport_city: "Amsterdam",
+    });
+    console.log(
+      `Amsterdam flights: ${amsDepCount} departing, ${amsRetCount} returning`
+    );
+
+    // Check what cities exist in the database
+    const distinctDepCities = await Departingflight.distinct(
+      "departureAirport_city"
+    );
+    const distinctArrCities = await Returnflight.distinct(
+      "arrivalAirport_city"
+    );
+    console.log("Available departure cities:", distinctDepCities.slice(0, 10)); // Show first 10
+    console.log("Available arrival cities:", distinctArrCities.slice(0, 10)); // Show first 10
+
+    // Check recent data (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const recentDepCount = await Departingflight.countDocuments({
+      departureTimeZulu: { $gte: thirtyDaysAgo },
+    });
+    const recentRetCount = await Returnflight.countDocuments({
+      arrivalTimeZulu: { $gte: thirtyDaysAgo },
+    });
+    console.log(
+      `Recent flights (last 30 days): ${recentDepCount} departing, ${recentRetCount} returning`
+    );
   } catch (error) {
     console.log("Database test error:", error);
   }

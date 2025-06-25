@@ -18,3 +18,7 @@ Node matcher.js
 ## Schiphol Landings
 
 This Repo now also includes the Schiphol Landings Dash
+
+## FlightAware
+
+this repo uses flightaware data
