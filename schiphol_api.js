@@ -522,6 +522,8 @@ async function getFlightDataFromCache(flightNumber, flightRadarData) {
     flightNumber.replace(/^([A-Z]{2})0+/, "$1"), // Remove leading zeros: KL0706 -> KL706
     flightNumber.replace(/^EJU/, "U2"), // EasyJet conversion: EJU7890 -> U27890
     flightNumber.replace(/^EJU/, "EZY"), // EasyJet alternative: EJU7890 -> EZY7890
+    flightNumber.replace(/^EZY/, "U2"), // EasyJet UK: EZY5709 -> U25709
+    flightNumber.replace(/^EZS/, "U2"), // EasyJet Switzerland sometimes mapped to U2 on FR24
   ];
 
   const matchingFlight = flightRadarData.find((flight) =>
