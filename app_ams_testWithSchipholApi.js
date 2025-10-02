@@ -26,6 +26,20 @@ const airportsList = [
   },
 ];
 
+// Import airport data for IATA to city name conversion
+const airportsListData = require("./airportsv2.js");
+
+function getDestinationInFull(destinationAirportAbbreviated) {
+  var longAirportName = "Unknown Airport";
+  for (let i = 0; i < airportsListData.length; i++) {
+    if (airportsListData[i][0] === destinationAirportAbbreviated) {
+      longAirportName = airportsListData[i][1];
+      i = airportsListData.length;
+    }
+  }
+  return longAirportName;
+}
+
 console.log("length of list: " + airportsList.length);
 
 let endOfTheList = false;
@@ -96,8 +110,8 @@ const fireItAllUp = async () => {
     });
   }
 
-  // Create the function for API Call
-  // direction is either "departure" or "return"; url is either "departureUrl" or "returnUrl"
+  // Create the function for Schiphol API Call
+  // direction is either "departure" or "return"
   function fetchAirportData(
     url,
     direction,
@@ -109,119 +123,135 @@ const fireItAllUp = async () => {
     fetch(url, {
       method: "GET",
       headers: {
-        "x-apikey": process.env.API_KEY,
+        Accept: "application/json",
+        resourceversion: "v4",
+        app_id: process.env.SCHIPHOL_APP_ID,
+        app_key: process.env.SCHIPHOL_API_KEY,
       },
     })
       .then(function (response) {
-        return response.json();
+        // Store the response headers for pagination
+        const linkHeader = response.headers.get("link");
+        return response.json().then((data) => ({ data, linkHeader }));
       })
-      .then(function (data) {
-        console.log(data);
+      .then(function ({ data, linkHeader }) {
+        console.log("Schiphol API response:", data);
         if (direction === "departure") {
-          for (let i = 0; i < data.scheduled_departures.length; i++) {
-            if (data.scheduled_departures[i].destination === null) {
-            } else {
-              // define variables with data from api
-              let originAirport_iata =
-                data.scheduled_departures[i].origin.code_iata;
-              let originAirport_city = data.scheduled_departures[i].origin.city;
-              // I'm not sure why I'm fetching these two above variables as I already have them
-              let arrivalAirport_iata =
-                data.scheduled_departures[i].destination.code_iata;
-              let arrivalAirport_city =
-                data.scheduled_departures[i].destination.city;
-              let departureTimeZulu = new Date(
-                data.scheduled_departures[i].scheduled_out
-              );
-              let departureTimeLocal = departureTimeZulu.toLocaleString(
-                "en-GB",
-                { timeZone: originTimeZone }
-              );
-              let departureTimeDayOfWeek = departureTimeZulu.getDay(); // has to be zulu time because local time is a string, not a date
-              let flightNumber = data.scheduled_departures[i].ident_iata;
+          // Schiphol API returns flights array, filter for departures
+          const departureFlights = data.flights.filter(
+            (flight) => flight.flightDirection === "D"
+          );
 
-              // use findOne instead on date and flight number
-              // here we check for duplicates
-              Departingflight.findOne({
-                departureTimeZulu: departureTimeZulu,
-                flightNumber: flightNumber,
-              }).exec(function (err, flight) {
-                if (err) {
-                  console.log(err);
-                } else {
-                  if (flight == null) {
-                    // put data in database
-                    const newDepartingFlightEntry = new Departingflight({
-                      TimeOfEntry: new Date(),
-                      departureAirport_city: originAirport_city,
-                      departureAirport_iata: originAirport_iata,
-                      arrivalAirport_city: arrivalAirport_city,
-                      arrivalAirport_iata: arrivalAirport_iata,
-                      departureTimeZulu: departureTimeZulu,
-                      departureTimeLocal: departureTimeLocal,
-                      departureTimeDayOfWeek: departureTimeDayOfWeek,
-                      flightNumber: flightNumber,
-                    });
-                    newDepartingFlightEntry.save();
-                    // console.log("no duplicate found, new departing flight saved")
-                  } else {
-                    // console.log("duplicate found - no departing flight logged")
-                  }
-                }
-              });
+          for (let i = 0; i < departureFlights.length; i++) {
+            if (
+              !departureFlights[i].route ||
+              !departureFlights[i].route.destinations ||
+              departureFlights[i].route.destinations.length === 0
+            ) {
+              continue; // Skip flights with no destinations
             }
+
+            // define variables with data from Schiphol API
+            let originAirport_iata = "AMS"; // Amsterdam Schiphol
+            let originAirport_city = "Amsterdam";
+            let arrivalAirport_iata = departureFlights[i].route.destinations[0]; // First destination
+            let arrivalAirport_city = getDestinationInFull(arrivalAirport_iata); // Convert IATA to city name
+            let departureTimeZulu = new Date(
+              departureFlights[i].scheduleDateTime
+            );
+            let departureTimeLocal = departureTimeZulu.toLocaleString("en-GB", {
+              timeZone: originTimeZone,
+            });
+            let departureTimeDayOfWeek = departureTimeZulu.getDay();
+            let flightNumber = departureFlights[i].mainFlight;
+
+            // use findOne instead on date and flight number
+            // here we check for duplicates
+            Departingflight.findOne({
+              departureTimeZulu: departureTimeZulu,
+              flightNumber: flightNumber,
+            }).exec(function (err, flight) {
+              if (err) {
+                console.log(err);
+              } else {
+                if (flight == null) {
+                  // put data in database
+                  const newDepartingFlightEntry = new Departingflight({
+                    TimeOfEntry: new Date(),
+                    departureAirport_city: originAirport_city,
+                    departureAirport_iata: originAirport_iata,
+                    arrivalAirport_city: arrivalAirport_city,
+                    arrivalAirport_iata: arrivalAirport_iata,
+                    departureTimeZulu: departureTimeZulu,
+                    departureTimeLocal: departureTimeLocal,
+                    departureTimeDayOfWeek: departureTimeDayOfWeek,
+                    flightNumber: flightNumber,
+                  });
+                  newDepartingFlightEntry.save();
+                  // console.log("no duplicate found, new departing flight saved")
+                } else {
+                  // console.log("duplicate found - no departing flight logged")
+                }
+              }
+            });
           }
         } else if (direction === "return") {
-          for (let i = 0; i < data.scheduled_arrivals.length; i++) {
-            if (data.scheduled_arrivals[i].destination === null) {
-            } else {
-              // define variables with data from api
-              let arrivalAirport_iata =
-                data.scheduled_arrivals[i].destination.code_iata;
-              let arrivalAirport_city =
-                data.scheduled_arrivals[i].destination.city;
-              let departureAirport_iata =
-                data.scheduled_arrivals[i].origin.code_iata;
-              let departureAirport_city =
-                data.scheduled_arrivals[i].origin.city;
-              let arrivalTimeZulu = new Date(
-                data.scheduled_arrivals[i].scheduled_in
-              );
-              let arrivalTimeLocal = arrivalTimeZulu.toLocaleString("en-GB", {
-                timeZone: originTimeZone,
-              });
-              let arrivalTimeDayOfWeek = arrivalTimeZulu.getDay();
-              let flightNumber = data.scheduled_arrivals[i].ident_iata;
+          // Schiphol API returns flights array, filter for arrivals
+          const arrivalFlights = data.flights.filter(
+            (flight) => flight.flightDirection === "A"
+          );
 
-              // use findOne instead on date and flight number
-              Returnflight.findOne({
-                arrivalTimeZulu: arrivalTimeZulu,
-                flightNumber: flightNumber,
-              }).exec(function (err, flight) {
-                if (err) {
-                  console.log(err);
-                } else {
-                  if (flight == null) {
-                    // put data in database
-                    const newReturnFlightEntry = new Returnflight({
-                      TimeOfEntry: new Date(),
-                      departureAirport_iata: departureAirport_iata,
-                      departureAirport_city: departureAirport_city,
-                      arrivalAirport_city: arrivalAirport_city,
-                      arrivalAirport_iata: arrivalAirport_iata,
-                      arrivalTimeZulu: arrivalTimeZulu,
-                      arrivalTimeLocal: arrivalTimeLocal,
-                      arrivalTimeDayOfWeek: arrivalTimeDayOfWeek,
-                      flightNumber: flightNumber,
-                    });
-                    newReturnFlightEntry.save();
-                    // console.log("no duplicate found, new return flight saved")
-                  } else {
-                    // console.log("duplicate found - no return flight logged")
-                  }
-                }
-              });
+          for (let i = 0; i < arrivalFlights.length; i++) {
+            if (
+              !arrivalFlights[i].route ||
+              !arrivalFlights[i].route.origins ||
+              arrivalFlights[i].route.origins.length === 0
+            ) {
+              continue; // Skip flights with no origins
             }
+
+            // define variables with data from Schiphol API
+            let arrivalAirport_iata = "AMS"; // Amsterdam Schiphol
+            let arrivalAirport_city = "Amsterdam";
+            let departureAirport_iata = arrivalFlights[i].route.origins[0]; // First origin
+            let departureAirport_city = getDestinationInFull(
+              departureAirport_iata
+            ); // Convert IATA to city name
+            let arrivalTimeZulu = new Date(arrivalFlights[i].scheduleDateTime);
+            let arrivalTimeLocal = arrivalTimeZulu.toLocaleString("en-GB", {
+              timeZone: originTimeZone,
+            });
+            let arrivalTimeDayOfWeek = arrivalTimeZulu.getDay();
+            let flightNumber = arrivalFlights[i].mainFlight;
+
+            // use findOne instead on date and flight number
+            Returnflight.findOne({
+              arrivalTimeZulu: arrivalTimeZulu,
+              flightNumber: flightNumber,
+            }).exec(function (err, flight) {
+              if (err) {
+                console.log(err);
+              } else {
+                if (flight == null) {
+                  // put data in database
+                  const newReturnFlightEntry = new Returnflight({
+                    TimeOfEntry: new Date(),
+                    departureAirport_iata: departureAirport_iata,
+                    departureAirport_city: departureAirport_city,
+                    arrivalAirport_city: arrivalAirport_city,
+                    arrivalAirport_iata: arrivalAirport_iata,
+                    arrivalTimeZulu: arrivalTimeZulu,
+                    arrivalTimeLocal: arrivalTimeLocal,
+                    arrivalTimeDayOfWeek: arrivalTimeDayOfWeek,
+                    flightNumber: flightNumber,
+                  });
+                  newReturnFlightEntry.save();
+                  // console.log("no duplicate found, new return flight saved")
+                } else {
+                  // console.log("duplicate found - no return flight logged")
+                }
+              }
+            });
           }
         } else {
           console.log("direction error");
@@ -231,19 +261,20 @@ const fireItAllUp = async () => {
         let numberOfPages = pageCounter;
         console.log("number of pages: " + numberOfPages);
 
-        // Fetch the next page from the API
-        if ((data.links != null) & (pageCounter < pageCounterLimit)) {
-          // create URL of next page
-          url_page_extension = data.links.next;
-          url = "https://aeroapi.flightaware.com/aeroapi" + url_page_extension;
+        // Fetch the next page from the Schiphol API
+        // Schiphol API uses Link header for pagination, not data.links
+        if (linkHeader && pageCounter < pageCounterLimit) {
+          const nextPageMatch = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
+          if (nextPageMatch && nextPageMatch[1]) {
+            const nextPageUrl = nextPageMatch[1];
+            console.log("Fetching next page:", nextPageUrl);
 
-          if ((url_page_extension != "") & (url_page_extension != null)) {
             // Delay the requests to not pass the api rate limit and call the function again to fetch the next page
             const delayForRateLimitAndCallNextPage = async () => {
-              await setTimeout(15000);
-              console.log("Waited 15s");
+              await setTimeout(2000); // Schiphol API has different rate limits
+              console.log("Waited 2s");
               fetchAirportData(
-                url,
+                nextPageUrl,
                 direction,
                 pageCounter,
                 originTimeZone,
@@ -301,6 +332,36 @@ const fireItAllUp = async () => {
     mongoose.disconnect();
     console.log("db disconnected");
   };
+
+  // Start fetching data from Schiphol API
+  function startDataFetching() {
+    for (let j = 0; j < airportsList.length; j++) {
+      let originAirport_iata = airportsList[j].originAirport_iata;
+      let originTimeZone = airportsList[j].originTimeZone;
+
+      // Schiphol API endpoints
+      let departureUrl =
+        "https://api.schiphol.nl/public-flights/flights?flightDirection=D";
+      let returnUrl =
+        "https://api.schiphol.nl/public-flights/flights?flightDirection=A";
+
+      if (j === airportsList.length - 1) {
+        endOfTheList = true;
+      }
+
+      // Start with departures
+      fetchAirportData(
+        departureUrl,
+        "departure",
+        0,
+        originTimeZone,
+        returnUrl,
+        originAirport_iata
+      );
+    }
+  }
+
+  startDataFetching();
 };
 
 fireItAllUp();

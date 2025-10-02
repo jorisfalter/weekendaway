@@ -13,12 +13,15 @@ www.flightsforflaneurs.com
 
 ## How To Launch
 
-Node matcher.js
-
-## Schiphol Landings
-
-This Repo now also includes the Schiphol Landings Dash
+Node matcher.js starts the matching engine
 
 ## FlightAware
 
-this repo uses flightaware data
+this repo uses flightaware data > replaced with the Schiphol API
+
+# Schiphol Landings
+
+This Repo now also includes the Schiphol Landings Dash
+
+loads from schiphol_api.js on fly.io (see Dockerfile)
+and schiphol_arrivals.html
