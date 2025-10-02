@@ -85,6 +85,27 @@ async function fetchPage(url, allFlights = []) {
 
       try {
         const jsonData = JSON.parse(body);
+
+        // Log first flight on first page and last flight on each page
+        if (pageCount === 0) {
+          console.log("🛫 FIRST PAGE - First flight:", {
+            flight: jsonData.flights[0]?.mainFlight,
+            time: jsonData.flights[0]?.scheduleDateTime,
+            direction: jsonData.flights[0]?.flightDirection,
+          });
+        }
+
+        if (jsonData.flights.length > 0) {
+          const lastFlight = jsonData.flights[jsonData.flights.length - 1];
+          // Store it for logging when we reach the final page
+          allFlights.lastFlightOnCurrentPage = {
+            flight: lastFlight.mainFlight,
+            time: lastFlight.scheduleDateTime,
+            direction: lastFlight.flightDirection,
+            pageNumber: pageCount + startPage,
+          };
+        }
+
         // Add page number to each flight entry
         const flightsWithPage = jsonData.flights.map((flight) => ({
           ...flight,
@@ -101,10 +122,24 @@ async function fetchPage(url, allFlights = []) {
             fetchPage(nextPageMatch[1], allFlights);
           } else {
             console.log("No more pages.");
+            // Log the very last flight in the entire dataset
+            if (allFlights.lastFlightOnCurrentPage) {
+              console.log(
+                "🏁 LAST FLIGHT ON LAST PAGE:",
+                allFlights.lastFlightOnCurrentPage
+              );
+            }
             processArrivalFlights(allFlights); // Process when no more pages
           }
         } else {
           console.log("No more pages or reached limit.");
+          // Log the very last flight in the entire dataset
+          if (allFlights.lastFlightOnCurrentPage) {
+            console.log(
+              "🏁 LAST FLIGHT ON LAST PAGE:",
+              allFlights.lastFlightOnCurrentPage
+            );
+          }
           processArrivalFlights(allFlights); // Process when no more pages or reached limit
         }
       } catch (error) {
@@ -169,14 +204,29 @@ wss.on("connection", (ws) => {
 
 // Helper function to process arrival flights (to avoid code duplication)
 async function processArrivalFlights(allFlights) {
+  console.log("🔍 DEBUG: Starting flight processing...");
+  console.log(`📊 Total raw flights collected: ${allFlights.length}`);
+
+  // Log sample of raw flights
+  if (allFlights.length > 0) {
+    console.log("📋 Sample raw flights:");
+    allFlights.slice(0, 3).forEach((flight, index) => {
+      console.log(
+        `  ${index + 1}. ${flight.mainFlight} - ${flight.flightDirection} - ${
+          flight.scheduleDateTime
+        }`
+      );
+    });
+  }
+
   // First deduplicate by id
   const uniqueFlights = Array.from(
     new Map(allFlights.map((flight) => [flight.id, flight])).values()
   );
 
-  console.log(`Total flights before deduplication: ${allFlights.length}`);
+  console.log(`🔄 Total flights before deduplication: ${allFlights.length}`);
   console.log(
-    `Total flights after initial deduplication: ${uniqueFlights.length}`
+    `🔄 Total flights after initial deduplication: ${uniqueFlights.length}`
   );
 
   // Further deduplicate by mainFlight for codeshares
@@ -193,6 +243,17 @@ async function processArrivalFlights(allFlights) {
     `Total flights after codeshare deduplication: ${deduplicatedFlights.length}`
   );
 
+  console.log(
+    `🔄 Total flights after codeshare deduplication: ${deduplicatedFlights.length}`
+  );
+
+  // Debug flight directions
+  const flightDirections = deduplicatedFlights.reduce((acc, flight) => {
+    acc[flight.flightDirection] = (acc[flight.flightDirection] || 0) + 1;
+    return acc;
+  }, {});
+  console.log("📊 Flight directions:", flightDirections);
+
   const arrivalFlights = deduplicatedFlights
     .filter(
       (flight) =>
@@ -205,6 +266,30 @@ async function processArrivalFlights(allFlights) {
       (a, b) =>
         new Date(a.estimatedLandingTime) - new Date(b.estimatedLandingTime)
     );
+
+  console.log(`✈️ Arrival flights after filtering: ${arrivalFlights.length}`);
+
+  // Debug why flights are being filtered out
+  const filteredOut = deduplicatedFlights.filter(
+    (flight) =>
+      flight.flightDirection !== "A" ||
+      !flight.estimatedLandingTime ||
+      flight.actualLandingTime
+  );
+  console.log(`❌ Flights filtered out: ${filteredOut.length}`);
+
+  if (filteredOut.length > 0) {
+    console.log("📋 Sample filtered out flights:");
+    filteredOut.slice(0, 3).forEach((flight, index) => {
+      console.log(
+        `  ${index + 1}. ${flight.mainFlight} - Direction: ${
+          flight.flightDirection
+        }, Estimated: ${flight.estimatedLandingTime}, Actual: ${
+          flight.actualLandingTime
+        }`
+      );
+    });
+  }
 
   // // display flights to see the json format
   // console.log(
@@ -238,6 +323,10 @@ async function processArrivalFlights(allFlights) {
     }))
     .slice(0, 10); // Keep only the first 10 flights
 
+  console.log(
+    `🎯 Final filtered flights (before coordinates): ${filteredArrivalFlights.length}`
+  );
+
   for (const flight of filteredArrivalFlights) {
     flight.coordinates = await getFlightData(flight.registration); // Append coordinates to the flight object
     flight.runway = calculateRunway(
@@ -255,10 +344,21 @@ async function processArrivalFlights(allFlights) {
     flight.logoPath = logoPath;
   }
 
-  console.log("got coordinates and runway");
-  // console.log(filteredArrivalFlights);
-  // serveHtml(res, filteredArrivalFlights);
+  console.log("✅ Got coordinates and runway");
+  console.log(
+    `📡 Final flights ready for WebSocket: ${filteredArrivalFlights.length}`
+  );
+
+  // Log final flights
   if (filteredArrivalFlights.length > 0) {
+    console.log("📋 Final flights being sent:");
+    filteredArrivalFlights.forEach((flight, index) => {
+      console.log(
+        `  ${index + 1}. ${flight.mainFlight} - ${flight.airlineName} - ${
+          flight.minutesUntilLanding
+        }min`
+      );
+    });
     sendUpdatedFlights(filteredArrivalFlights); // Send only if there are flights
   } else {
     console.log("⚠️ No valid flights found. Skipping WebSocket update.");
