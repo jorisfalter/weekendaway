@@ -305,7 +305,7 @@ function matchFlights(departingFlight, returnFlight) {
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (
-        resultDepart.arrivalAirport_city === resultReturn.departureAirport_city
+        resultDepart.arrivalAirport_iata === resultReturn.departureAirport_iata
       ) {
         // foundFlights = true;
 

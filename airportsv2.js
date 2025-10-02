@@ -5626,7 +5626,7 @@ airportsListV2 = [
   ["RIS", "Rishiri Airport", ,],
   ["RIV", "March Air Reserve Base", ,],
   ["RIW", "Central Wyoming Regional Airport", ,],
-  ["RIX", "Riga", ,],
+  ["RIX", "Riga", 56.9201, 23.9744],
   ["RIY", "Riyan International Airport", ,],
   ["RJA", "Rajahmundry Airport", ,],
   ["RJB", "Rajbiraj Airport", ,],
