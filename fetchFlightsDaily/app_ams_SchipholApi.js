@@ -27,7 +27,7 @@ const airportsList = [
 ];
 
 // Import airport data for IATA to city name conversion
-const airportsListData = require("./airportsv2.js");
+const airportsListData = require("../airportsv2.js");
 
 function getDestinationInFull(destinationAirportAbbreviated) {
   var longAirportName = "Unknown Airport";
