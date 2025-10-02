@@ -269,7 +269,7 @@ async function processArrivalFlights(allFlights) {
       );
 
       // Only include flights that haven't landed yet (positive minutes)
-      return minutesUntilLanding > 0;
+      return minutesUntilLanding > -3;
     })
     // sort by time to landing
     .sort(
