@@ -216,6 +216,8 @@ async function processArrivalFlights(allFlights) {
           flight.scheduleDateTime
         }`
       );
+      console.log(`     Registration field: "${flight.aircraftRegistration}"`);
+      console.log(`     Available fields: ${Object.keys(flight).join(", ")}`);
     });
   }
 
@@ -354,20 +356,36 @@ async function processArrivalFlights(allFlights) {
   );
 
   for (const flight of filteredArrivalFlights) {
-    flight.coordinates = await getFlightData(flight.registration); // Append coordinates to the flight object
-    flight.runway = calculateRunway(
-      flight.coordinates,
-      flight.minutesUntilLanding
-    ); // Calculate runway using coordinates
+    console.log(`🔍 Processing flight ${flight.mainFlight}:`);
+    console.log(`  Registration: "${flight.registration}"`);
+
+    // Skip coordinate fetching for arrival flights (Schiphol API doesn't provide aircraftRegistration for arrivals)
+    if (flight.registration && flight.registration !== "undefined") {
+      flight.coordinates = await getFlightData(flight.registration);
+      console.log(`  Coordinates: ${flight.coordinates}`);
+
+      flight.runway = calculateRunway(
+        flight.coordinates,
+        flight.minutesUntilLanding
+      );
+    } else {
+      console.log(
+        `  Skipping coordinates (no registration available for arrivals)`
+      );
+      flight.coordinates = null;
+      flight.runway = "N/A (Arrival)";
+    }
+
+    console.log(`  Runway: ${flight.runway}`);
+
     const airlineName = flight.airlineName;
-    console.log(airlineName);
+    console.log(`  Airline: ${airlineName}`);
     const logoFile = `${airlineName.replace(/\s+/g, "_")}.webp`; // Replace spaces with underscores
-    console.log(logoFile);
     const logoPath = fs.existsSync(path.join(logoDirectory, logoFile))
       ? `/airlines_logos/${logoFile}`
       : null;
-    console.log(logoPath);
     flight.logoPath = logoPath;
+    console.log(`  Logo: ${logoPath}`);
   }
 
   console.log("✅ Got coordinates and runway");
@@ -452,17 +470,24 @@ function getAirlineName(flightNumber) {
 
 // function which fetches coordinates from flightradar24
 async function getFlightData(registration_input) {
-  // const bounds = "52.8,51.5,2.5,7.75"; // [noord zuid west oost denk ik]
-  // const aircraft_type = "A21N"; //   ("E190");
-  // const airline = "KLM";
-  const registration = registration_input; //"EI-SCB";
+  console.log(
+    `🛩️ getFlightData called with registration: "${registration_input}"`
+  );
+
+  // Check if registration is valid
+  if (
+    !registration_input ||
+    registration_input === "undefined" ||
+    registration_input === ""
+  ) {
+    console.log("❌ Invalid registration, returning null");
+    return null;
+  }
+
+  const registration = registration_input;
 
   try {
-    // Fetch a list of current flights
-
-    // from the fr repo:   async getFlights(airline = null, bounds = null, registration = null, aircraftType = null, details = false) {
-    // const response = await api.getFlights(airline, bounds, null, aircraft_type);
-    console.log("registrationAsIs", registration);
+    console.log(`🔍 Searching FlightRadar24 for registration: ${registration}`);
     const response = await api.getFlights(
       null,
       null,
@@ -473,12 +498,14 @@ async function getFlightData(registration_input) {
 
     // Check if flights is valid before proceeding
     if (!response || !Array.isArray(response) || response.length === 0) {
-      // console.log("Error: No valid flight data returned.");
+      console.log(
+        "❌ No flight data found for original registration, trying hyphenated versions..."
+      );
 
       // Attempt to modify the registration with hyphens
       const registrationWithHyphen1 =
         registration_input.slice(0, 1) + "-" + registration_input.slice(1);
-      console.log("registrationWithHyphen1", registrationWithHyphen1);
+      console.log(`🔍 Trying hyphenated version 1: ${registrationWithHyphen1}`);
       const response1 = await api.getFlights(
         null,
         null,
@@ -486,14 +513,17 @@ async function getFlightData(registration_input) {
         null,
         false
       );
-      // console.log("response1:", response1);
+
       if (response1 && Array.isArray(response1) && response1.length > 0) {
+        console.log(
+          `✅ Found coordinates with hyphenated version 1: ${response1[0].latitude}, ${response1[0].longitude}`
+        );
         return [response1[0].latitude, response1[0].longitude];
       }
 
       const registrationWithHyphen2 =
         registration_input.slice(0, 2) + "-" + registration_input.slice(2);
-      console.log("registrationWithHyphen2", registrationWithHyphen2);
+      console.log(`🔍 Trying hyphenated version 2: ${registrationWithHyphen2}`);
       const response2 = await api.getFlights(
         null,
         null,
@@ -501,13 +531,21 @@ async function getFlightData(registration_input) {
         null,
         false
       );
-      // console.log("response2:", response2);
+
       if (response2 && Array.isArray(response2) && response2.length > 0) {
+        console.log(
+          `✅ Found coordinates with hyphenated version 2: ${response2[0].latitude}, ${response2[0].longitude}`
+        );
         return [response2[0].latitude, response2[0].longitude];
       }
 
+      console.log("❌ No coordinates found for any registration format");
       return null; // Return null if no valid data
     }
+
+    console.log(
+      `✅ Found coordinates: ${response[0].latitude}, ${response[0].longitude}`
+    );
     return [response[0].latitude, response[0].longitude];
 
     // Check if response contains valid latitude and longitude
