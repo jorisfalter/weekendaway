@@ -255,12 +255,20 @@ async function processArrivalFlights(allFlights) {
   console.log("📊 Flight directions:", flightDirections);
 
   const arrivalFlights = deduplicatedFlights
-    .filter(
-      (flight) =>
-        flight.flightDirection === "A" &&
-        flight.estimatedLandingTime &&
-        !flight.actualLandingTime
-    )
+    .filter((flight) => {
+      // Basic filters
+      if (flight.flightDirection !== "A") return false;
+      if (!flight.estimatedLandingTime) return false;
+      if (flight.actualLandingTime) return false;
+
+      // Filter out flights that have already landed (negative minutes until landing)
+      const minutesUntilLanding = Math.round(
+        (new Date(flight.estimatedLandingTime) - new Date()) / 60000
+      );
+
+      // Only include flights that haven't landed yet (positive minutes)
+      return minutesUntilLanding > 0;
+    })
     // sort by time to landing
     .sort(
       (a, b) =>
@@ -270,23 +278,41 @@ async function processArrivalFlights(allFlights) {
   console.log(`✈️ Arrival flights after filtering: ${arrivalFlights.length}`);
 
   // Debug why flights are being filtered out
-  const filteredOut = deduplicatedFlights.filter(
-    (flight) =>
-      flight.flightDirection !== "A" ||
-      !flight.estimatedLandingTime ||
-      flight.actualLandingTime
-  );
+  const filteredOut = deduplicatedFlights.filter((flight) => {
+    if (flight.flightDirection !== "A") return true;
+    if (!flight.estimatedLandingTime) return true;
+    if (flight.actualLandingTime) return true;
+
+    const minutesUntilLanding = Math.round(
+      (new Date(flight.estimatedLandingTime) - new Date()) / 60000
+    );
+
+    return minutesUntilLanding <= 0; // Already landed
+  });
+
   console.log(`❌ Flights filtered out: ${filteredOut.length}`);
 
   if (filteredOut.length > 0) {
     console.log("📋 Sample filtered out flights:");
-    filteredOut.slice(0, 3).forEach((flight, index) => {
+    filteredOut.slice(0, 5).forEach((flight, index) => {
+      const minutesUntilLanding = flight.estimatedLandingTime
+        ? Math.round(
+            (new Date(flight.estimatedLandingTime) - new Date()) / 60000
+          )
+        : "N/A";
+
+      let reason = "";
+      if (flight.flightDirection !== "A") reason = "Not arrival";
+      else if (!flight.estimatedLandingTime) reason = "No estimated time";
+      else if (flight.actualLandingTime)
+        reason = "Already landed (actual time)";
+      else if (minutesUntilLanding <= -3)
+        reason = `Already landed (${minutesUntilLanding}min ago)`;
+
       console.log(
-        `  ${index + 1}. ${flight.mainFlight} - Direction: ${
-          flight.flightDirection
-        }, Estimated: ${flight.estimatedLandingTime}, Actual: ${
-          flight.actualLandingTime
-        }`
+        `  ${index + 1}. ${
+          flight.mainFlight
+        } - ${reason} - ${minutesUntilLanding}min`
       );
     });
   }
