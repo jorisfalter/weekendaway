@@ -961,7 +961,7 @@ module.exports = [
   ["BSG", "Bata Airport"],
   ["BSI", "Balesin Airport"],
   ["BSJ", "Bairnsdale Airport"],
-  ["BSK", "Biskra Airport"],
+  ["BSL", "EuroAirport Basel-Mulhouse-Freiburg"],
   ["BSM", "Bishe Kola Air Base"],
   ["BSN", "Bossangoa Airport"],
   ["BSO", "Basco Airport"],

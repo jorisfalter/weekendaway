@@ -838,7 +838,7 @@ airportsListV2 = [
   ["BSI", "Balesin Airport", ,],
   ["BSJ", "Bairnsdale Airport", ,],
   ["BSK", "Biskra Airport", ,],
-  ["BSL", "Basel", ,],
+  ["BSL", "Basel", 47.5973, 7.5259],
   ["BSM", "Bishe Kola Air Base", ,],
   ["BSN", "Bossangoa Airport", ,],
   ["BSO", "Basco Airport", ,],
