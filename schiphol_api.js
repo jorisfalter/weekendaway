@@ -118,7 +118,7 @@ async function fetchPage(url, allFlights = []) {
         if (linkHeader && pageCount < maxPages) {
           const nextPageMatch = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
           if (nextPageMatch && nextPageMatch[1]) {
-            console.log("Fetching next page:", nextPageMatch[1]);
+            // console.log("Fetching next page:", nextPageMatch[1]);
             fetchPage(nextPageMatch[1], allFlights);
           } else {
             console.log("No more pages.");
@@ -355,26 +355,25 @@ async function processArrivalFlights(allFlights) {
     `🎯 Final filtered flights (before coordinates): ${filteredArrivalFlights.length}`
   );
 
+  // Get FlightRadar24 data once and reuse it for all flights
+  console.log("🛩️ Fetching FlightRadar24 data for all flights...");
+  const flightRadarData = await getFlightRadarData();
+
   for (const flight of filteredArrivalFlights) {
     console.log(`🔍 Processing flight ${flight.mainFlight}:`);
     console.log(`  Registration: "${flight.registration}"`);
 
-    // Skip coordinate fetching for arrival flights (Schiphol API doesn't provide aircraftRegistration for arrivals)
-    if (flight.registration && flight.registration !== "undefined") {
-      flight.coordinates = await getFlightData(flight.registration);
-      console.log(`  Coordinates: ${flight.coordinates}`);
+    // Try to get coordinates using flight number from cached data
+    flight.coordinates = await getFlightDataFromCache(
+      flight.mainFlight,
+      flightRadarData
+    );
+    console.log(`  Coordinates: ${flight.coordinates}`);
 
-      flight.runway = calculateRunway(
-        flight.coordinates,
-        flight.minutesUntilLanding
-      );
-    } else {
-      console.log(
-        `  Skipping coordinates (no registration available for arrivals)`
-      );
-      flight.coordinates = null;
-      flight.runway = "N/A (Arrival)";
-    }
+    flight.runway = calculateRunway(
+      flight.coordinates,
+      flight.minutesUntilLanding
+    );
 
     console.log(`  Runway: ${flight.runway}`);
 
@@ -468,7 +467,117 @@ function getAirlineName(flightNumber) {
   return airline ? airline[1] : airlineCode;
 }
 
-// function which fetches coordinates from flightradar24
+// Helper function to get FlightRadar24 data once
+async function getFlightRadarData() {
+  try {
+    const amsterdamBounds = "52.8,51.5,2.5,7.75";
+    const response = await api.getFlights(null, amsterdamBounds);
+    console.log(`📡 Fetched ${response.length} flights from FlightRadar24`);
+    return response;
+  } catch (error) {
+    console.error("❌ Error fetching FlightRadar24 data:", error);
+    return [];
+  }
+}
+
+// Helper function to find flight coordinates from cached data
+async function getFlightDataFromCache(flightNumber, flightRadarData) {
+  console.log(`🔍 Searching cached data for flight: ${flightNumber}`);
+
+  if (!flightRadarData || !Array.isArray(flightRadarData)) {
+    console.log("❌ No cached data available");
+    return null;
+  }
+
+  const matchingFlight = flightRadarData.find(
+    (flight) =>
+      flight.number === flightNumber ||
+      flight.callsign === flightNumber ||
+      flight.number === flightNumber.replace(/^[A-Z]{2}/, "") || // Remove airline code
+      flight.callsign === flightNumber.replace(/^[A-Z]{2}/, "") // Remove airline code from callsign too
+  );
+
+  if (matchingFlight) {
+    console.log(
+      `✅ Found coordinates for ${flightNumber}: ${matchingFlight.latitude}, ${matchingFlight.longitude}`
+    );
+    return [matchingFlight.latitude, matchingFlight.longitude];
+  } else {
+    console.log(`❌ No matching flight found for ${flightNumber}`);
+    return null;
+  }
+}
+
+// function which fetches coordinates from flightradar24 using flight number
+async function getFlightDataByFlightNumber(flightNumber) {
+  console.log(
+    `🛩️ getFlightDataByFlightNumber called with flight: "${flightNumber}"`
+  );
+
+  // Check if flight number is valid
+  if (!flightNumber || flightNumber === "undefined" || flightNumber === "") {
+    console.log("❌ Invalid flight number, returning null");
+    return null;
+  }
+
+  try {
+    console.log(`🔍 Searching FlightRadar24 for flight: ${flightNumber}`);
+
+    // Search by flight number with Amsterdam area bounds
+    // Bounds format: "north,south,west,east" - Amsterdam area
+    const amsterdamBounds = "52.8,51.5,2.5,7.75"; // [north, south, west, east]
+
+    const response = await api.getFlights(
+      null, // airline
+      amsterdamBounds, // bounds around Amsterdam
+      null, // registration
+      null, // aircraftType
+      false // details
+    );
+
+    // Filter results to find matching flight number
+    if (response && Array.isArray(response)) {
+      console.log(`🔍 Searching through ${response.length} flights...`);
+
+      // Debug: Show sample flight numbers for reference
+      const sampleFlights = response.slice(0, 5);
+      console.log(`📋 Sample FlightRadar24 flights:`);
+      sampleFlights.forEach((flight, index) => {
+        console.log(
+          `  ${index + 1}. Number: "${flight.number}", Callsign: "${
+            flight.callsign
+          }"`
+        );
+      });
+
+      const matchingFlight = response.find(
+        (flight) =>
+          flight.number === flightNumber ||
+          flight.callsign === flightNumber ||
+          flight.number === flightNumber.replace(/^[A-Z]{2}/, "") || // Remove airline code
+          flight.callsign === flightNumber.replace(/^[A-Z]{2}/, "") // Remove airline code from callsign too
+      );
+
+      if (matchingFlight) {
+        console.log(
+          `✅ Found coordinates for ${flightNumber}: ${matchingFlight.latitude}, ${matchingFlight.longitude}`
+        );
+        return [matchingFlight.latitude, matchingFlight.longitude];
+      } else {
+        console.log(`❌ No matching flight found for ${flightNumber}`);
+        return null;
+      }
+    } else {
+      console.log("❌ Invalid response from FlightRadar24");
+      return null;
+    }
+  } catch (error) {
+    console.error(`❌ Error fetching flight data for ${flightNumber}:`, error);
+    return null;
+  }
+}
+
+// function which fetches coordinates from flightradar24 using registration
 async function getFlightData(registration_input) {
   console.log(
     `🛩️ getFlightData called with registration: "${registration_input}"`
