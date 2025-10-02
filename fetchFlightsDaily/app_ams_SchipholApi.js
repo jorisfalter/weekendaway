@@ -46,7 +46,10 @@ let endOfTheList = false;
 
 // variables used for testing
 let deleteDbAtStart = false;
-let pageCounterLimit = 50; // set to a high number when you don't want a limit on the number of pages fetched.
+let pageCounterLimit = 50; // fetch 50 pages per batch
+let sleepBetweenBatches = 60000; // sleep 1 minute between batches (60 seconds)
+let totalPagesFetched = 0;
+let maxTotalPages = 250; // maximum total pages to fetch
 
 const fireItAllUp = async () => {
   await mongoose.connect(
@@ -263,11 +266,19 @@ const fireItAllUp = async () => {
 
         // Fetch the next page from the Schiphol API
         // Schiphol API uses Link header for pagination, not data.links
-        if (linkHeader && pageCounter < pageCounterLimit) {
+        if (
+          linkHeader &&
+          pageCounter < pageCounterLimit &&
+          totalPagesFetched < maxTotalPages
+        ) {
           const nextPageMatch = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
           if (nextPageMatch && nextPageMatch[1]) {
             const nextPageUrl = nextPageMatch[1];
-            console.log("Fetching next page:", nextPageUrl);
+            console.log(
+              `Fetching next page: ${nextPageUrl} (batch page ${
+                pageCounter + 1
+              }/${pageCounterLimit})`
+            );
 
             // Delay the requests to not pass the api rate limit and call the function again to fetch the next page
             const delayForRateLimitAndCallNextPage = async () => {
@@ -287,13 +298,44 @@ const fireItAllUp = async () => {
 
           // check if we bounce against the pagecounter
           if (pageCounter === pageCounterLimit - 1) {
-            console.log("pagecounterlimit reached");
+            console.log(
+              `Batch limit reached (${pageCounterLimit} pages). Sleeping for 1 minute before next batch...`
+            );
+            totalPagesFetched += pageCounterLimit;
+
+            // Sleep for 1 minute then start next batch
+            const sleepAndContinue = async () => {
+              await setTimeout(sleepBetweenBatches);
+              console.log("Sleep finished. Starting next batch...");
+
+              // Start next batch from current page
+              const nextBatchUrl = linkHeader
+                ? linkHeader.match(/<([^>]+)>;\s*rel="next"/)[1]
+                : direction === "departure"
+                ? "https://api.schiphol.nl/public-flights/flights?flightDirection=D"
+                : "https://api.schiphol.nl/public-flights/flights?flightDirection=A";
+
+              fetchAirportData(
+                nextBatchUrl,
+                direction,
+                0, // Reset page counter for new batch
+                originTimeZone,
+                returnUrl,
+                originAirport_iata
+              );
+            };
+            sleepAndContinue();
           }
         } else {
-          // when we have all the information from all pages. We end up here.
+          // when we have all the information from all pages or reached max pages
+          console.log(
+            `Finished fetching ${direction} flights. Total pages fetched: ${totalPagesFetched}`
+          );
 
           // If we checked for departures, we will now check for returns
           if (direction === "departure") {
+            console.log("Starting return flights fetch...");
+            totalPagesFetched = 0; // Reset counter for return flights
             fetchAirportData(
               returnUrl,
               "return",
@@ -303,17 +345,15 @@ const fireItAllUp = async () => {
               originAirport_iata
             );
           } else {
-            if ((endOfTheList = false)) {
-              return;
-            } else if ((endOfTheList = true)) {
-              console.log("finished departures and returns");
-              const delayForCheckingIfDbisUpdated = async () => {
-                await setTimeout(10000);
-                console.log("Waited 10s to make sure db is updated");
-                countDocuments();
-              };
-              delayForCheckingIfDbisUpdated();
-            }
+            console.log(
+              "Finished fetching all flights (departures and returns)"
+            );
+            const delayForCheckingIfDbisUpdated = async () => {
+              await setTimeout(10000);
+              console.log("Waited 10s to make sure db is updated");
+              countDocuments();
+            };
+            delayForCheckingIfDbisUpdated();
           }
         }
       })
