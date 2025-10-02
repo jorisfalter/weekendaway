@@ -18,6 +18,7 @@ Node matcher.js starts the matching engine
 ## FlightAware
 
 this repo uses flightaware data > replaced with the Schiphol API
+Schiphol API is restriced in number of pages, so I need to run this every couple of hours
 
 # Schiphol Landings
 

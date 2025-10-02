@@ -204,16 +204,16 @@ const fireItAllUp = async () => {
           for (let i = 0; i < arrivalFlights.length; i++) {
             if (
               !arrivalFlights[i].route ||
-              !arrivalFlights[i].route.origins ||
-              arrivalFlights[i].route.origins.length === 0
+              !arrivalFlights[i].route.destinations ||
+              arrivalFlights[i].route.destinations.length === 0
             ) {
-              continue; // Skip flights with no origins
+              continue; // Skip flights with no destinations (which represent origins for arrivals)
             }
 
             // define variables with data from Schiphol API
             let arrivalAirport_iata = "AMS"; // Amsterdam Schiphol
             let arrivalAirport_city = "Amsterdam";
-            let departureAirport_iata = arrivalFlights[i].route.origins[0]; // First origin
+            let departureAirport_iata = arrivalFlights[i].route.destinations[0]; // For arrivals, destinations contains the origin
             let departureAirport_city = getDestinationInFull(
               departureAirport_iata
             ); // Convert IATA to city name
@@ -339,11 +339,19 @@ const fireItAllUp = async () => {
       let originAirport_iata = airportsList[j].originAirport_iata;
       let originTimeZone = airportsList[j].originTimeZone;
 
-      // Schiphol API endpoints
+      // Get start page from command line argument or default to 0
+      let startPage = parseInt(process.argv[2]) || 0;
+      console.log(`Starting from page: ${startPage}`);
+
+      // Schiphol API endpoints with start page parameter
       let departureUrl =
-        "https://api.schiphol.nl/public-flights/flights?flightDirection=D";
+        startPage > 0
+          ? `https://api.schiphol.nl/public-flights/flights?flightDirection=D&page=${startPage}`
+          : "https://api.schiphol.nl/public-flights/flights?flightDirection=D";
       let returnUrl =
-        "https://api.schiphol.nl/public-flights/flights?flightDirection=A";
+        startPage > 0
+          ? `https://api.schiphol.nl/public-flights/flights?flightDirection=A&page=${startPage}`
+          : "https://api.schiphol.nl/public-flights/flights?flightDirection=A";
 
       if (j === airportsList.length - 1) {
         endOfTheList = true;
@@ -353,7 +361,7 @@ const fireItAllUp = async () => {
       fetchAirportData(
         departureUrl,
         "departure",
-        0,
+        startPage,
         originTimeZone,
         returnUrl,
         originAirport_iata

@@ -27,7 +27,7 @@ app.use(
 mongoose.connect(
   "mongodb+srv://joris-mongo:" +
     process.env.ATLAS_KEY +
-    "@cluster1.dkcnhgi.mongodb.net/flightsDB",
+    "@cluster1.dkcnhgi.mongodb.net/flightsDB-SchipholAPI",
   { useNewUrlParser: true, useUnifiedTopology: true }
 );
 console.log("mongoose fired up");
@@ -508,11 +508,15 @@ app.post("/", function (req, res) {
   console.log("new ret end: " + return_end_zulu.toUTCString());
 
   function calculateInterval(todaysDate, inputDate) {
-    if (todaysDate - 2 - inputDate >= 0) {
-      return inputDate - todaysDate;
-    } else {
-      return inputDate - todaysDate - 7;
+    // Calculate the difference in days between today and the target day of week
+    let diff = inputDate - todaysDate;
+
+    // If the target day is earlier in the week, add 7 days to get next week's occurrence
+    if (diff < 0) {
+      diff += 7;
     }
+
+    return diff;
   }
 
   // legacy problem,
