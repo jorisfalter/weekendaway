@@ -489,12 +489,19 @@ async function getFlightDataFromCache(flightNumber, flightRadarData) {
     return null;
   }
 
-  const matchingFlight = flightRadarData.find(
-    (flight) =>
-      flight.number === flightNumber ||
-      flight.callsign === flightNumber ||
-      flight.number === flightNumber.replace(/^[A-Z]{2}/, "") || // Remove airline code
-      flight.callsign === flightNumber.replace(/^[A-Z]{2}/, "") // Remove airline code from callsign too
+  // Create multiple search patterns for different airline code formats
+  const searchPatterns = [
+    flightNumber, // Original: EJU7890
+    flightNumber.replace(/^[A-Z]{2}/, ""), // Remove airline code: 7890
+    flightNumber.replace(/^([A-Z]{2})0+/, "$1"), // Remove leading zeros: KL0706 -> KL706
+    flightNumber.replace(/^EJU/, "U2"), // EasyJet conversion: EJU7890 -> U27890
+    flightNumber.replace(/^EJU/, "EZY"), // EasyJet alternative: EJU7890 -> EZY7890
+  ];
+
+  const matchingFlight = flightRadarData.find((flight) =>
+    searchPatterns.some(
+      (pattern) => flight.number === pattern || flight.callsign === pattern
+    )
   );
 
   if (matchingFlight) {
