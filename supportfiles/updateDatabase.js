@@ -4,7 +4,7 @@ const fs = require("fs");
 
 const fetch = require("cross-fetch");
 
-const airportsListWithCoords = require("./airportsv2.js");
+const airportsListWithCoords = require("../airportsv2.js");
 
 require("dotenv").config();
 // const Buffer = require("buffer");

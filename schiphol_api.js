@@ -39,6 +39,8 @@ const server = http.createServer(app);
 
 // Set up WebSocket server with the HTTP server
 const wss = new WebSocket.Server({ server });
+// On-demand scheduler handle
+let fetchInterval = null;
 
 const currentHour = new Date().getHours();
 let startPage;
@@ -180,19 +182,43 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
 });
 
-wss.on("connection", (ws) => {
-  console.log("New WebSocket client connected");
+wss.on("connection", async (ws) => {
+  console.log("New WebSocket client connected. Clients:", wss.clients.size);
 
-  // Send latest flight data immediately if available
-
+  // Send last known data or trigger an immediate fetch for fast first paint
   if (latestFlightData.length > 0) {
     console.log("📡 Sending cached flight data to new client...");
-    console.log(JSON.stringify(latestFlightData));
     ws.send(JSON.stringify(latestFlightData));
+  } else {
+    // Kick off an immediate fetch so the first client gets data ASAP
+    try {
+      await main();
+    } catch (e) {
+      console.error("Immediate fetch failed:", e);
+    }
+  }
+
+  // Start periodic fetching if not already running
+  if (!fetchInterval) {
+    console.log("Starting on-demand scheduler (1/min)...");
+    fetchInterval = setInterval(async () => {
+      console.log("\n--- On-demand scheduled update ---");
+      pageCount = 0; // Reset page counter per run
+      try {
+        await main();
+      } catch (e) {
+        console.error("Scheduled fetch failed:", e);
+      }
+    }, 60000);
   }
 
   ws.on("close", () => {
-    console.log("Client disconnected");
+    console.log("Client disconnected. Clients:", wss.clients.size);
+    if (wss.clients.size === 0 && fetchInterval) {
+      console.log("No clients connected; stopping on-demand scheduler.");
+      clearInterval(fetchInterval);
+      fetchInterval = null;
+    }
   });
 
   ws.on("error", (err) => {
@@ -770,27 +796,4 @@ function sendUpdatedFlights(flights) {
   });
 }
 
-async function startScheduler() {
-  console.log("Starting scheduler...");
-
-  // Run immediately on start
-  await main();
-  // const checkClients = setInterval(() => {
-  //   if (wss && wss.clients.size > 0) {
-  //     console.log("WebSocket clients detected. Starting data fetch.");
-  //     clearInterval(checkClients);
-  //     main(); // Start fetching flights once clients are connected
-  //   } else {
-  //     console.log("Waiting for WebSocket clients...");
-  //   }
-  // }, 2000); // Check every 2 seconds
-
-  // Then run every minute
-  setInterval(async () => {
-    console.log("\n--- Running scheduled update ---");
-    pageCount = 0; // Reset the page counter
-    await main();
-  }, 60000); // 60000 ms = 1 minute
-}
-
-startScheduler();
+// Remove always-on scheduler; fetching is driven by WebSocket connections
