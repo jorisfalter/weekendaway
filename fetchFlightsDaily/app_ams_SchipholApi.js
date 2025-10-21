@@ -1,5 +1,5 @@
 //jshint esversion:6
-require("dotenv").config();
+require("dotenv").config({ path: "../.env" });
 const express = require("express");
 const bodyParser = require("body-parser");
 const fetch = require("node-fetch");
@@ -51,14 +51,45 @@ let sleepBetweenBatches = 60000; // sleep 1 minute between batches (60 seconds)
 let totalPagesFetched = 0;
 let maxTotalPages = 250; // maximum total pages to fetch
 
+// MongoDB connection management
+let mongooseConnection = null;
+let isConnected = false;
+
+const connectToMongoDB = async () => {
+  try {
+    if (!isConnected) {
+      await mongoose.connect(
+        "mongodb+srv://joris-mongo:" +
+          process.env.ATLAS_KEY +
+          "@cluster1.dkcnhgi.mongodb.net/flightsDB-SchipholAPI",
+        {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          maxPoolSize: 10,
+          serverSelectionTimeoutMS: 5000,
+          socketTimeoutMS: 45000,
+          bufferCommands: false,
+        }
+      );
+      isConnected = true;
+      console.log("✅ MongoDB connected successfully");
+    }
+  } catch (error) {
+    console.log("❌ MongoDB connection failed:", error.message);
+    isConnected = false;
+    throw error;
+  }
+};
+
+const ensureConnection = async () => {
+  if (!isConnected || mongoose.connection.readyState !== 1) {
+    console.log("🔄 Reconnecting to MongoDB...");
+    await connectToMongoDB();
+  }
+};
+
 const fireItAllUp = async () => {
-  await mongoose.connect(
-    "mongodb+srv://joris-mongo:" +
-      process.env.ATLAS_KEY +
-      "@cluster1.dkcnhgi.mongodb.net/flightsDB-SchipholAPI",
-    { useNewUrlParser: true, useUnifiedTopology: true }
-  );
-  console.log("mongoose fired up");
+  await connectToMongoDB();
 
   // setup the database
   // mongoose.connect("mongodb://localhost:27017/flightsDB", { useNewUrlParser: true }); //?retryWrites=true&w=majority
@@ -170,13 +201,14 @@ const fireItAllUp = async () => {
 
             // use findOne instead on date and flight number
             // here we check for duplicates
-            Departingflight.findOne({
-              departureTimeZulu: departureTimeZulu,
-              flightNumber: flightNumber,
-            }).exec(function (err, flight) {
-              if (err) {
-                console.log(err);
-              } else {
+            const saveDepartingFlight = async () => {
+              try {
+                await ensureConnection();
+                const flight = await Departingflight.findOne({
+                  departureTimeZulu: departureTimeZulu,
+                  flightNumber: flightNumber,
+                });
+
                 if (flight == null) {
                   // put data in database
                   const newDepartingFlightEntry = new Departingflight({
@@ -190,13 +222,21 @@ const fireItAllUp = async () => {
                     departureTimeDayOfWeek: departureTimeDayOfWeek,
                     flightNumber: flightNumber,
                   });
-                  newDepartingFlightEntry.save();
-                  // console.log("no duplicate found, new departing flight saved")
+                  await newDepartingFlightEntry.save();
+                  console.log(`✅ Saved departing flight: ${flightNumber}`);
                 } else {
-                  // console.log("duplicate found - no departing flight logged")
+                  console.log(
+                    `⏭️  Duplicate departing flight skipped: ${flightNumber}`
+                  );
                 }
+              } catch (error) {
+                console.log(
+                  `❌ Error saving departing flight ${flightNumber}:`,
+                  error.message
+                );
               }
-            });
+            };
+            saveDepartingFlight();
           }
         } else if (direction === "return") {
           // Schiphol API returns flights array, filter for arrivals
@@ -228,13 +268,14 @@ const fireItAllUp = async () => {
             let flightNumber = arrivalFlights[i].mainFlight;
 
             // use findOne instead on date and flight number
-            Returnflight.findOne({
-              arrivalTimeZulu: arrivalTimeZulu,
-              flightNumber: flightNumber,
-            }).exec(function (err, flight) {
-              if (err) {
-                console.log(err);
-              } else {
+            const saveReturnFlight = async () => {
+              try {
+                await ensureConnection();
+                const flight = await Returnflight.findOne({
+                  arrivalTimeZulu: arrivalTimeZulu,
+                  flightNumber: flightNumber,
+                });
+
                 if (flight == null) {
                   // put data in database
                   const newReturnFlightEntry = new Returnflight({
@@ -248,13 +289,21 @@ const fireItAllUp = async () => {
                     arrivalTimeDayOfWeek: arrivalTimeDayOfWeek,
                     flightNumber: flightNumber,
                   });
-                  newReturnFlightEntry.save();
-                  // console.log("no duplicate found, new return flight saved")
+                  await newReturnFlightEntry.save();
+                  console.log(`✅ Saved return flight: ${flightNumber}`);
                 } else {
-                  // console.log("duplicate found - no return flight logged")
+                  console.log(
+                    `⏭️  Duplicate return flight skipped: ${flightNumber}`
+                  );
                 }
+              } catch (error) {
+                console.log(
+                  `❌ Error saving return flight ${flightNumber}:`,
+                  error.message
+                );
               }
-            });
+            };
+            saveReturnFlight();
           }
         } else {
           console.log("direction error");
@@ -284,14 +333,24 @@ const fireItAllUp = async () => {
             const delayForRateLimitAndCallNextPage = async () => {
               await setTimeout(2000); // Schiphol API has different rate limits
               console.log("Waited 2s");
-              fetchAirportData(
-                nextPageUrl,
-                direction,
-                pageCounter,
-                originTimeZone,
-                returnUrl,
-                originAirport_iata
-              );
+
+              // Check connection before continuing
+              try {
+                await ensureConnection();
+                fetchAirportData(
+                  nextPageUrl,
+                  direction,
+                  pageCounter,
+                  originTimeZone,
+                  returnUrl,
+                  originAirport_iata
+                );
+              } catch (error) {
+                console.log(
+                  "❌ Connection lost, stopping fetch:",
+                  error.message
+                );
+              }
             };
             delayForRateLimitAndCallNextPage();
           }
@@ -308,21 +367,31 @@ const fireItAllUp = async () => {
               await setTimeout(sleepBetweenBatches);
               console.log("Sleep finished. Starting next batch...");
 
-              // Start next batch from current page
-              const nextBatchUrl = linkHeader
-                ? linkHeader.match(/<([^>]+)>;\s*rel="next"/)[1]
-                : direction === "departure"
-                ? "https://api.schiphol.nl/public-flights/flights?flightDirection=D"
-                : "https://api.schiphol.nl/public-flights/flights?flightDirection=A";
+              // Check connection before starting new batch
+              try {
+                await ensureConnection();
 
-              fetchAirportData(
-                nextBatchUrl,
-                direction,
-                0, // Reset page counter for new batch
-                originTimeZone,
-                returnUrl,
-                originAirport_iata
-              );
+                // Start next batch from current page
+                const nextBatchUrl = linkHeader
+                  ? linkHeader.match(/<([^>]+)>;\s*rel="next"/)[1]
+                  : direction === "departure"
+                  ? "https://api.schiphol.nl/public-flights/flights?flightDirection=D"
+                  : "https://api.schiphol.nl/public-flights/flights?flightDirection=A";
+
+                fetchAirportData(
+                  nextBatchUrl,
+                  direction,
+                  0, // Reset page counter for new batch
+                  originTimeZone,
+                  returnUrl,
+                  originAirport_iata
+                );
+              } catch (error) {
+                console.log(
+                  "❌ Connection lost, stopping batch:",
+                  error.message
+                );
+              }
             };
             sleepAndContinue();
           }
@@ -362,15 +431,24 @@ const fireItAllUp = async () => {
       });
   }
   const countDocuments = async () => {
-    console.log(
-      "number of departing entries " +
-        (await Departingflight.countDocuments({}))
-    );
-    console.log(
-      "number of returning entries " + (await Returnflight.countDocuments({}))
-    );
-    mongoose.disconnect();
-    console.log("db disconnected");
+    try {
+      await ensureConnection();
+      const depCount = await Departingflight.countDocuments({});
+      const retCount = await Returnflight.countDocuments({});
+      console.log(
+        `📊 Final counts - Departing: ${depCount}, Returning: ${retCount}`
+      );
+    } catch (error) {
+      console.log("❌ Error counting documents:", error.message);
+    } finally {
+      try {
+        await mongoose.disconnect();
+        isConnected = false;
+        console.log("🔌 Database disconnected");
+      } catch (error) {
+        console.log("❌ Error disconnecting:", error.message);
+      }
+    }
   };
 
   // Start fetching data from Schiphol API

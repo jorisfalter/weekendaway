@@ -302,6 +302,7 @@ function matchFlights(departingFlight, returnFlight) {
   // var foundFlights = false;
   var foundDestinationsInfo = [];
   var foundDestinationsDestinationsOnly = [];
+  var seenCombinations = new Set();
   departingFlight.forEach((resultDepart) => {
     returnFlight.forEach((resultReturn) => {
       if (
@@ -322,18 +323,30 @@ function matchFlights(departingFlight, returnFlight) {
         // console.log("depflnumber: " + depAirline);
         // console.log("retflnumber: " + retAirline);
 
-        // Push all info into the array
-        foundDestinationsInfo.push({
-          depAirport: resultDepart.departureAirport_iata,
-          depTime: resultDepart.departureTimeLocal,
-          depFlightNumber: resultDepart.flightNumber,
-          retAirport: resultReturn.departureAirport_iata,
-          arrTime: resultReturn.arrivalTimeLocal,
-          retFlightNumber: resultReturn.flightNumber,
-          depAirline: depAirline,
-          retAirline: retAirline,
-          destinationInFull: destinationInFull,
-        });
+        // Avoid duplicates: key on dep/ret flight and times
+        const uniqueKey =
+          resultDepart.flightNumber +
+          "|" +
+          resultReturn.flightNumber +
+          "|" +
+          resultDepart.departureTimeLocal +
+          "|" +
+          resultReturn.arrivalTimeLocal;
+        if (!seenCombinations.has(uniqueKey)) {
+          seenCombinations.add(uniqueKey);
+          // Push all info into the array
+          foundDestinationsInfo.push({
+            depAirport: resultDepart.departureAirport_iata,
+            depTime: resultDepart.departureTimeLocal,
+            depFlightNumber: resultDepart.flightNumber,
+            retAirport: resultReturn.departureAirport_iata,
+            arrTime: resultReturn.arrivalTimeLocal,
+            retFlightNumber: resultReturn.flightNumber,
+            depAirline: depAirline,
+            retAirline: retAirline,
+            destinationInFull: destinationInFull,
+          });
+        }
 
         // push destination coordinates info into the array
         foundDestinationsDestinationsOnly.push(
