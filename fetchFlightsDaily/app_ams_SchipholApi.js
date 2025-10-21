@@ -169,7 +169,9 @@ const fireItAllUp = async () => {
         return response.json().then((data) => ({ data, linkHeader }));
       })
       .then(function ({ data, linkHeader }) {
-        console.log("Schiphol API response:", data);
+        console.log(
+          `📡 Fetched ${data.flights?.length || 0} flights from Schiphol API`
+        );
         if (direction === "departure") {
           // Schiphol API returns flights array, filter for departures
           const departureFlights = data.flights.filter(
@@ -223,11 +225,9 @@ const fireItAllUp = async () => {
                     flightNumber: flightNumber,
                   });
                   await newDepartingFlightEntry.save();
-                  console.log(`✅ Saved departing flight: ${flightNumber}`);
+                  // console.log(`✅ Saved departing flight: ${flightNumber}`);
                 } else {
-                  console.log(
-                    `⏭️  Duplicate departing flight skipped: ${flightNumber}`
-                  );
+                  // console.log(`⏭️  Duplicate departing flight skipped: ${flightNumber}`);
                 }
               } catch (error) {
                 console.log(
@@ -290,11 +290,9 @@ const fireItAllUp = async () => {
                     flightNumber: flightNumber,
                   });
                   await newReturnFlightEntry.save();
-                  console.log(`✅ Saved return flight: ${flightNumber}`);
+                  // console.log(`✅ Saved return flight: ${flightNumber}`);
                 } else {
-                  console.log(
-                    `⏭️  Duplicate return flight skipped: ${flightNumber}`
-                  );
+                  // console.log(`⏭️  Duplicate return flight skipped: ${flightNumber}`);
                 }
               } catch (error) {
                 console.log(
@@ -311,7 +309,9 @@ const fireItAllUp = async () => {
 
         pageCounter++;
         let numberOfPages = pageCounter;
-        console.log("number of pages: " + numberOfPages);
+        console.log(
+          `📄 Page ${numberOfPages}/${pageCounterLimit} (${direction})`
+        );
 
         // Fetch the next page from the Schiphol API
         // Schiphol API uses Link header for pagination, not data.links
@@ -323,16 +323,12 @@ const fireItAllUp = async () => {
           const nextPageMatch = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
           if (nextPageMatch && nextPageMatch[1]) {
             const nextPageUrl = nextPageMatch[1];
-            console.log(
-              `Fetching next page: ${nextPageUrl} (batch page ${
-                pageCounter + 1
-              }/${pageCounterLimit})`
-            );
+            // console.log(`Fetching next page: ${nextPageUrl}`);
 
             // Delay the requests to not pass the api rate limit and call the function again to fetch the next page
             const delayForRateLimitAndCallNextPage = async () => {
               await setTimeout(2000); // Schiphol API has different rate limits
-              console.log("Waited 2s");
+              // console.log("Waited 2s");
 
               // Check connection before continuing
               try {
@@ -358,14 +354,14 @@ const fireItAllUp = async () => {
           // check if we bounce against the pagecounter
           if (pageCounter === pageCounterLimit - 1) {
             console.log(
-              `Batch limit reached (${pageCounterLimit} pages). Sleeping for 1 minute before next batch...`
+              `⏸️  Batch complete. Sleeping 1min before next batch...`
             );
             totalPagesFetched += pageCounterLimit;
 
             // Sleep for 1 minute then start next batch
             const sleepAndContinue = async () => {
               await setTimeout(sleepBetweenBatches);
-              console.log("Sleep finished. Starting next batch...");
+              console.log("🔄 Starting next batch...");
 
               // Check connection before starting new batch
               try {
@@ -398,12 +394,12 @@ const fireItAllUp = async () => {
         } else {
           // when we have all the information from all pages or reached max pages
           console.log(
-            `Finished fetching ${direction} flights. Total pages fetched: ${totalPagesFetched}`
+            `✅ Finished ${direction} flights (${totalPagesFetched} pages)`
           );
 
           // If we checked for departures, we will now check for returns
           if (direction === "departure") {
-            console.log("Starting return flights fetch...");
+            console.log("🔄 Starting return flights...");
             totalPagesFetched = 0; // Reset counter for return flights
             fetchAirportData(
               returnUrl,
@@ -414,12 +410,10 @@ const fireItAllUp = async () => {
               originAirport_iata
             );
           } else {
-            console.log(
-              "Finished fetching all flights (departures and returns)"
-            );
+            console.log("🎉 All flights processed!");
             const delayForCheckingIfDbisUpdated = async () => {
               await setTimeout(10000);
-              console.log("Waited 10s to make sure db is updated");
+              // console.log("Waited 10s to make sure db is updated");
               countDocuments();
             };
             delayForCheckingIfDbisUpdated();
