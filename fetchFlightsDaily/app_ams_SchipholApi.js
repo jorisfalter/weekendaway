@@ -353,49 +353,72 @@ const fireItAllUp = async () => {
 
           // check if we bounce against the pagecounter
           if (pageCounter === pageCounterLimit - 1) {
-            console.log(
-              `⏸️  Batch complete. Sleeping 1min before next batch...`
-            );
             totalPagesFetched += pageCounterLimit;
 
-            // Sleep for 1 minute then start next batch
-            const sleepAndContinue = async () => {
-              await setTimeout(sleepBetweenBatches);
-              console.log("🔄 Starting next batch...");
+            // Check if we've reached the maximum total pages
+            if (totalPagesFetched >= maxTotalPages) {
+              console.log(
+                `🛑 Reached maximum pages limit (${maxTotalPages}). Stopping batch.`
+              );
+              // Continue to the normal completion flow below
+            } else {
+              console.log(
+                `⏸️  Batch complete. Sleeping 1min before next batch... (${totalPagesFetched}/${maxTotalPages} pages)`
+              );
 
-              // Check connection before starting new batch
-              try {
-                await ensureConnection();
+              // Sleep for 1 minute then start next batch
+              const sleepAndContinue = async () => {
+                await setTimeout(sleepBetweenBatches);
+                console.log("🔄 Starting next batch...");
 
-                // Start next batch from current page
-                const nextBatchUrl = linkHeader
-                  ? linkHeader.match(/<([^>]+)>;\s*rel="next"/)[1]
-                  : direction === "departure"
-                  ? "https://api.schiphol.nl/public-flights/flights?flightDirection=D"
-                  : "https://api.schiphol.nl/public-flights/flights?flightDirection=A";
+                // Check connection before starting new batch
+                try {
+                  await ensureConnection();
 
-                fetchAirportData(
-                  nextBatchUrl,
-                  direction,
-                  0, // Reset page counter for new batch
-                  originTimeZone,
-                  returnUrl,
-                  originAirport_iata
-                );
-              } catch (error) {
-                console.log(
-                  "❌ Connection lost, stopping batch:",
-                  error.message
-                );
-              }
-            };
-            sleepAndContinue();
+                  // Start next batch from current page
+                  const nextBatchUrl = linkHeader
+                    ? linkHeader.match(/<([^>]+)>;\s*rel="next"/)[1]
+                    : direction === "departure"
+                    ? "https://api.schiphol.nl/public-flights/flights?flightDirection=D"
+                    : "https://api.schiphol.nl/public-flights/flights?flightDirection=A";
+
+                  fetchAirportData(
+                    nextBatchUrl,
+                    direction,
+                    0, // Reset page counter for new batch
+                    originTimeZone,
+                    returnUrl,
+                    originAirport_iata
+                  );
+                } catch (error) {
+                  console.log(
+                    "❌ Connection lost, stopping batch:",
+                    error.message
+                  );
+                }
+              };
+              sleepAndContinue();
+              return; // Exit early to prevent the completion flow below
+            }
           }
         } else {
           // when we have all the information from all pages or reached max pages
           console.log(
             `✅ Finished ${direction} flights (${totalPagesFetched} pages)`
           );
+
+          // Check if we've reached the maximum total pages
+          if (totalPagesFetched >= maxTotalPages) {
+            console.log(
+              `🛑 Reached maximum pages limit (${maxTotalPages}). Stopping completely.`
+            );
+            const delayForCheckingIfDbisUpdated = async () => {
+              await setTimeout(10000);
+              countDocuments();
+            };
+            delayForCheckingIfDbisUpdated();
+            return; // Exit completely
+          }
 
           // If we checked for departures, we will now check for returns
           if (direction === "departure") {
