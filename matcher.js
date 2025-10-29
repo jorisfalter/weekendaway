@@ -692,6 +692,6 @@ app.get("/variable", function (req, res) {
   res.send({ variable: airportObj, departureAirport: originInputTrf });
 });
 
-app.listen(process.env.PORT || 3002, function () {
+app.listen(process.env.PORT || 3000, function () {
   console.log("listening");
 });

@@ -5705,6 +5705,7 @@ module.exports = [
   ["OTL", "Boutilimit Airport"],
   ["OTM", "Ottumwa Regional Airport"],
   ["OTN", "Ed-Air Airport"],
+  ["OTP", "Bucharest"],
   ["OTR", "Coto 47 Airport"],
   ["OTS", "Anacortes Airport"],
   ["OTT", "Andre Maggi Airport"],
