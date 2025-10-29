@@ -384,7 +384,7 @@ function calculateLocalTime(inputDate, inputTimeInHours, timeZone) {
   return correctInputInUtc;
 }
 
-app.post("/", function (req, res) {
+app.post("/", async function (req, res) {
   airportObj = {};
   let originInput = req.body.originName; // city name (eg Lisbon)
   let departureDateInput = req.body.departureDateName;
@@ -450,23 +450,67 @@ app.post("/", function (req, res) {
   //   console.log("dep interval : " + depInterval);
   //   console.log("ret interval : " + retInterval);
 
-  let newDepDate = new Date();
-  let newRetDate = new Date();
-  newDepDate.setDate(newDepDate.getDate() + depInterval);
-  newRetDate.setDate(newRetDate.getDate() + retInterval);
+  // Determine the most recent dates in the DB for the requested weekdays
+  // Fallback to "next weekday" if nothing is found
+  let newDepDateString;
+  let newRetDateString;
+  try {
+    const latestDepDoc = await Departingflight.findOne({
+      departureAirport_city: originInput,
+      departureTimeDayOfWeek: departureDayOfWeek,
+    })
+      .sort({ departureTimeZulu: -1 })
+      .lean();
 
-  var newDepDateString =
-    newDepDate.getUTCFullYear() +
-    "-" +
-    (newDepDate.getUTCMonth() + 1) + // adding +1 because months are counted from zero
-    "-" +
-    newDepDate.getUTCDate();
-  var newRetDateString =
-    newRetDate.getUTCFullYear() +
-    "-" +
-    (newRetDate.getUTCMonth() + 1) + // adding +1 because months are counted from zero
-    "-" +
-    newRetDate.getUTCDate();
+    const latestRetDoc = await Returnflight.findOne({
+      arrivalAirport_city: originInput,
+      arrivalTimeDayOfWeek: returnDayOfWeek,
+    })
+      .sort({ arrivalTimeZulu: -1 })
+      .lean();
+
+    if (latestDepDoc && latestDepDoc.departureTimeZulu) {
+      const d = new Date(latestDepDoc.departureTimeZulu);
+      newDepDateString =
+        d.getUTCFullYear() +
+        "-" +
+        ("0" + (d.getUTCMonth() + 1)).slice(-2) +
+        "-" +
+        ("0" + d.getUTCDate()).slice(-2);
+    }
+    if (latestRetDoc && latestRetDoc.arrivalTimeZulu) {
+      const d = new Date(latestRetDoc.arrivalTimeZulu);
+      newRetDateString =
+        d.getUTCFullYear() +
+        "-" +
+        ("0" + (d.getUTCMonth() + 1)).slice(-2) +
+        "-" +
+        ("0" + d.getUTCDate()).slice(-2);
+    }
+  } catch (e) {
+    console.log("Error fetching latest weekday docs:", e);
+  }
+
+  // Fallback to the previous interval-based logic when no docs were found
+  if (!newDepDateString || !newRetDateString) {
+    let newDepDate = new Date();
+    let newRetDate = new Date();
+    newDepDate.setDate(newDepDate.getDate() + depInterval);
+    newRetDate.setDate(newRetDate.getDate() + retInterval);
+
+    newDepDateString =
+      newDepDate.getUTCFullYear() +
+      "-" +
+      (newDepDate.getUTCMonth() + 1) +
+      "-" +
+      newDepDate.getUTCDate();
+    newRetDateString =
+      newRetDate.getUTCFullYear() +
+      "-" +
+      (newRetDate.getUTCMonth() + 1) +
+      "-" +
+      newRetDate.getUTCDate();
+  }
 
   let originInputTimeZone;
   switch (originInput) {
@@ -648,6 +692,6 @@ app.get("/variable", function (req, res) {
   res.send({ variable: airportObj, departureAirport: originInputTrf });
 });
 
-app.listen(process.env.PORT || 3000, function () {
+app.listen(process.env.PORT || 3002, function () {
   console.log("listening");
 });
