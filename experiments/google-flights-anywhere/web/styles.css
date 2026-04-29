@@ -152,61 +152,47 @@ button:disabled {
   background: #d7e8ea;
 }
 
-.map svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.map-water {
-  fill: #d7e8ea;
-}
-
-.map-grid {
-  fill: url("#gridPattern");
-}
-
-.map-grid + path,
-.map-grid path,
-#gridPattern path {
-  stroke: rgba(36, 91, 157, 0.12);
-  stroke-width: 1;
-}
-
-.map-lines line {
-  stroke: rgba(36, 91, 157, 0.42);
-  stroke-width: 2;
-}
-
-.map-marker circle {
-  stroke-width: 3;
-}
-
-.map-marker text {
-  fill: var(--ink);
-  font-size: 15px;
-  font-weight: 750;
-  paint-order: stroke;
-  stroke: rgba(255, 255, 255, 0.86);
-  stroke-width: 4px;
-}
-
-.map-marker.origin circle {
-  fill: var(--ink);
-  stroke: white;
-}
-
-.map-marker.destination circle {
-  fill: var(--accent);
-  stroke: white;
-}
-
 .map-empty {
   display: grid;
   place-items: center;
   height: 100%;
   color: var(--muted);
   font-size: 14px;
+}
+
+.map-pin {
+  transform: translate(-50%, -50%);
+}
+
+.map-pin.origin {
+  width: 16px;
+  height: 16px;
+  border: 3px solid white;
+  border-radius: 999px;
+  background: var(--ink);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.28);
+}
+
+.map-pin.destination {
+  min-width: 56px;
+  min-height: 24px;
+  display: grid;
+  place-items: center;
+  border: 2px solid white;
+  border-radius: 999px;
+  padding: 0 8px;
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.24);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.maplibregl-popup-content {
+  border-radius: 8px;
+  font: inherit;
+  color: var(--ink);
 }
 
 .grid {

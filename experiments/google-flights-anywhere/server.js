@@ -10,9 +10,14 @@ const publicDir = path.join(experimentDir, "web");
 const scriptPath = path.join(experimentDir, "weekend_anywhere.py");
 const defaultPython = path.join(repoRoot, ".venv-google-flights/bin/python");
 const pythonBin = process.env.GOOGLE_FLIGHTS_PYTHON || defaultPython;
+const maplibreDist = path.join(repoRoot, "node_modules/maplibre-gl/dist");
 const coordinateFallbacks = {
   EIN: { code: "EIN", name: "Eindhoven", lat: 51.4501, lng: 5.3745 },
   RTM: { code: "RTM", name: "Rotterdam The Hague", lat: 51.9569, lng: 4.4372 },
+  DUS: { code: "DUS", name: "Düsseldorf", lat: 51.2895, lng: 6.7668 },
+  CGN: { code: "CGN", name: "Cologne Bonn", lat: 50.8659, lng: 7.1427 },
+  BRU: { code: "BRU", name: "Brussels", lat: 50.9014, lng: 4.4844 },
+  CRL: { code: "CRL", name: "Brussels Charleroi", lat: 50.4592, lng: 4.4538 },
   GRX: { code: "GRX", name: "Granada", lat: 37.1887, lng: -3.7774 },
   SEN: { code: "SEN", name: "London Southend", lat: 51.5714, lng: 0.6956 },
   LON: { code: "LON", name: "London", lat: 51.5074, lng: -0.1278 },
@@ -26,6 +31,20 @@ const originAliases = {
   ROTTERDAM: "RTM",
   "ROTTERDAM THE HAGUE": "RTM",
   RTM: "RTM",
+  DUSSELDORF: "DUS",
+  "DÜSSELDORF": "DUS",
+  DUS: "DUS",
+  COLOGNE: "CGN",
+  KOLN: "CGN",
+  "KÖLN": "CGN",
+  "COLOGNE BONN": "CGN",
+  CGN: "CGN",
+  BRUSSELS: "BRU",
+  BRUSSEL: "BRU",
+  BRUXELLES: "BRU",
+  BRU: "BRU",
+  CHARLEROI: "CRL",
+  CRL: "CRL",
   LONDON: "LON",
   LON: "LON",
   PARIS: "PAR",
@@ -36,6 +55,7 @@ const originAliases = {
 
 app.use(express.json());
 app.use(express.static(publicDir));
+app.use("/vendor/maplibre-gl", express.static(maplibreDist));
 
 function findAirportCoordinates(code) {
   if (coordinateFallbacks[code]) {
@@ -100,8 +120,8 @@ function normalizeOrigin(value) {
 }
 
 function buildScriptArgs(params) {
-  const scrapeLimit = Math.min(Math.max(params.limit * 3, params.limit), 80);
-  const detailLimit = Math.min(Math.max(params.detailLimit, params.limit), 24);
+  const scrapeLimit = Math.min(Math.max(params.limit * 3, params.limit), 120);
+  const detailLimit = Math.min(Math.max(params.detailLimit, params.limit), 50);
   const args = [
     scriptPath,
     "--origin",
@@ -123,6 +143,10 @@ function buildScriptArgs(params) {
   if (params.includeDetails) {
     args.push("--include-details", "--detail-limit", String(detailLimit));
   }
+  args.push(
+    "--options-per-destination",
+    String(Math.max(1, Math.min(params.optionsPerDestination || 1, 5)))
+  );
   if (params.progress) {
     args.push("--progress", "--stream-results");
   }
@@ -158,6 +182,7 @@ function requestParams(body) {
   const sort = ["price", "duration", "page"].includes(body.sort)
     ? body.sort
     : "price";
+  const optionsPerDestination = Number(body.optionsPerDestination || 1);
 
   if (!isDate(departureDate) || !isDate(returnDate)) {
     throw new Error("Departure and return dates are required.");
@@ -172,12 +197,13 @@ function requestParams(body) {
     departureDate,
     returnDate,
     maxStops: Math.max(0, Math.min(maxStops, 2)),
-    limit: Math.max(5, Math.min(limit, 24)),
+    limit: Math.max(5, Math.min(limit, 50)),
     waitMs: Math.max(8_000, Math.min(waitMs, 30_000)),
     maxDurationMinutes,
     sort,
     includeDetails,
     detailLimit: Number(body.detailLimit || 8),
+    optionsPerDestination: Math.max(1, Math.min(optionsPerDestination, 5)),
     outboundAfter,
     outboundBefore,
     returnAfter,
@@ -196,7 +222,7 @@ function finalizePayload(payload, params) {
   }
 
   payload.max_duration_minutes = params.maxDurationMinutes || null;
-  payload.results = results.slice(0, Math.max(5, Math.min(params.limit, 24)));
+  payload.results = results.slice(0, Math.max(5, Math.min(params.limit, 50)));
   payload.result_count = payload.results.length;
   return addCoordinates(payload);
 }

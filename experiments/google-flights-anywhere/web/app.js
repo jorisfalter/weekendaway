@@ -51,6 +51,7 @@ function formPayload() {
     returnBefore: data.get("returnBefore"),
     includeDetails: true,
     detailLimit: Number(data.get("limit")),
+    optionsPerDestination: Number(data.get("optionsPerDestination")),
     sort: data.get("sort"),
     limit: Number(data.get("limit")),
   };
@@ -114,6 +115,7 @@ function loadSettings() {
     returnBefore: "22:00",
     sort: "price",
     limit: 8,
+    optionsPerDestination: 1,
   };
 
   try {
@@ -138,6 +140,9 @@ function applySettings(settings) {
   document.querySelector("#returnBefore").value = settings.returnBefore || "";
   document.querySelector("#sort").value = settings.sort || "price";
   document.querySelector("#limit").value = String(settings.limit ?? 8);
+  document.querySelector("#optionsPerDestination").value = String(
+    settings.optionsPerDestination ?? 1
+  );
 }
 
 function stripHtml(raw) {
@@ -146,29 +151,30 @@ function stripHtml(raw) {
 
 function markerHtml(result) {
   const price = Math.round(result.detail_price || result.price);
+  const airlines = formatAirlines(result);
   return `
     <strong>${result.destination}</strong><br>
     ${result.currency} ${price}<br>
+    ${airlines ? `${airlines}<br>` : ""}
     Out ${result.outbound_departure_time || "?"} -> ${result.outbound_arrival_time || "?"}<br>
     Back ${result.return_departure_time || "?"} -> ${result.return_arrival_time || "?"}<br>
     ${result.detail_stops || result.stops || ""}
   `;
 }
 
-function projectPoint(lat, lng, bounds, width, height) {
-  const lngSpan = bounds.maxLng - bounds.minLng || 1;
-  const latSpan = bounds.maxLat - bounds.minLat || 1;
-  return {
-    x: ((lng - bounds.minLng) / lngSpan) * width,
-    y: ((bounds.maxLat - lat) / latSpan) * height,
-  };
+function formatAirlines(result) {
+  const names = [
+    ...(result.outbound_airlines || []),
+    ...(result.return_airlines || []),
+  ].filter(Boolean);
+  return [...new Set(names)].join(" / ");
 }
 
 function payloadWithPartialResult(payload, partialResult) {
   const existing = payload.results || [];
-  const key = `${partialResult.destination}:${partialResult.destination_airport_code || partialResult.destination_code}`;
+  const key = `${partialResult.destination}:${partialResult.option_number || 1}:${partialResult.destination_airport_code || partialResult.destination_code}:${partialResult.return_airport_code || ""}`;
   const withoutDuplicate = existing.filter((result) => {
-    const resultKey = `${result.destination}:${result.destination_airport_code || result.destination_code}`;
+    const resultKey = `${result.destination}:${result.option_number || 1}:${result.destination_airport_code || result.destination_code}:${result.return_airport_code || ""}`;
     return resultKey !== key;
   });
 
@@ -179,76 +185,129 @@ function payloadWithPartialResult(payload, partialResult) {
   };
 }
 
-function renderMap(payload) {
-  const width = 1000;
-  const height = 330;
-  const origin = payload.origin_coordinates;
-  const destinations = (payload.results || []).filter((result) => result.coordinates);
-  const points = [
-    ...(origin ? [origin] : []),
-    ...destinations.map((result) => result.coordinates),
-  ];
+let map;
+let mapMarkers = [];
 
-  if (!points.length) {
-    mapEl.innerHTML = '<div class="map-empty">Map appears when results have coordinates.</div>';
+function initMap() {
+  if (map || !window.maplibregl) return;
+
+  map = new maplibregl.Map({
+    container: mapEl,
+    style: {
+      version: 8,
+      sources: {
+        osm: {
+          type: "raster",
+          tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+          tileSize: 256,
+          attribution: "© OpenStreetMap contributors",
+        },
+      },
+      layers: [{ id: "osm", type: "raster", source: "osm" }],
+    },
+    center: [4.7639, 52.3086],
+    zoom: 4,
+    attributionControl: false,
+  });
+  map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
+}
+
+function clearMapMarkers() {
+  mapMarkers.forEach((marker) => marker.remove());
+  mapMarkers = [];
+}
+
+function addMapMarker({ lng, lat, className, html, popup }) {
+  const element = document.createElement("div");
+  element.className = `map-pin ${className}`;
+  element.innerHTML = html;
+  const marker = new maplibregl.Marker({ element })
+    .setLngLat([lng, lat])
+    .setPopup(new maplibregl.Popup({ offset: 18 }).setHTML(popup))
+    .addTo(map);
+  mapMarkers.push(marker);
+}
+
+function setLineLayer(origin, destinations) {
+  if (!map.getSource("routes")) {
+    map.addSource("routes", {
+      type: "geojson",
+      data: { type: "FeatureCollection", features: [] },
+    });
+    map.addLayer({
+      id: "routes",
+      type: "line",
+      source: "routes",
+      paint: {
+        "line-color": "#245b9d",
+        "line-width": 1.6,
+        "line-opacity": 0.5,
+      },
+    });
+  }
+
+  const features = origin
+    ? destinations.map((result) => ({
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [origin.lng, origin.lat],
+            [result.coordinates.lng, result.coordinates.lat],
+          ],
+        },
+      }))
+    : [];
+
+  map.getSource("routes").setData({ type: "FeatureCollection", features });
+}
+
+function renderMap(payload) {
+  initMap();
+  if (!map) {
+    mapEl.innerHTML = '<div class="map-empty">Map could not load.</div>';
     return;
   }
 
-  const latValues = points.map((point) => point.lat);
-  const lngValues = points.map((point) => point.lng);
-  const bounds = {
-    minLat: Math.min(...latValues) - 2,
-    maxLat: Math.max(...latValues) + 2,
-    minLng: Math.min(...lngValues) - 3,
-    maxLng: Math.max(...lngValues) + 3,
-  };
-  const originPoint = origin ? projectPoint(origin.lat, origin.lng, bounds, width, height) : null;
+  const draw = () => {
+    clearMapMarkers();
+    const origin = payload.origin_coordinates;
+    const destinations = (payload.results || []).filter((result) => result.coordinates);
+    setLineLayer(origin, destinations);
 
-  const lines = destinations
-    .map((result) => {
-      if (!originPoint) return "";
-      const point = projectPoint(result.coordinates.lat, result.coordinates.lng, bounds, width, height);
-      return `<line x1="${originPoint.x}" y1="${originPoint.y}" x2="${point.x}" y2="${point.y}" />`;
-    })
-    .join("");
+    const bounds = new maplibregl.LngLatBounds();
 
-  const markers = destinations
-    .map((result) => {
-      const point = projectPoint(result.coordinates.lat, result.coordinates.lng, bounds, width, height);
+    if (origin) {
+      addMapMarker({
+        lng: origin.lng,
+        lat: origin.lat,
+        className: "origin",
+        html: "",
+        popup: `<strong>${payload.origin}</strong><br>${origin.name}`,
+      });
+      bounds.extend([origin.lng, origin.lat]);
+    }
+
+    destinations.forEach((result) => {
       const price = Math.round(result.detail_price || result.price);
-      return `
-        <g class="map-marker destination" transform="translate(${point.x} ${point.y})">
-          <circle r="7"></circle>
-          <text x="12" y="4">${result.destination} ${result.currency} ${price}</text>
-          <title>${stripHtml(markerHtml(result))}</title>
-        </g>
-      `;
-    })
-    .join("");
+      addMapMarker({
+        lng: result.coordinates.lng,
+        lat: result.coordinates.lat,
+        className: "destination",
+        html: `<span>${result.currency} ${price}</span>`,
+        popup: markerHtml(result),
+      });
+      bounds.extend([result.coordinates.lng, result.coordinates.lat]);
+    });
 
-  const originMarker = originPoint
-    ? `
-      <g class="map-marker origin" transform="translate(${originPoint.x} ${originPoint.y})">
-        <circle r="8"></circle>
-        <text x="12" y="4">${payload.origin}</text>
-      </g>
-    `
-    : "";
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds, { padding: 46, maxZoom: 6, duration: 0 });
+    }
+    map.resize();
+  };
 
-  mapEl.innerHTML = `
-    <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Destination map">
-      <defs>
-        <pattern id="gridPattern" width="48" height="48" patternUnits="userSpaceOnUse">
-          <path d="M 48 0 L 0 0 0 48" fill="none" />
-        </pattern>
-      </defs>
-      <rect class="map-water" x="0" y="0" width="${width}" height="${height}"></rect>
-      <rect class="map-grid" x="0" y="0" width="${width}" height="${height}"></rect>
-      <g class="map-lines">${lines}</g>
-      ${originMarker}
-      ${markers}
-    </svg>
-  `;
+  if (map.loaded()) draw();
+  else map.once("load", draw);
 }
 
 function renderResults(payload) {
@@ -277,19 +336,29 @@ function renderResults(payload) {
   const fragment = document.createDocumentFragment();
   results.forEach((result) => {
     const airportCode = result.destination_airport_code || result.coordinates?.code || "No airport";
+    const returnAirport =
+      result.return_airport_code && result.return_airport_code !== airportCode
+        ? ` / ${result.return_airport_code}`
+        : "";
+    const optionSuffix =
+      result.option_number && result.option_number > 1
+        ? ` option ${result.option_number}`
+        : "";
+    const airlines = formatAirlines(result);
     const card = document.createElement("article");
     card.className = "result";
     card.innerHTML = `
       <div>
-        <h3>${result.destination}</h3>
+        <h3>${result.destination}${optionSuffix}</h3>
         <p class="price">${result.currency} ${Math.round(result.detail_price || result.price)}</p>
       </div>
       <div class="times">
+        ${airlines ? `<span>${airlines}</span>` : ""}
         <span>Out ${result.outbound_departure_time || "?"} -> ${result.outbound_arrival_time || "?"}</span>
         <span>Back ${result.return_departure_time || "?"} -> ${result.return_arrival_time || "?"}</span>
       </div>
       <div class="meta">
-        <span>${airportCode}</span>
+        <span>${airportCode}${returnAirport}</span>
         <span>${result.detail_stops || result.stops || "Stops unknown"}</span>
         <span>Out ${formatDuration(result.outbound_duration_minutes || result.duration_minutes)}</span>
         ${

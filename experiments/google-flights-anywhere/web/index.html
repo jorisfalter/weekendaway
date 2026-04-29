@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Flights for Flaneurs POC</title>
+    <link
+      rel="stylesheet"
+      href="/vendor/maplibre-gl/maplibre-gl.css"
+    />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -28,9 +32,23 @@
               <option value="Amsterdam"></option>
               <option value="Eindhoven"></option>
               <option value="Rotterdam"></option>
+              <option value="Düsseldorf"></option>
+              <option value="Cologne"></option>
+              <option value="Brussels"></option>
+              <option value="Charleroi"></option>
+              <option value="London"></option>
+              <option value="Paris"></option>
+              <option value="Milan"></option>
               <option value="AMS"></option>
               <option value="EIN"></option>
               <option value="RTM"></option>
+              <option value="DUS"></option>
+              <option value="CGN"></option>
+              <option value="BRU"></option>
+              <option value="CRL"></option>
+              <option value="LON"></option>
+              <option value="PAR"></option>
+              <option value="MIL"></option>
             </datalist>
           </label>
 
@@ -85,7 +103,17 @@
 
           <label>
             Results
-            <input id="limit" name="limit" type="number" min="3" max="24" value="8" />
+            <input id="limit" name="limit" type="number" min="3" max="50" value="8" />
+          </label>
+
+          <label>
+            Options per city
+            <select id="optionsPerDestination" name="optionsPerDestination">
+              <option value="1" selected>Best option</option>
+              <option value="2">Up to 2</option>
+              <option value="3">Up to 3</option>
+              <option value="5">Up to 5</option>
+            </select>
           </label>
 
           <button id="submit" type="submit">Search anywhere</button>
@@ -110,6 +138,7 @@
       </section>
     </main>
 
+    <script src="/vendor/maplibre-gl/maplibre-gl.js"></script>
     <script src="/app.js"></script>
   </body>
 </html>

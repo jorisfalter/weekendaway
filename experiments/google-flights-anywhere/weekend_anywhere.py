@@ -9,7 +9,7 @@ import io
 import json
 import re
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Iterable
@@ -37,6 +37,28 @@ FOOTER_MARKERS = {
     "Keyboard shortcuts",
 }
 CURRENCY_BY_SYMBOL = {"€": "EUR", "$": "USD", "£": "GBP"}
+CITY_AIRPORT_GROUPS = {
+    "LONDON": ["LHR", "LGW", "STN", "LTN", "LCY", "SEN"],
+    "LON": ["LHR", "LGW", "STN", "LTN", "LCY", "SEN"],
+    "MILAN": ["MXP", "LIN", "BGY"],
+    "MIL": ["MXP", "LIN", "BGY"],
+    "PARIS": ["CDG", "ORY", "BVA"],
+    "PAR": ["CDG", "ORY", "BVA"],
+    "ROME": ["FCO", "CIA"],
+    "ROM": ["FCO", "CIA"],
+    "BRUSSELS": ["BRU", "CRL"],
+    "BRU": ["BRU", "CRL"],
+    "STOCKHOLM": ["ARN", "BMA", "NYO", "VST"],
+    "STO": ["ARN", "BMA", "NYO", "VST"],
+    "OSLO": ["OSL", "TRF"],
+    "OSL": ["OSL", "TRF"],
+    "WARSAW": ["WAW", "WMI"],
+    "WAW": ["WAW", "WMI"],
+    "VENICE": ["VCE", "TSF"],
+    "VEN": ["VCE", "TSF"],
+    "BARCELONA": ["BCN", "GRO", "REU"],
+    "BCN": ["BCN", "GRO", "REU"],
+}
 
 
 def emit_progress(enabled: bool, message: str) -> None:
@@ -61,13 +83,19 @@ class ExploreResult:
     currency: str
     stops: str | None
     duration_minutes: int | None
+    option_number: int | None = None
     destination_code: str | None = None
     destination_airport_code: str | None = None
     destination_airport_name: str | None = None
+    return_airport_code: str | None = None
+    return_airport_name: str | None = None
     detail_price: float | None = None
     detail_stops: str | None = None
     outbound_duration_minutes: int | None = None
     return_duration_minutes: int | None = None
+    outbound_airlines: list[str] | None = None
+    return_airlines: list[str] | None = None
+    airline_codes: list[str] | None = None
     outbound_departure_time: str | None = None
     outbound_arrival_time: str | None = None
     return_departure_time: str | None = None
@@ -203,6 +231,24 @@ def minutes_from_time(raw: list[int] | tuple[int, ...] | None) -> int | None:
     return hours * 60 + minutes
 
 
+def airline_names(itinerary) -> list[str]:
+    names: list[str] = []
+    for flight in itinerary.flights or []:
+        name = flight.airline_name or flight.airline
+        if name and name not in names:
+            names.append(name)
+    return names
+
+
+def airline_codes(itinerary) -> list[str]:
+    codes: list[str] = []
+    for flight in itinerary.flights or []:
+        code = flight.airline
+        if code and code not in codes:
+            codes.append(code)
+    return codes
+
+
 def is_noise_line(raw: str) -> bool:
     return bool(
         parse_price(raw)
@@ -288,6 +334,10 @@ def extract_results(lines: Iterable[str], limit: int, sort: str) -> list[Explore
 
 
 def resolve_destination_codes(destination: str) -> list[str]:
+    destination_key = destination.upper()
+    if destination_key in CITY_AIRPORT_GROUPS:
+        return CITY_AIRPORT_GROUPS[destination_key]
+
     try:
         codes = search_airport(destination) or []
     except Exception:
@@ -301,8 +351,21 @@ def resolve_destination_codes(destination: str) -> list[str]:
         if code in seen:
             continue
         seen.add(code)
+        if code in CITY_AIRPORT_GROUPS:
+            for group_code in CITY_AIRPORT_GROUPS[code]:
+                if group_code not in seen:
+                    seen.add(group_code)
+                    clean_codes.append(group_code)
+            continue
         clean_codes.append(code)
-    return clean_codes[:4]
+    return clean_codes[:8]
+
+
+def uses_city_airport_group(destination: str, codes: list[str]) -> bool:
+    destination_key = destination.upper()
+    if destination_key in CITY_AIRPORT_GROUPS:
+        return True
+    return any(code in CITY_AIRPORT_GROUPS for code in codes)
 
 
 def option_passes_time_filters(
@@ -369,19 +432,24 @@ def enrich_result_with_details(
     outbound_before: int | None,
     return_after: int | None,
     return_before: int | None,
-) -> ExploreResult | None:
+    options_per_destination: int,
+) -> list[ExploreResult]:
     codes = resolve_destination_codes(result.destination)
     if not codes:
         result.detail_error = "No airport code found"
-        return None
+        return []
 
     last_error = "No matching detail itinerary"
-    for code in codes:
-        result.destination_code = code
+    grouped_search = uses_city_airport_group(result.destination, codes)
+    result.destination_code = "/".join(codes) if grouped_search else codes[0]
+    search_code_sets = [codes] if grouped_search else [[code] for code in codes[:4]]
+
+    matching_options: list[dict] = []
+    for code_set in search_code_sets:
         detail_filter = create_filter(
             flight_data=[
-                FlightData(date=departure_date, from_airport=[origin], to_airport=[code]),
-                FlightData(date=return_date, from_airport=[code], to_airport=[origin]),
+                FlightData(date=departure_date, from_airport=[origin], to_airport=code_set),
+                FlightData(date=return_date, from_airport=code_set, to_airport=[origin]),
             ],
             trip="round-trip",
             passengers=Passengers(adults=1),
@@ -400,7 +468,7 @@ def enrich_result_with_details(
             last_error = str(error)
             continue
 
-        options = [
+        matching_options.extend(
             option
             for option in options
             if option_passes_time_filters(
@@ -413,43 +481,72 @@ def enrich_result_with_details(
                 return_after=return_after,
                 return_before=return_before,
             )
-        ]
-        if not options:
-            continue
-
-        options.sort(
-            key=lambda option: (
-                option["outbound"].itinerary_summary.price or 10_000_000,
-                minutes_from_time(option["outbound"].departure_time) or 10_000_000,
-            )
         )
-        selected = options[0]
+
+    if not matching_options:
+        result.detail_error = last_error
+        return []
+
+    matching_options.sort(
+        key=lambda option: (
+            option["outbound"].itinerary_summary.price or 10_000_000,
+            minutes_from_time(option["outbound"].departure_time) or 10_000_000,
+        )
+    )
+
+    detailed_results: list[ExploreResult] = []
+    seen_options: set[tuple] = set()
+    for selected in matching_options:
         outbound = selected["outbound"]
         return_flight = selected["return"]
+        unique_key = (
+            outbound.arrival_airport,
+            return_flight.departure_airport,
+            format_time(outbound.departure_time),
+            format_time(return_flight.departure_time),
+            outbound.itinerary_summary.price,
+        )
+        if unique_key in seen_options:
+            continue
+        seen_options.add(unique_key)
+
+        option_result = replace(result, option_number=len(detailed_results) + 1)
         max_leg_stops = max(len(outbound.layovers or []), len(return_flight.layovers or []))
-        result.detail_price = outbound.itinerary_summary.price
-        result.currency = outbound.itinerary_summary.currency or result.currency
-        result.detail_stops = (
+        option_result.detail_price = outbound.itinerary_summary.price
+        option_result.currency = outbound.itinerary_summary.currency or option_result.currency
+        option_result.detail_stops = (
             "Non-stop"
             if max_leg_stops == 0
             else f"{max_leg_stops} stop" if max_leg_stops == 1 else f"{max_leg_stops} stops"
         )
-        result.outbound_duration_minutes = outbound.travel_time
-        result.return_duration_minutes = return_flight.travel_time
-        result.destination_airport_code = outbound.arrival_airport
-        result.destination_airport_name = (
+        option_result.outbound_duration_minutes = outbound.travel_time
+        option_result.return_duration_minutes = return_flight.travel_time
+        option_result.outbound_airlines = airline_names(outbound)
+        option_result.return_airlines = airline_names(return_flight)
+        option_result.airline_codes = sorted(
+            set(airline_codes(outbound) + airline_codes(return_flight))
+        )
+        option_result.destination_airport_code = outbound.arrival_airport
+        option_result.destination_airport_name = (
             outbound.flights[-1].arrival_airport_name if outbound.flights else None
         )
-        result.outbound_departure_time = format_time(outbound.departure_time)
-        result.outbound_arrival_time = format_time(outbound.arrival_time)
-        result.return_departure_time = format_time(return_flight.departure_time)
-        result.return_arrival_time = format_time(return_flight.arrival_time)
-        result.booking_url = selected.get("url")
-        result.detail_error = None
-        return result
+        option_result.return_airport_code = return_flight.departure_airport
+        option_result.return_airport_name = (
+            return_flight.flights[0].departure_airport_name
+            if return_flight.flights
+            else None
+        )
+        option_result.outbound_departure_time = format_time(outbound.departure_time)
+        option_result.outbound_arrival_time = format_time(outbound.arrival_time)
+        option_result.return_departure_time = format_time(return_flight.departure_time)
+        option_result.return_arrival_time = format_time(return_flight.arrival_time)
+        option_result.booking_url = selected.get("url")
+        option_result.detail_error = None
+        detailed_results.append(option_result)
+        if len(detailed_results) >= options_per_destination:
+            break
 
-    result.detail_error = last_error
-    return None
+    return detailed_results
 
 
 def enrich_results_with_details(
@@ -471,7 +568,7 @@ def enrich_results_with_details(
             args.progress,
             f"Checking {result.destination} details ({index}/{len(candidates)})",
         )
-        detailed = enrich_result_with_details(
+        detailed_results = enrich_result_with_details(
             result,
             origin=args.origin,
             departure_date=departure_date,
@@ -483,11 +580,16 @@ def enrich_results_with_details(
             outbound_before=outbound_before,
             return_after=return_after,
             return_before=return_before,
+            options_per_destination=args.options_per_destination,
         )
-        if detailed:
-            enriched.append(detailed)
-            emit_result(args.stream_results, detailed)
-            emit_progress(args.progress, f"Found {result.destination}")
+        if detailed_results:
+            for detailed in detailed_results:
+                enriched.append(detailed)
+                emit_result(args.stream_results, detailed)
+            emit_progress(
+                args.progress,
+                f"Found {len(detailed_results)} option(s) for {result.destination}",
+            )
         else:
             emit_progress(args.progress, f"Skipped {result.destination}")
 
@@ -561,6 +663,7 @@ def run(args: argparse.Namespace) -> dict:
         "sort": args.sort,
         "include_details": args.include_details,
         "detail_limit": args.detail_limit,
+        "options_per_destination": args.options_per_destination,
         "outbound_after": args.outbound_after,
         "outbound_before": args.outbound_before,
         "return_after": args.return_after,
@@ -588,6 +691,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--sort", choices=["price", "duration", "page"], default="price")
     p.add_argument("--include-details", action="store_true")
     p.add_argument("--detail-limit", type=int, default=8)
+    p.add_argument("--options-per-destination", type=int, default=1)
     p.add_argument("--outbound-after")
     p.add_argument("--outbound-before")
     p.add_argument("--return-after")
