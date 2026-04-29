@@ -1,0 +1,2 @@
+google-flights==0.0.7
+playwright==1.58.0

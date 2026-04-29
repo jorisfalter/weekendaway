@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flights for Flaneurs POC</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <form id="search-form" class="controls">
+          <div class="brand">
+            <p>Flights for Flaneurs</p>
+            <h1>Anywhere weekend search</h1>
+          </div>
+
+          <label>
+            Origin
+            <input
+              id="origin"
+              name="origin"
+              value="Amsterdam"
+              list="origin-options"
+              autocomplete="off"
+            />
+            <datalist id="origin-options">
+              <option value="Amsterdam"></option>
+              <option value="Eindhoven"></option>
+              <option value="Rotterdam"></option>
+              <option value="AMS"></option>
+              <option value="EIN"></option>
+              <option value="RTM"></option>
+            </datalist>
+          </label>
+
+          <label>
+            Departure
+            <input id="departureDate" name="departureDate" type="date" />
+          </label>
+
+          <label>
+            Return
+            <input id="returnDate" name="returnDate" type="date" />
+          </label>
+
+          <label>
+            Stops
+            <select id="maxStops" name="maxStops">
+              <option value="0">Non-stop only</option>
+              <option value="1" selected>One stop or fewer</option>
+              <option value="2">Two stops or fewer</option>
+            </select>
+          </label>
+
+          <label>
+            Sort
+            <select id="sort" name="sort">
+              <option value="price" selected>Cheapest first</option>
+              <option value="duration">Shortest first</option>
+              <option value="page">Google Explore order</option>
+            </select>
+          </label>
+
+          <label>
+            Max flight time
+            <select id="maxDurationMinutes" name="maxDurationMinutes">
+              <option value="0" selected>Any duration</option>
+              <option value="120">2 hours or less</option>
+              <option value="180">3 hours or less</option>
+              <option value="240">4 hours or less</option>
+              <option value="360">6 hours or less</option>
+            </select>
+          </label>
+
+          <label>
+            Leave after
+            <input id="outboundAfter" name="outboundAfter" type="time" value="17:00" />
+          </label>
+
+          <label>
+            Back before
+            <input id="returnBefore" name="returnBefore" type="time" value="22:00" />
+          </label>
+
+          <label>
+            Results
+            <input id="limit" name="limit" type="number" min="3" max="24" value="8" />
+          </label>
+
+          <button id="submit" type="submit">Search anywhere</button>
+          <p id="status" class="status">Ready.</p>
+        </form>
+
+        <section class="results">
+          <div class="toolbar">
+            <div>
+              <p id="eyebrow">No search yet</p>
+              <h2 id="result-title">Pick dates and go wandering.</h2>
+            </div>
+            <a id="source-link" href="#" target="_blank" rel="noreferrer" hidden>Open source</a>
+          </div>
+
+          <div id="map" class="map" aria-label="Destination map"></div>
+
+          <div id="grid" class="grid empty">
+            <p>Results will appear here after Google Travel Explore loads.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -693,5 +693,5 @@ app.get("/variable", function (req, res) {
 });
 
 app.listen(process.env.PORT || 3000, function () {
-  console.log("listening");
+  console.log("listening on port " + process.env.PORT);
 });

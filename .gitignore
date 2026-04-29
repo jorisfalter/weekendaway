@@ -132,3 +132,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Local Python experiment environments and generated scraper artifacts
+.venv-google-flights/
+experiments/google-flights-anywhere/results/*.json
+experiments/google-flights-anywhere/screenshots/*.png
