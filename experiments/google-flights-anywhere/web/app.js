@@ -373,9 +373,14 @@ function renderResults(payload) {
         }
       </div>
       ${
-        result.booking_url
-          ? `<a class="booking" href="${result.booking_url}" target="_blank" rel="noreferrer">Open flights</a>`
-          : ""
+        result.return_booking_url
+          ? `<div class="booking-row">
+              <a class="booking" href="${result.booking_url}" target="_blank" rel="noreferrer">Open out</a>
+              <a class="booking" href="${result.return_booking_url}" target="_blank" rel="noreferrer">Open back</a>
+            </div>`
+          : result.booking_url
+            ? `<a class="booking" href="${result.booking_url}" target="_blank" rel="noreferrer">Open flights</a>`
+            : ""
       }
     `;
     fragment.append(card);

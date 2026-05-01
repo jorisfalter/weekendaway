@@ -19,6 +19,7 @@ from google_flights import (
     FlightData,
     Passengers,
     create_filter,
+    get_one_way_options,
     get_round_trip_options,
     search_airport,
 )
@@ -103,6 +104,7 @@ class ExploreResult:
     return_departure_time: str | None = None
     return_arrival_time: str | None = None
     booking_url: str | None = None
+    return_booking_url: str | None = None
     detail_error: str | None = None
 
 
@@ -429,6 +431,12 @@ def option_passes_time_filters(
     return True
 
 
+def option_total_price(option: dict) -> float:
+    if option.get("price") is not None:
+        return option["price"]
+    return option["outbound"].itinerary_summary.price or 10_000_000
+
+
 def enrich_result_with_details(
     result: ExploreResult,
     *,
@@ -452,14 +460,31 @@ def enrich_result_with_details(
     last_error = "No matching detail itinerary"
     grouped_search = uses_city_airport_group(result.destination, codes)
     result.destination_code = "/".join(codes) if grouped_search else codes[0]
-    search_code_sets = [codes] if grouped_search else [[code] for code in codes[:4]]
 
     matching_options: list[dict] = []
-    for code_set in search_code_sets:
+    searched_pairs: set[tuple[tuple[str, ...], tuple[str, ...]]] = set()
+
+    def collect_matching_options(
+        outbound_codes: list[str], return_codes: list[str]
+    ) -> None:
+        nonlocal last_error
+        pair_key = (tuple(outbound_codes), tuple(return_codes))
+        if pair_key in searched_pairs:
+            return
+        searched_pairs.add(pair_key)
+
         detail_filter = create_filter(
             flight_data=[
-                FlightData(date=departure_date, from_airport=[origin], to_airport=code_set),
-                FlightData(date=return_date, from_airport=code_set, to_airport=[origin]),
+                FlightData(
+                    date=departure_date,
+                    from_airport=[origin],
+                    to_airport=outbound_codes,
+                ),
+                FlightData(
+                    date=return_date,
+                    from_airport=return_codes,
+                    to_airport=[origin],
+                ),
             ],
             trip="round-trip",
             passengers=Passengers(adults=1),
@@ -476,7 +501,7 @@ def enrich_result_with_details(
                 )
         except Exception as error:
             last_error = str(error)
-            continue
+            return
 
         matching_options.extend(
             option
@@ -493,13 +518,101 @@ def enrich_result_with_details(
             )
         )
 
+    def collect_one_way_mixed_options(pair_codes: list[str]) -> None:
+        one_way_options: dict[tuple[str, str], list[dict]] = {}
+
+        def get_one_way(origin_code: str, destination_code: str, flight_date: str) -> list[dict]:
+            key = (origin_code, destination_code)
+            if key in one_way_options:
+                return one_way_options[key]
+
+            one_way_filter = create_filter(
+                flight_data=[
+                    FlightData(
+                        date=flight_date,
+                        from_airport=[origin_code],
+                        to_airport=[destination_code],
+                    )
+                ],
+                trip="one-way",
+                passengers=Passengers(adults=1),
+                seat="economy",
+                max_stops=max_stops,
+            )
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    raw_options = get_one_way_options(
+                        one_way_filter,
+                        currency=currency,
+                        language=language,
+                    )
+            except Exception:
+                raw_options = []
+
+            one_way_options[key] = raw_options[:4]
+            return one_way_options[key]
+
+        for outbound_code in pair_codes:
+            outbound_options = get_one_way(origin, outbound_code, departure_date)
+            for return_code in pair_codes:
+                if outbound_code == return_code:
+                    continue
+                return_options = get_one_way(return_code, origin, return_date)
+                for outbound_option in outbound_options:
+                    for return_option in return_options:
+                        outbound = outbound_option["flight"]
+                        return_flight = return_option["flight"]
+                        outbound_price = outbound.itinerary_summary.price
+                        return_price = return_flight.itinerary_summary.price
+                        if outbound_price is None or return_price is None:
+                            continue
+                        combined = {
+                            "outbound": outbound,
+                            "return": return_flight,
+                            "price": outbound_price + return_price,
+                            "url": outbound_option.get("url"),
+                            "return_url": return_option.get("url"),
+                            "mixed_airports": True,
+                        }
+                        if option_passes_time_filters(
+                            combined,
+                            departure_date=departure_date,
+                            return_date=return_date,
+                            max_stops=max_stops,
+                            outbound_after=outbound_after,
+                            outbound_before=outbound_before,
+                            return_after=return_after,
+                            return_before=return_before,
+                        ):
+                            matching_options.append(combined)
+
+    if grouped_search:
+        collect_matching_options(codes, codes)
+        seen_group_airports = sorted(
+            {
+                option["outbound"].arrival_airport
+                for option in matching_options
+                if option["outbound"].arrival_airport in codes
+            }
+            | {
+                option["return"].departure_airport
+                for option in matching_options
+                if option["return"].departure_airport in codes
+            }
+        )
+        pair_codes = seen_group_airports or codes[:4]
+        collect_one_way_mixed_options(pair_codes)
+    else:
+        for code in codes[:4]:
+            collect_matching_options([code], [code])
+
     if not matching_options:
         result.detail_error = last_error
         return []
 
     matching_options.sort(
         key=lambda option: (
-            option["outbound"].itinerary_summary.price or 10_000_000,
+            option_total_price(option),
             minutes_from_time(option["outbound"].departure_time) or 10_000_000,
         )
     )
@@ -514,7 +627,7 @@ def enrich_result_with_details(
             return_flight.departure_airport,
             format_time(outbound.departure_time),
             format_time(return_flight.departure_time),
-            outbound.itinerary_summary.price,
+            option_total_price(selected),
         )
         if unique_key in seen_options:
             continue
@@ -522,7 +635,7 @@ def enrich_result_with_details(
 
         option_result = replace(result, option_number=len(detailed_results) + 1)
         max_leg_stops = max(len(outbound.layovers or []), len(return_flight.layovers or []))
-        option_result.detail_price = outbound.itinerary_summary.price
+        option_result.detail_price = option_total_price(selected)
         option_result.currency = outbound.itinerary_summary.currency or option_result.currency
         option_result.detail_stops = (
             "Non-stop"
@@ -551,6 +664,7 @@ def enrich_result_with_details(
         option_result.return_departure_time = format_time(return_flight.departure_time)
         option_result.return_arrival_time = format_time(return_flight.arrival_time)
         option_result.booking_url = selected.get("url")
+        option_result.return_booking_url = selected.get("return_url")
         option_result.detail_error = None
         detailed_results.append(option_result)
         if len(detailed_results) >= options_per_destination:

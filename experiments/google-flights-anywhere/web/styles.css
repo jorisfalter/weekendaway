@@ -208,6 +208,12 @@ button:disabled {
   white-space: nowrap;
 }
 
+.booking-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .toolbar a:hover,
 .booking:hover {
   text-decoration: underline;
