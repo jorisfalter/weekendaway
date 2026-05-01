@@ -24,6 +24,8 @@ from google_flights import (
 )
 from playwright.sync_api import Page, TimeoutError, sync_playwright
 
+from route_sources.flightsfrom import get_routes
+
 
 PRICE_RE = re.compile(r"^([€$£])\s?([\d.,]+)$")
 STOPS_RE = re.compile(r"^(Non-stop|[0-9]+ stops?|[0-9]+ stop)$", re.IGNORECASE)
@@ -361,6 +363,14 @@ def resolve_destination_codes(destination: str) -> list[str]:
     return clean_codes[:8]
 
 
+def result_destination_codes(result: ExploreResult) -> list[str]:
+    if result.destination_code and re.match(
+        r"^[A-Z]{3}(?:/[A-Z]{3})*$", result.destination_code
+    ):
+        return result.destination_code.split("/")
+    return resolve_destination_codes(result.destination)
+
+
 def uses_city_airport_group(destination: str, codes: list[str]) -> bool:
     destination_key = destination.upper()
     if destination_key in CITY_AIRPORT_GROUPS:
@@ -434,7 +444,7 @@ def enrich_result_with_details(
     return_before: int | None,
     options_per_destination: int,
 ) -> list[ExploreResult]:
-    codes = resolve_destination_codes(result.destination)
+    codes = result_destination_codes(result)
     if not codes:
         result.detail_error = "No airport code found"
         return []
@@ -596,6 +606,62 @@ def enrich_results_with_details(
     return enriched
 
 
+def known_detail_keys(results: list[ExploreResult]) -> set[str]:
+    keys: set[str] = set()
+    for result in results:
+        for code in (
+            result.destination_airport_code,
+            result.return_airport_code,
+            result.destination_code,
+        ):
+            if code:
+                keys.update(code.split("/"))
+        keys.add(result.destination.upper())
+    return keys
+
+
+def load_route_source_candidates(
+    args: argparse.Namespace,
+    *,
+    existing_results: list[ExploreResult],
+) -> list[ExploreResult]:
+    if args.route_source != "flightsfrom":
+        return []
+
+    try:
+        routes = get_routes(args.origin, limit=args.route_source_limit)
+    except Exception as error:
+        emit_progress(args.progress, f"FlightsFrom fallback unavailable: {error}")
+        return []
+
+    seen = known_detail_keys(existing_results)
+    candidates: list[ExploreResult] = []
+    for route in routes:
+        if route.destination_code in seen or route.destination.upper() in seen:
+            continue
+        candidates.append(
+            ExploreResult(
+                source_order=10_000 + len(candidates) + 1,
+                destination=route.destination,
+                price=10_000_000,
+                currency=args.currency,
+                stops="Non-stop",
+                duration_minutes=route.duration_minutes,
+                destination_code=route.destination_code,
+                outbound_airlines=route.airlines,
+                return_airlines=route.airlines,
+            )
+        )
+        seen.add(route.destination_code)
+        seen.add(route.destination.upper())
+
+    emit_progress(
+        args.progress,
+        f"FlightsFrom added {len(candidates)} route candidate(s)",
+    )
+    return candidates
+
+
 def run(args: argparse.Namespace) -> dict:
     departure_date = args.departure_date
     return_date = args.return_date
@@ -644,11 +710,41 @@ def run(args: argparse.Namespace) -> dict:
 
     if args.include_details and return_date:
         emit_progress(args.progress, "Looking up exact flight times")
-        results = enrich_results_with_details(
+        enriched_results = enrich_results_with_details(
             results,
             args,
             departure_date=departure_date,
             return_date=return_date,
+        )
+        if len(enriched_results) < args.limit and args.route_source != "none":
+            remaining = args.limit - len(enriched_results)
+            emit_progress(
+                args.progress,
+                f"Trying {args.route_source} fallback for {remaining} more option(s)",
+            )
+            route_candidates = load_route_source_candidates(
+                args,
+                existing_results=enriched_results,
+            )
+            if route_candidates:
+                fallback_args = argparse.Namespace(**vars(args))
+                fallback_args.detail_limit = min(len(route_candidates), args.route_source_detail_limit)
+                fallback_args.options_per_destination = 1
+                fallback_results = enrich_results_with_details(
+                    route_candidates,
+                    fallback_args,
+                    departure_date=departure_date,
+                    return_date=return_date,
+                )
+                enriched_results.extend(fallback_results)
+        results = sorted(
+            enriched_results,
+            key=lambda result: (
+                result.detail_price
+                if result.detail_price is not None
+                else result.price,
+                result.source_order,
+            ),
         )[: args.limit]
         emit_progress(args.progress, f"Finished details for {len(results)} destinations")
 
@@ -664,6 +760,7 @@ def run(args: argparse.Namespace) -> dict:
         "include_details": args.include_details,
         "detail_limit": args.detail_limit,
         "options_per_destination": args.options_per_destination,
+        "route_source": args.route_source,
         "outbound_after": args.outbound_after,
         "outbound_before": args.outbound_before,
         "return_after": args.return_after,
@@ -692,6 +789,9 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--include-details", action="store_true")
     p.add_argument("--detail-limit", type=int, default=8)
     p.add_argument("--options-per-destination", type=int, default=1)
+    p.add_argument("--route-source", choices=["none", "flightsfrom"], default="none")
+    p.add_argument("--route-source-limit", type=int, default=80)
+    p.add_argument("--route-source-detail-limit", type=int, default=16)
     p.add_argument("--outbound-after")
     p.add_argument("--outbound-before")
     p.add_argument("--return-after")

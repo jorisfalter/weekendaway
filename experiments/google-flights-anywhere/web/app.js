@@ -52,6 +52,9 @@ function formPayload() {
     includeDetails: true,
     detailLimit: Number(data.get("limit")),
     optionsPerDestination: Number(data.get("optionsPerDestination")),
+    routeSource: data.get("routeSource"),
+    routeSourceLimit: 80,
+    routeSourceDetailLimit: 16,
     sort: data.get("sort"),
     limit: Number(data.get("limit")),
   };
@@ -64,10 +67,10 @@ function saveSettings(payload) {
 function loadingMessages(payload) {
   const count = Math.max(1, Number(payload.detailLimit || payload.limit || 1));
   return [
-    "Opening Google Travel Explore...",
-    "Waiting for destination ideas...",
-    `Checking exact flight times for up to ${count} destinations...`,
-    "Still working; Google Flights can be slow here...",
+    "Warming up the escape radar...",
+    "Scanning the cheap edge of the map...",
+    `Checking exact flight times for up to ${count} cities...`,
+    "Still hunting; Google Flights can be slow here...",
   ];
 }
 
@@ -116,6 +119,7 @@ function loadSettings() {
     sort: "price",
     limit: 8,
     optionsPerDestination: 1,
+    routeSource: "flightsfrom",
   };
 
   try {
@@ -143,6 +147,7 @@ function applySettings(settings) {
   document.querySelector("#optionsPerDestination").value = String(
     settings.optionsPerDestination ?? 1
   );
+  document.querySelector("#routeSource").value = settings.routeSource || "flightsfrom";
 }
 
 function stripHtml(raw) {
@@ -239,9 +244,9 @@ function setLineLayer(origin, destinations) {
       type: "line",
       source: "routes",
       paint: {
-        "line-color": "#245b9d",
-        "line-width": 1.6,
-        "line-opacity": 0.5,
+        "line-color": "#ff5c39",
+        "line-width": 2.4,
+        "line-opacity": 0.72,
       },
     });
   }
@@ -317,19 +322,19 @@ function renderResults(payload) {
 
   eyebrow.textContent = `${payload.origin} · ${payload.departure_date} to ${payload.return_date}`;
   title.textContent = payload.loading
-    ? `Searching destinations${results.length ? ` (${results.length} found)` : ""}`
-    : `${results.length} destination ideas`;
+    ? `Hunting exits${results.length ? ` (${results.length} found)` : ""}`
+    : `${results.length} escape routes`;
   sourceLink.hidden = !payload.url;
   sourceLink.href = payload.url || "#";
   renderMap(payload);
 
   if (!results.length && payload.loading) {
-    grid.innerHTML = "<p>Waiting for the first matching destination...</p>";
+    grid.innerHTML = "<p>Waiting for the first city that fits the window...</p>";
     return;
   }
 
   if (!results.length) {
-    grid.innerHTML = "<p>No destinations found. Try allowing more stops or increasing the result count.</p>";
+    grid.innerHTML = "<p>No clean escape found. Try more stops, more results, or a wider time window.</p>";
     return;
   }
 
@@ -425,7 +430,7 @@ form.addEventListener("submit", async (event) => {
     if (!finalPayload) throw new Error("Search finished without results.");
 
     renderResults(finalPayload);
-    setStatus("Done.");
+    setStatus("Board loaded.");
   } catch (error) {
     setStatus(error.message, "error");
   } finally {

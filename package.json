@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "google-flights-ui": "node experiments/google-flights-anywhere/server.js"
+    "google-flights-ui": "node experiments/google-flights-anywhere/server.js",
+    "flaneurs:start": "node experiments/google-flights-anywhere/server.js"
   },
   "dependencies": {
     "body-parser": "^1.20.0",

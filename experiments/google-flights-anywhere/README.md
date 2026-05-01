@@ -1,8 +1,10 @@
-# Google Flights Anywhere POC
+# Flights for Flaneurs
 
-Small hobby proof of concept for the Flights for Flaneurs idea: search Google Travel Explore with an open destination and parse the visible destination/price list.
+Small hobby proof of concept for the Flights for Flaneurs idea: search Google Travel Explore with an open destination, then enrich route ideas with exact times, airlines, airport codes, booking links, and map coordinates.
 
 This is unofficial scraping. Treat the output as experimental and verify prices before booking.
+
+Design direction lives in [docs/design-direction.md](docs/design-direction.md).
 
 ## Setup
 
@@ -46,14 +48,20 @@ The UI calls the Python scraper through a tiny Express server. Set `GOOGLE_FLIGH
 ## What Works
 
 - Destination-indifferent Google Travel Explore search.
-- Round-trip and one-way search.
+- Round-trip search.
 - JSON output with destination, price, currency, stops, and duration.
-- Optional detail lookup for outbound and return times.
+- Detail lookup for outbound and return times.
+- Airline names, airport codes, and booking links.
+- Departure/return time-window filtering.
+- Multi-airport city grouping for places like London, Milan, Paris, Brussels, and Barcelona.
+- Progressive frontend results while the backend is still searching.
+- MapLibre map with route lines and destination price pins.
+- Optional FlightsFrom route-source fallback.
 - Automatic handling of Google's consent screen.
-- Small local frontend for playing with dates, stops, flight duration, sorting, and result count.
+- Local frontend for playing with dates, stops, flight duration, sorting, result count, route fallback, and options per city.
 
 ## What Is Still Missing
 
-- Per-destination flight details and booking links.
-- Departure/return time-window filtering.
 - More robust extraction from the page's structured data instead of visible text.
+- Production deployment setup.
+- Rate limiting, caching, and observability for public use.

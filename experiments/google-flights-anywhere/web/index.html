@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Flights for Flaneurs POC</title>
+    <title>Flights for Flaneurs</title>
     <link
       rel="stylesheet"
       href="/vendor/maplibre-gl/maplibre-gl.css"
@@ -16,7 +16,8 @@
         <form id="search-form" class="controls">
           <div class="brand">
             <p>Flights for Flaneurs</p>
-            <h1>Anywhere weekend search</h1>
+            <h1>The weekend escape board</h1>
+            <span>No fixed destination. Only flights that fit.</span>
           </div>
 
           <label>
@@ -116,23 +117,31 @@
             </select>
           </label>
 
+          <label>
+            Route fallback
+            <select id="routeSource" name="routeSource">
+              <option value="flightsfrom" selected>FlightsFrom</option>
+              <option value="none">Off</option>
+            </select>
+          </label>
+
           <button id="submit" type="submit">Search anywhere</button>
-          <p id="status" class="status">Ready.</p>
+          <p id="status" class="status">Flaneur engine idle.</p>
         </form>
 
         <section class="results">
           <div class="toolbar">
             <div>
               <p id="eyebrow">No search yet</p>
-              <h2 id="result-title">Pick dates and go wandering.</h2>
+              <h2 id="result-title">Pick a window, then disappear.</h2>
             </div>
-            <a id="source-link" href="#" target="_blank" rel="noreferrer" hidden>Open source</a>
+            <a id="source-link" href="#" target="_blank" rel="noreferrer" hidden>Open flights</a>
           </div>
 
           <div id="map" class="map" aria-label="Destination map"></div>
 
           <div id="grid" class="grid empty">
-            <p>Results will appear here after Google Travel Explore loads.</p>
+            <p>The board will fill when the search finds a city worth chasing.</p>
           </div>
         </section>
       </section>
