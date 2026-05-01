@@ -147,6 +147,16 @@ function buildScriptArgs(params) {
     "--options-per-destination",
     String(Math.max(1, Math.min(params.optionsPerDestination || 1, 5)))
   );
+  if (params.routeSource && params.routeSource !== "none") {
+    args.push(
+      "--route-source",
+      params.routeSource,
+      "--route-source-limit",
+      String(Math.max(10, Math.min(params.routeSourceLimit || 80, 200))),
+      "--route-source-detail-limit",
+      String(Math.max(1, Math.min(params.routeSourceDetailLimit || 16, 40)))
+    );
+  }
   if (params.progress) {
     args.push("--progress", "--stream-results");
   }
@@ -183,6 +193,9 @@ function requestParams(body) {
     ? body.sort
     : "price";
   const optionsPerDestination = Number(body.optionsPerDestination || 1);
+  const routeSource = ["none", "flightsfrom"].includes(body.routeSource)
+    ? body.routeSource
+    : "flightsfrom";
 
   if (!isDate(departureDate) || !isDate(returnDate)) {
     throw new Error("Departure and return dates are required.");
@@ -204,6 +217,9 @@ function requestParams(body) {
     includeDetails,
     detailLimit: Number(body.detailLimit || 8),
     optionsPerDestination: Math.max(1, Math.min(optionsPerDestination, 5)),
+    routeSource,
+    routeSourceLimit: Number(body.routeSourceLimit || 80),
+    routeSourceDetailLimit: Number(body.routeSourceDetailLimit || 16),
     outboundAfter,
     outboundBefore,
     returnAfter,
