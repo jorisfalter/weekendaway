@@ -25,6 +25,36 @@ from google_flights import (
 )
 from playwright.sync_api import Page, TimeoutError, sync_playwright
 
+# Bridge the Playwright consent flow to the google_flights HTTP client.
+# Why: from an EU datacenter IP, every plain HTTP call to google.com/travel/flights
+# is redirected to consent.google.com, which the upstream library cannot parse —
+# so every detail lookup fails. Playwright already handles the consent screen for
+# the Explore page; we harvest the resulting Google cookies and inject them into
+# the primp client used by google_flights for the detail fetches.
+import google_flights.main as _gf_main  # noqa: E402
+
+GF_HTTP_COOKIES: dict[str, str] = {"CONSENT": "PENDING+999"}
+
+
+def update_google_http_cookies(playwright_cookies):
+    for cookie in playwright_cookies:
+        domain = cookie.get("domain", "")
+        if "google.com" in domain:
+            GF_HTTP_COOKIES[cookie["name"]] = cookie["value"]
+
+
+def _build_patched_fetch(url: str):
+    def _patched(params):
+        from primp import Client as _Client
+        client = _Client(impersonate="chrome_126", verify=False)
+        res = client.get(url, params=params, cookies=dict(GF_HTTP_COOKIES))
+        return res if res.status_code == 200 else None
+    return _patched
+
+
+_gf_main.fetch_search = _build_patched_fetch("https://www.google.com/travel/flights")
+_gf_main.fetch_booking = _build_patched_fetch("https://www.google.com/travel/flights/booking")
+
 from route_sources.flightsfrom import get_routes
 
 
@@ -804,6 +834,7 @@ def run(args: argparse.Namespace) -> dict:
         )
         page.goto(url, wait_until="domcontentloaded", timeout=60_000)
         accept_google_consent(page)
+        update_google_http_cookies(page.context.cookies())
         emit_progress(args.progress, "Waiting for Explore results")
         lines = body_lines(page, args.wait_ms)
 
