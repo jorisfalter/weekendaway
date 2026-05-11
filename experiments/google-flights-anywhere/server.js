@@ -10,6 +10,7 @@ const publicDir = path.join(experimentDir, "web");
 const scriptPath = path.join(experimentDir, "weekend_anywhere.py");
 const defaultPython = path.join(repoRoot, ".venv-google-flights/bin/python");
 const pythonBin = process.env.GOOGLE_FLIGHTS_PYTHON || defaultPython;
+const browserChannel = process.env.GOOGLE_FLIGHTS_BROWSER_CHANNEL || "chrome";
 const maplibreDist = path.join(repoRoot, "node_modules/maplibre-gl/dist");
 const coordinateFallbacks = {
   EIN: { code: "EIN", name: "Eindhoven", lat: 51.4501, lng: 5.3745 },
@@ -138,6 +139,8 @@ function buildScriptArgs(params) {
     params.sort,
     "--wait-ms",
     String(params.waitMs),
+    "--browser-channel",
+    browserChannel,
   ];
 
   if (params.includeDetails) {

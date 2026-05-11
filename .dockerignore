@@ -1,0 +1,11 @@
+.git
+.DS_Store
+node_modules
+.venv-google-flights
+experiments/google-flights-anywhere/.cache
+experiments/google-flights-anywhere/__pycache__
+experiments/google-flights-anywhere/route_sources/__pycache__
+experiments/google-flights-anywhere/results
+experiments/google-flights-anywhere/screenshots
+*.pyc
+*.log

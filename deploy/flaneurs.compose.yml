@@ -1,0 +1,14 @@
+services:
+  flightsforflaneurs:
+    build:
+      context: ..
+      dockerfile: deploy/flaneurs.Dockerfile
+    container_name: flightsforflaneurs
+    environment:
+      NODE_ENV: production
+      GOOGLE_FLIGHTS_UI_PORT: 3000
+      GOOGLE_FLIGHTS_PYTHON: /app/.venv/bin/python
+      GOOGLE_FLIGHTS_BROWSER_CHANNEL: chromium
+    ports:
+      - "127.0.0.1:${FLANEURS_HOST_PORT:-8102}:3000"
+    restart: unless-stopped

@@ -794,10 +794,10 @@ def run(args: argparse.Namespace) -> dict:
 
     emit_progress(args.progress, "Opening Google Travel Explore")
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(
-            channel=args.browser_channel,
-            headless=not args.headful,
-        )
+        launch_options = {"headless": not args.headful}
+        if args.browser_channel != "chromium":
+            launch_options["channel"] = args.browser_channel
+        browser = playwright.chromium.launch(**launch_options)
         page = browser.new_page(
             viewport={"width": args.width, "height": args.height},
             locale=args.language,
