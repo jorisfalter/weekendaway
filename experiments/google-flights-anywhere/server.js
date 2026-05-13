@@ -184,7 +184,7 @@ function requestParams(body) {
   const departureDate = String(body.departureDate || "");
   const returnDate = String(body.returnDate || "");
   const maxStops = Number(body.maxStops ?? 1);
-  const limit = Number(body.limit ?? 24);
+  const limit = Number(body.limit ?? 50);
   const waitMs = Number(body.waitMs ?? 18_000);
   const maxDurationMinutes = Number(body.maxDurationMinutes || 0);
   const includeDetails = body.includeDetails !== false;
@@ -218,7 +218,7 @@ function requestParams(body) {
     maxDurationMinutes,
     sort,
     includeDetails,
-    detailLimit: Number(body.detailLimit || 8),
+    detailLimit: Number(body.detailLimit || 50),
     optionsPerDestination: Math.max(1, Math.min(optionsPerDestination, 5)),
     routeSource,
     routeSourceLimit: Number(body.routeSourceLimit || 80),
