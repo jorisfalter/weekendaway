@@ -66,8 +66,8 @@
           <label>
             Stops
             <select id="maxStops" name="maxStops">
-              <option value="0">Non-stop only</option>
-              <option value="1" selected>One stop or fewer</option>
+              <option value="0" selected>Non-stop only</option>
+              <option value="1">One stop or fewer</option>
               <option value="2">Two stops or fewer</option>
             </select>
           </label>
@@ -105,6 +105,11 @@
           <label>
             Results
             <input id="limit" name="limit" type="number" min="3" max="50" value="50" />
+          </label>
+
+          <label>
+            Max price
+            <input id="maxPrice" name="maxPrice" type="number" min="0" step="10" placeholder="Any price" />
           </label>
 
           <label>

@@ -232,6 +232,14 @@ def parse_time_filter(raw: str | None) -> int | None:
     return hours * 60 + minutes
 
 
+def effective_price(result: ExploreResult) -> float:
+    return result.detail_price if result.detail_price is not None else result.price
+
+
+def within_max_price(result: ExploreResult, max_price: float | None) -> bool:
+    return not max_price or effective_price(result) <= max_price
+
+
 def date_tuple_to_iso(raw: list[int] | tuple[int, ...] | None) -> str | None:
     if not raw or len(raw) < 3:
         return None
@@ -738,6 +746,8 @@ def enrich_results_with_details(
         )
         if detailed_results:
             for detailed in detailed_results:
+                if not within_max_price(detailed, args.max_price):
+                    continue
                 enriched.append(detailed)
                 emit_result(args.stream_results, detailed)
             emit_progress(
@@ -851,6 +861,7 @@ def run(args: argparse.Namespace) -> dict:
     if args.include_details:
         explore_limit = max(args.limit, args.detail_limit * 3)
     results = extract_results(lines, explore_limit, args.sort)
+    results = [result for result in results if within_max_price(result, args.max_price)]
     emit_progress(args.progress, f"Explore returned {len(results)} destinations")
 
     if args.include_details and return_date:
@@ -883,11 +894,13 @@ def run(args: argparse.Namespace) -> dict:
                 )
                 enriched_results.extend(fallback_results)
         results = sorted(
-            enriched_results,
+            [
+                result
+                for result in enriched_results
+                if within_max_price(result, args.max_price)
+            ],
             key=lambda result: (
-                result.detail_price
-                if result.detail_price is not None
-                else result.price,
+                effective_price(result),
                 result.source_order,
             ),
         )[: args.limit]
@@ -901,6 +914,7 @@ def run(args: argparse.Namespace) -> dict:
         "currency": args.currency,
         "language": args.language,
         "max_stops": args.max_stops,
+        "max_price": args.max_price,
         "sort": args.sort,
         "include_details": args.include_details,
         "detail_limit": args.detail_limit,
@@ -928,7 +942,8 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--return-date", default=default_return)
     p.add_argument("--currency", default="EUR")
     p.add_argument("--language", default="en-GB")
-    p.add_argument("--max-stops", type=int, default=1)
+    p.add_argument("--max-stops", type=int, default=0)
+    p.add_argument("--max-price", type=float, default=0)
     p.add_argument("--limit", type=int, default=50)
     p.add_argument("--sort", choices=["price", "duration", "page"], default="price")
     p.add_argument("--include-details", action="store_true")

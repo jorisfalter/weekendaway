@@ -108,6 +108,14 @@ function addResultCoordinates(result) {
   };
 }
 
+function resultPrice(result) {
+  return Number(result.detail_price ?? result.price);
+}
+
+function withinMaxPrice(result, maxPrice) {
+  return !maxPrice || resultPrice(result) <= maxPrice;
+}
+
 function isDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value || "");
 }
@@ -175,6 +183,9 @@ function buildScriptArgs(params) {
   if (params.returnBefore) {
     args.push("--return-before", params.returnBefore);
   }
+  if (params.maxPrice > 0) {
+    args.push("--max-price", String(params.maxPrice));
+  }
 
   return args;
 }
@@ -183,10 +194,11 @@ function requestParams(body) {
   const origin = normalizeOrigin(body.origin);
   const departureDate = String(body.departureDate || "");
   const returnDate = String(body.returnDate || "");
-  const maxStops = Number(body.maxStops ?? 1);
+  const maxStops = Number(body.maxStops ?? 0);
   const limit = Number(body.limit ?? 50);
   const waitMs = Number(body.waitMs ?? 18_000);
   const maxDurationMinutes = Number(body.maxDurationMinutes || 0);
+  const maxPrice = Number(body.maxPrice || 0);
   const includeDetails = body.includeDetails !== false;
   const outboundAfter = String(body.outboundAfter || "");
   const outboundBefore = String(body.outboundBefore || "");
@@ -216,6 +228,7 @@ function requestParams(body) {
     limit: Math.max(5, Math.min(limit, 50)),
     waitMs: Math.max(8_000, Math.min(waitMs, 30_000)),
     maxDurationMinutes,
+    maxPrice: Math.max(0, maxPrice),
     sort,
     includeDetails,
     detailLimit: Number(body.detailLimit || 50),
@@ -239,8 +252,12 @@ function finalizePayload(payload, params) {
         result.duration_minutes <= params.maxDurationMinutes
     );
   }
+  if (params.maxPrice > 0) {
+    results = results.filter((result) => withinMaxPrice(result, params.maxPrice));
+  }
 
   payload.max_duration_minutes = params.maxDurationMinutes || null;
+  payload.max_price = params.maxPrice || null;
   payload.results = results.slice(0, Math.max(5, Math.min(params.limit, 50)));
   payload.result_count = payload.results.length;
   return addCoordinates(payload);
@@ -357,9 +374,11 @@ app.post("/api/search-stream", (req, res) => {
         writeEvent({ type: "progress", message: line.slice(9) });
       } else if (line.startsWith("RESULT:")) {
         try {
+          const result = addResultCoordinates(JSON.parse(line.slice(7)));
+          if (!withinMaxPrice(result, params.maxPrice)) return;
           writeEvent({
             type: "partial-result",
-            result: addResultCoordinates(JSON.parse(line.slice(7))),
+            result,
           });
         } catch (error) {
           stderr += `Could not parse partial result: ${error.message}\n`;
@@ -384,10 +403,13 @@ app.post("/api/search-stream", (req, res) => {
       writeEvent({ type: "progress", message: stderrBuffer.slice(9) });
     } else if (stderrBuffer.startsWith("RESULT:")) {
       try {
-        writeEvent({
-          type: "partial-result",
-          result: addResultCoordinates(JSON.parse(stderrBuffer.slice(7))),
-        });
+        const result = addResultCoordinates(JSON.parse(stderrBuffer.slice(7)));
+        if (withinMaxPrice(result, params.maxPrice)) {
+          writeEvent({
+            type: "partial-result",
+            result,
+          });
+        }
       } catch (error) {
         stderr += `Could not parse partial result: ${error.message}\n`;
       }

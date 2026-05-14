@@ -6,7 +6,7 @@ const title = document.querySelector("#result-title");
 const eyebrow = document.querySelector("#eyebrow");
 const sourceLink = document.querySelector("#source-link");
 const mapEl = document.querySelector("#map");
-const storageKey = "flaneurs:anywhere-settings:v2";
+const storageKey = "flaneurs:anywhere-settings:v3";
 
 function formatLocalDate(date) {
   const year = date.getFullYear();
@@ -32,6 +32,13 @@ function nextWeekend() {
   };
 }
 
+function datePlusDays(value, days) {
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + days);
+  return formatLocalDate(date);
+}
+
 function formatDuration(minutes) {
   if (!Number.isFinite(minutes)) return "Duration unknown";
   const hours = Math.floor(minutes / 60);
@@ -54,6 +61,7 @@ function formPayload() {
     returnDate: data.get("returnDate"),
     maxStops: Number(data.get("maxStops")),
     maxDurationMinutes: Number(data.get("maxDurationMinutes")),
+    maxPrice: Number(data.get("maxPrice")) || 0,
     outboundAfter: data.get("outboundAfter"),
     returnBefore: data.get("returnBefore"),
     includeDetails: true,
@@ -119,8 +127,9 @@ function loadSettings() {
     origin: "Amsterdam",
     departureDate: defaults.departure,
     returnDate: defaults.returnDate,
-    maxStops: 1,
+    maxStops: 0,
     maxDurationMinutes: 0,
+    maxPrice: 0,
     outboundAfter: "12:00",
     returnBefore: "22:00",
     sort: "price",
@@ -143,10 +152,11 @@ function applySettings(settings) {
   document.querySelector("#origin").value = settings.origin || "Amsterdam";
   document.querySelector("#departureDate").value = settings.departureDate || "";
   document.querySelector("#returnDate").value = settings.returnDate || "";
-  document.querySelector("#maxStops").value = String(settings.maxStops ?? 1);
+  document.querySelector("#maxStops").value = String(settings.maxStops ?? 0);
   document.querySelector("#maxDurationMinutes").value = String(
     settings.maxDurationMinutes ?? 0
   );
+  document.querySelector("#maxPrice").value = settings.maxPrice || "";
   document.querySelector("#outboundAfter").value = settings.outboundAfter || "";
   document.querySelector("#returnBefore").value = settings.returnBefore || "";
   document.querySelector("#sort").value = settings.sort || "price";
@@ -229,14 +239,24 @@ function clearMapMarkers() {
   mapMarkers = [];
 }
 
-function addMapMarker({ lng, lat, className, html, popup }) {
+function addMapMarker({ lng, lat, className, html, popup, label }) {
   const element = document.createElement("div");
   element.className = `map-pin ${className}`;
   element.innerHTML = html;
+  element.title = label || stripHtml(popup);
+  element.setAttribute("role", "button");
+  element.setAttribute("aria-label", label || stripHtml(popup));
+  element.tabIndex = 0;
   const marker = new maplibregl.Marker({ element })
     .setLngLat([lng, lat])
     .setPopup(new maplibregl.Popup({ offset: 18 }).setHTML(popup))
     .addTo(map);
+  element.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      marker.togglePopup();
+    }
+  });
   mapMarkers.push(marker);
 }
 
@@ -296,6 +316,7 @@ function renderMap(payload) {
         className: "origin",
         html: "",
         popup: `<strong>${payload.origin}</strong><br>${origin.name}`,
+        label: `${payload.origin} origin`,
       });
       bounds.extend([origin.lng, origin.lat]);
     }
@@ -308,6 +329,7 @@ function renderMap(payload) {
         className: "destination",
         html: `<span>${result.currency} ${price}</span>`,
         popup: markerHtml(result),
+        label: `${result.destination}, ${result.currency} ${price}`,
       });
       bounds.extend([result.coordinates.lng, result.coordinates.lat]);
     });
@@ -453,6 +475,17 @@ form.addEventListener("submit", async (event) => {
 
 applySettings(loadSettings());
 
+function keepReturnAfterDeparture() {
+  const departure = document.querySelector("#departureDate");
+  const returnDate = document.querySelector("#returnDate");
+  if (departure.value && (!returnDate.value || returnDate.value <= departure.value)) {
+    returnDate.value = datePlusDays(departure.value, 1);
+  }
+}
+
+document.querySelector("#departureDate").addEventListener("change", keepReturnAfterDeparture);
+
 form.addEventListener("change", () => {
+  keepReturnAfterDeparture();
   saveSettings(formPayload());
 });
