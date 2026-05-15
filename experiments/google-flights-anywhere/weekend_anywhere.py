@@ -953,7 +953,7 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--sort", choices=["price", "duration", "page"], default="price")
     p.add_argument("--include-details", action="store_true")
     p.add_argument("--detail-limit", type=int, default=50)
-    p.add_argument("--options-per-destination", type=int, default=1)
+    p.add_argument("--options-per-destination", type=int, default=5)
     p.add_argument("--route-source", choices=["none", "flightsfrom"], default="none")
     p.add_argument("--route-source-limit", type=int, default=80)
     p.add_argument("--route-source-detail-limit", type=int, default=16)

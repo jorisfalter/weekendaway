@@ -156,7 +156,7 @@ function buildScriptArgs(params) {
   }
   args.push(
     "--options-per-destination",
-    String(Math.max(1, Math.min(params.optionsPerDestination || 1, 5)))
+    String(Math.max(1, Math.min(params.optionsPerDestination || 5, 5)))
   );
   if (params.routeSource && params.routeSource !== "none") {
     args.push(
@@ -207,7 +207,7 @@ function requestParams(body) {
   const sort = ["price", "duration", "page"].includes(body.sort)
     ? body.sort
     : "price";
-  const optionsPerDestination = Number(body.optionsPerDestination || 1);
+  const optionsPerDestination = Number(body.optionsPerDestination || 5);
   const routeSource = ["none", "flightsfrom"].includes(body.routeSource)
     ? body.routeSource
     : "flightsfrom";

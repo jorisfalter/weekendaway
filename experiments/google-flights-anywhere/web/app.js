@@ -6,7 +6,7 @@ const title = document.querySelector("#result-title");
 const eyebrow = document.querySelector("#eyebrow");
 const sourceLink = document.querySelector("#source-link");
 const mapEl = document.querySelector("#map");
-const storageKey = "flaneurs:anywhere-settings:v3";
+const storageKey = "flaneurs:anywhere-settings:v4";
 
 function formatLocalDate(date) {
   const year = date.getFullYear();
@@ -134,7 +134,7 @@ function loadSettings() {
     returnBefore: "22:00",
     sort: "price",
     limit: 50,
-    optionsPerDestination: 1,
+    optionsPerDestination: 5,
     routeSource: "flightsfrom",
   };
 
@@ -162,7 +162,7 @@ function applySettings(settings) {
   document.querySelector("#sort").value = settings.sort || "price";
   document.querySelector("#limit").value = String(settings.limit ?? 50);
   document.querySelector("#optionsPerDestination").value = String(
-    settings.optionsPerDestination ?? 1
+    settings.optionsPerDestination ?? 5
   );
   document.querySelector("#routeSource").value = settings.routeSource || "flightsfrom";
 }
