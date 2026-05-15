@@ -638,7 +638,12 @@ def enrich_result_with_details(
                 if option["return"].departure_airport in codes
             }
         )
-        pair_codes = seen_group_airports or codes[:4]
+        pair_codes = [
+            code
+            for code in [*seen_group_airports, *codes]
+            if code in codes
+        ]
+        pair_codes = list(dict.fromkeys(pair_codes))[:6]
         collect_one_way_mixed_options(pair_codes)
     else:
         for code in codes[:4]:
