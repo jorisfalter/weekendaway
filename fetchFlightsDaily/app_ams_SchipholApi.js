@@ -465,6 +465,7 @@ const fireItAllUp = async () => {
       } catch (error) {
         console.log("❌ Error disconnecting:", error.message);
       }
+      process.exit(0);
     }
   };
 
