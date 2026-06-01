@@ -6,7 +6,7 @@ const title = document.querySelector("#result-title");
 const eyebrow = document.querySelector("#eyebrow");
 const sourceLink = document.querySelector("#source-link");
 const mapEl = document.querySelector("#map");
-const storageKey = "flaneurs:anywhere-settings:v4";
+const storageKey = "flaneurs:anywhere-settings:v5";
 
 function formatLocalDate(date) {
   const year = date.getFullYear();
@@ -63,6 +63,8 @@ function formPayload() {
     maxDurationMinutes: Number(data.get("maxDurationMinutes")),
     maxPrice: Number(data.get("maxPrice")) || 0,
     outboundAfter: data.get("outboundAfter"),
+    outboundBefore: data.get("outboundBefore"),
+    returnAfter: data.get("returnAfter"),
     returnBefore: data.get("returnBefore"),
     includeDetails: true,
     detailLimit: Number(data.get("limit")),
@@ -131,6 +133,8 @@ function loadSettings() {
     maxDurationMinutes: 0,
     maxPrice: 0,
     outboundAfter: "12:00",
+    outboundBefore: "",
+    returnAfter: "",
     returnBefore: "22:00",
     sort: "price",
     limit: 50,
@@ -158,6 +162,8 @@ function applySettings(settings) {
   );
   document.querySelector("#maxPrice").value = settings.maxPrice || "";
   document.querySelector("#outboundAfter").value = settings.outboundAfter || "";
+  document.querySelector("#outboundBefore").value = settings.outboundBefore || "";
+  document.querySelector("#returnAfter").value = settings.returnAfter || "";
   document.querySelector("#returnBefore").value = settings.returnBefore || "";
   document.querySelector("#sort").value = settings.sort || "price";
   document.querySelector("#limit").value = String(settings.limit ?? 50);
@@ -478,7 +484,7 @@ applySettings(loadSettings());
 function keepReturnAfterDeparture() {
   const departure = document.querySelector("#departureDate");
   const returnDate = document.querySelector("#returnDate");
-  if (departure.value && (!returnDate.value || returnDate.value <= departure.value)) {
+  if (departure.value && (!returnDate.value || returnDate.value < departure.value)) {
     returnDate.value = datePlusDays(departure.value, 1);
   }
 }
