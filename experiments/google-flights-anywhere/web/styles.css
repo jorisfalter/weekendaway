@@ -159,6 +159,113 @@ select option {
   font-weight: 760;
 }
 
+.native-select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.custom-select {
+  position: relative;
+  min-width: 0;
+}
+
+button.select-trigger {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  padding: 0 10px;
+  background: #fffefa;
+  color: var(--ink);
+  box-shadow: 2px 2px 0 rgba(23, 21, 20, 0.12);
+  font-weight: 760;
+  text-align: left;
+}
+
+button.select-trigger:hover:not(:disabled),
+button.select-trigger:active:not(:disabled) {
+  transform: none;
+  background: var(--surface-hot);
+  box-shadow: 2px 2px 0 rgba(23, 21, 20, 0.12);
+}
+
+.select-arrow {
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  transform: translateY(-2px) rotate(45deg);
+  flex: 0 0 auto;
+}
+
+.custom-select.is-open .select-arrow {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.select-menu {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 3px;
+  padding: 6px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  background: #fffefa;
+  box-shadow: 4px 4px 0 var(--ink);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.select-menu[hidden] {
+  display: none;
+}
+
+button.select-option {
+  min-height: 34px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 0;
+  border-radius: 4px;
+  padding: 7px 9px;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: none;
+  font-size: 13px;
+  font-weight: 760;
+  text-align: left;
+}
+
+button.select-option:hover:not(:disabled),
+button.select-option:focus-visible,
+button.select-option.is-selected {
+  transform: none;
+  background: var(--surface-hot);
+  box-shadow: none;
+  outline: 0;
+}
+
+button.select-option span:last-child {
+  opacity: 0;
+}
+
+button.select-option.is-selected span:last-child {
+  opacity: 1;
+}
+
 input[type="date"],
 input[type="time"],
 input[type="number"] {
@@ -440,6 +547,10 @@ button:disabled {
       calc(100% - 18px) 50%,
       calc(100% - 13px) 50%,
       0 0;
+  }
+
+  button.select-trigger {
+    min-height: 44px;
   }
 
   .toolbar {

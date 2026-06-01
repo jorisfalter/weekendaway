@@ -164,6 +164,127 @@ function applySettings(settings) {
   );
 }
 
+function closeCustomSelects(except = null) {
+  document.querySelectorAll(".custom-select").forEach((customSelect) => {
+    if (customSelect === except) return;
+    customSelect.classList.remove("is-open");
+    customSelect.querySelector(".select-trigger")?.setAttribute("aria-expanded", "false");
+    customSelect.querySelector(".select-menu").hidden = true;
+  });
+}
+
+function enhanceSelects() {
+  document.querySelectorAll("select").forEach((select) => {
+    if (select.dataset.enhanced === "true") return;
+    select.dataset.enhanced = "true";
+    select.classList.add("native-select");
+
+    const customSelect = document.createElement("div");
+    customSelect.className = "custom-select";
+
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "select-trigger";
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+
+    const value = document.createElement("span");
+    value.className = "select-value";
+    const arrow = document.createElement("span");
+    arrow.className = "select-arrow";
+    arrow.setAttribute("aria-hidden", "true");
+    trigger.append(value, arrow);
+
+    const menu = document.createElement("div");
+    menu.className = "select-menu";
+    menu.setAttribute("role", "listbox");
+    menu.hidden = true;
+
+    const options = Array.from(select.options).map((option) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "select-option";
+      item.dataset.value = option.value;
+      item.setAttribute("role", "option");
+      item.innerHTML = `<span>${option.textContent}</span><span aria-hidden="true">&#10003;</span>`;
+      item.addEventListener("click", () => {
+        select.value = option.value;
+        select.dispatchEvent(new Event("input", { bubbles: true }));
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        closeCustomSelects();
+        trigger.focus();
+      });
+      item.addEventListener("keydown", (event) => {
+        const currentIndex = options.indexOf(item);
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeCustomSelects();
+          trigger.focus();
+        } else if (event.key === "ArrowDown") {
+          event.preventDefault();
+          options[Math.min(currentIndex + 1, options.length - 1)].focus();
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          options[Math.max(currentIndex - 1, 0)].focus();
+        }
+      });
+      menu.append(item);
+      return item;
+    });
+
+    function update() {
+      const selected = select.selectedOptions[0];
+      value.textContent = selected?.textContent || "";
+      options.forEach((item) => {
+        const isSelected = item.dataset.value === select.value;
+        item.classList.toggle("is-selected", isSelected);
+        item.setAttribute("aria-selected", String(isSelected));
+      });
+    }
+
+    function openMenu() {
+      closeCustomSelects(customSelect);
+      customSelect.classList.add("is-open");
+      trigger.setAttribute("aria-expanded", "true");
+      menu.hidden = false;
+    }
+
+    function toggleMenu() {
+      if (customSelect.classList.contains("is-open")) {
+        closeCustomSelects();
+      } else {
+        openMenu();
+      }
+    }
+
+    trigger.addEventListener("click", toggleMenu);
+    trigger.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        openMenu();
+        const selectedIndex = Math.max(
+          0,
+          options.findIndex((item) => item.dataset.value === select.value)
+        );
+        options[selectedIndex].focus();
+      } else if (event.key === "Escape") {
+        closeCustomSelects();
+      }
+    });
+
+    select.addEventListener("change", update);
+    customSelect.append(trigger, menu);
+    select.after(customSelect);
+    update();
+  });
+}
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".custom-select")) {
+    closeCustomSelects();
+  }
+});
+
 function stripHtml(raw) {
   return raw.replace(/<br>/g, " ").replace(/<[^>]+>/g, "");
 }
@@ -471,6 +592,7 @@ form.addEventListener("submit", async (event) => {
 });
 
 applySettings(loadSettings());
+enhanceSelects();
 
 function syncDateConstraints() {
   const departure = document.querySelector("#departureDate");
