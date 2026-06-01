@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import contextlib
 import io
 import json
@@ -19,10 +20,11 @@ from google_flights import (
     FlightData,
     Passengers,
     create_filter,
-    get_one_way_options,
+    get_flights_from_filter,
     get_round_trip_options,
     search_airport,
 )
+from google_flights.main import get_booking_url
 from playwright.sync_api import Page, TimeoutError, sync_playwright
 
 # Bridge the Playwright consent flow to the google_flights HTTP client.
@@ -92,6 +94,7 @@ CITY_AIRPORT_GROUPS = {
     "BARCELONA": ["BCN", "GRO", "REU"],
     "BCN": ["BCN", "GRO", "REU"],
 }
+ONE_WAY_PAIR_OPTION_LIMIT = 24
 
 
 def emit_progress(enabled: bool, message: str) -> None:
@@ -486,6 +489,81 @@ def option_total_price(option: dict) -> float:
     return option["outbound"].itinerary_summary.price or 10_000_000
 
 
+def itinerary_key(itinerary) -> tuple:
+    return tuple(
+        (
+            flight.departure_airport,
+            flight.arrival_airport,
+            tuple(flight.departure_date or []),
+            tuple(flight.departure_time or []),
+            flight.airline,
+            flight.flight_number,
+        )
+        for flight in itinerary.flights
+    )
+
+
+def selected_one_way_filter(option: dict):
+    flight_filter = copy.deepcopy(option["filter"])
+    flight_filter.flight_data[0].itin_data = []
+    for leg in option["flight"].flights:
+        flight_filter.flight_data[0].itin_data.append(
+            {
+                "departure_airport": leg.departure_airport,
+                "arrival_airport": leg.arrival_airport,
+                "departure_date": (
+                    f"{leg.departure_date[0]}-"
+                    f"{leg.departure_date[1]:02d}-"
+                    f"{leg.departure_date[2]:02d}"
+                ),
+                "flight_code": leg.airline,
+                "flight_number": leg.flight_number,
+            }
+        )
+    return flight_filter
+
+
+def one_way_booking_url(option: dict, *, currency: str, language: str) -> str | None:
+    try:
+        return get_booking_url(
+            selected_one_way_filter(option),
+            currency=currency,
+            language=language,
+        )
+    except Exception:
+        return None
+
+
+def get_one_way_pair_options(
+    one_way_filter,
+    *,
+    currency: str,
+    language: str,
+) -> list[dict]:
+    response = get_flights_from_filter(
+        one_way_filter,
+        currency=currency,
+        language=language,
+    )
+    if response is None:
+        return []
+    if response.other is None and response.best is None:
+        return []
+
+    itineraries = [*(response.best or []), *(response.other or [])]
+    options: list[dict] = []
+    seen: set[tuple] = set()
+    for flight in itineraries:
+        key = itinerary_key(flight)
+        if key in seen:
+            continue
+        seen.add(key)
+        options.append({"flight": flight, "filter": one_way_filter})
+        if len(options) >= ONE_WAY_PAIR_OPTION_LIMIT:
+            break
+    return options
+
+
 def enrich_result_with_details(
     result: ExploreResult,
     *,
@@ -567,11 +645,11 @@ def enrich_result_with_details(
             )
         )
 
-    def collect_one_way_mixed_options(pair_codes: list[str]) -> None:
-        one_way_options: dict[tuple[str, str], list[dict]] = {}
+    def collect_one_way_pair_options(pair_codes: list[str]) -> None:
+        one_way_options: dict[tuple[str, str, str], list[dict]] = {}
 
         def get_one_way(origin_code: str, destination_code: str, flight_date: str) -> list[dict]:
-            key = (origin_code, destination_code)
+            key = (origin_code, destination_code, flight_date)
             if key in one_way_options:
                 return one_way_options[key]
 
@@ -590,7 +668,7 @@ def enrich_result_with_details(
             )
             try:
                 with contextlib.redirect_stdout(io.StringIO()):
-                    raw_options = get_one_way_options(
+                    raw_options = get_one_way_pair_options(
                         one_way_filter,
                         currency=currency,
                         language=language,
@@ -598,14 +676,12 @@ def enrich_result_with_details(
             except Exception:
                 raw_options = []
 
-            one_way_options[key] = raw_options[:4]
+            one_way_options[key] = raw_options
             return one_way_options[key]
 
         for outbound_code in pair_codes:
             outbound_options = get_one_way(origin, outbound_code, departure_date)
             for return_code in pair_codes:
-                if outbound_code == return_code:
-                    continue
                 return_options = get_one_way(return_code, origin, return_date)
                 for outbound_option in outbound_options:
                     for return_option in return_options:
@@ -619,9 +695,9 @@ def enrich_result_with_details(
                             "outbound": outbound,
                             "return": return_flight,
                             "price": outbound_price + return_price,
-                            "url": outbound_option.get("url"),
-                            "return_url": return_option.get("url"),
-                            "mixed_airports": True,
+                            "outbound_one_way": outbound_option,
+                            "return_one_way": return_option,
+                            "mixed_airports": outbound_code != return_code,
                         }
                         if option_passes_time_filters(
                             combined,
@@ -655,10 +731,12 @@ def enrich_result_with_details(
             if code in codes
         ]
         pair_codes = list(dict.fromkeys(pair_codes))[:6]
-        collect_one_way_mixed_options(pair_codes)
+        collect_one_way_pair_options(pair_codes)
     else:
         for code in codes[:4]:
             collect_matching_options([code], [code])
+            if departure_date == return_date:
+                collect_one_way_pair_options([code])
 
     if not matching_options:
         result.detail_error = last_error
@@ -717,8 +795,20 @@ def enrich_result_with_details(
         option_result.outbound_arrival_time = format_time(outbound.arrival_time)
         option_result.return_departure_time = format_time(return_flight.departure_time)
         option_result.return_arrival_time = format_time(return_flight.arrival_time)
-        option_result.booking_url = selected.get("url")
-        option_result.return_booking_url = selected.get("return_url")
+        if selected.get("outbound_one_way") and selected.get("return_one_way"):
+            option_result.booking_url = one_way_booking_url(
+                selected["outbound_one_way"],
+                currency=currency,
+                language=language,
+            )
+            option_result.return_booking_url = one_way_booking_url(
+                selected["return_one_way"],
+                currency=currency,
+                language=language,
+            )
+        else:
+            option_result.booking_url = selected.get("url")
+            option_result.return_booking_url = selected.get("return_url")
         option_result.detail_error = None
         detailed_results.append(option_result)
         if len(detailed_results) >= options_per_destination:

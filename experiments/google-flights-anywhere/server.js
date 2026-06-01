@@ -165,7 +165,7 @@ function buildScriptArgs(params) {
       "--route-source-limit",
       String(Math.max(10, Math.min(params.routeSourceLimit || 80, 200))),
       "--route-source-detail-limit",
-      String(Math.max(1, Math.min(params.routeSourceDetailLimit || 16, 40)))
+      String(Math.max(1, Math.min(params.routeSourceDetailLimit || 50, 80)))
     );
   }
   if (params.progress) {
@@ -235,7 +235,7 @@ function requestParams(body) {
     optionsPerDestination: Math.max(1, Math.min(optionsPerDestination, 10)),
     routeSource,
     routeSourceLimit: Number(body.routeSourceLimit || 80),
-    routeSourceDetailLimit: Number(body.routeSourceDetailLimit || 16),
+    routeSourceDetailLimit: Number(body.routeSourceDetailLimit || 50),
     outboundAfter,
     outboundBefore,
     returnAfter,

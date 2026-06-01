@@ -64,7 +64,7 @@ function formPayload() {
     optionsPerDestination: Number(data.get("optionsPerDestination")),
     routeSource: "flightsfrom",
     routeSourceLimit: 80,
-    routeSourceDetailLimit: 16,
+    routeSourceDetailLimit: 50,
     sort: data.get("sort"),
     limit: Number(data.get("limit")),
   };
