@@ -156,7 +156,7 @@ function buildScriptArgs(params) {
   }
   args.push(
     "--options-per-destination",
-    String(Math.max(1, Math.min(params.optionsPerDestination || 5, 5)))
+    String(Math.max(1, Math.min(params.optionsPerDestination || 5, 10)))
   );
   if (params.routeSource && params.routeSource !== "none") {
     args.push(
@@ -232,7 +232,7 @@ function requestParams(body) {
     sort,
     includeDetails,
     detailLimit: Number(body.detailLimit || 50),
-    optionsPerDestination: Math.max(1, Math.min(optionsPerDestination, 5)),
+    optionsPerDestination: Math.max(1, Math.min(optionsPerDestination, 10)),
     routeSource,
     routeSourceLimit: Number(body.routeSourceLimit || 80),
     routeSourceDetailLimit: Number(body.routeSourceDetailLimit || 16),

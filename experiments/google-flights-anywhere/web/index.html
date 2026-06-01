@@ -93,6 +93,11 @@
           </label>
 
           <label>
+            Max price
+            <input id="maxPrice" name="maxPrice" type="number" min="0" step="10" placeholder="Any price" />
+          </label>
+
+          <label>
             Leave after
             <input id="outboundAfter" name="outboundAfter" type="time" value="12:00" />
           </label>
@@ -118,17 +123,13 @@
           </label>
 
           <label>
-            Max price
-            <input id="maxPrice" name="maxPrice" type="number" min="0" step="10" placeholder="Any price" />
-          </label>
-
-          <label>
             Options per city
             <select id="optionsPerDestination" name="optionsPerDestination">
               <option value="1">Best option</option>
               <option value="2">Up to 2</option>
               <option value="3">Up to 3</option>
               <option value="5" selected>Up to 5</option>
+              <option value="10">Up to 10</option>
             </select>
           </label>
 
