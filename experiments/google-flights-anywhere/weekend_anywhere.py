@@ -432,18 +432,29 @@ def option_passes_time_filters(
     outbound = option["outbound"]
     return_flight = option["return"]
     outbound_departure = minutes_from_time(outbound.departure_time)
+    outbound_arrival = minutes_from_time(outbound.arrival_time)
+    return_departure = minutes_from_time(return_flight.departure_time)
     return_arrival = minutes_from_time(return_flight.arrival_time)
     outbound_stops = len(outbound.layovers or [])
     return_stops = len(return_flight.layovers or [])
     outbound_departure_date = date_tuple_to_iso(outbound.departure_date)
+    outbound_arrival_date = date_tuple_to_iso(outbound.arrival_date)
     return_departure_date = date_tuple_to_iso(return_flight.departure_date)
     return_arrival_date = date_tuple_to_iso(return_flight.arrival_date)
 
     if outbound_departure_date != departure_date:
         return False
+    if outbound_arrival_date != departure_date:
+        return False
     if return_departure_date != return_date:
         return False
     if return_arrival_date != return_date:
+        return False
+    if departure_date == return_date and (
+        outbound_arrival is None
+        or return_departure is None
+        or outbound_arrival > return_departure
+    ):
         return False
     if max_stops is not None and (
         outbound_stops > max_stops or return_stops > max_stops
