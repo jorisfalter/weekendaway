@@ -62,7 +62,7 @@ function formPayload() {
     includeDetails: true,
     detailLimit: Number(data.get("limit")),
     optionsPerDestination: Number(data.get("optionsPerDestination")),
-    routeSource: data.get("routeSource"),
+    routeSource: "flightsfrom",
     routeSourceLimit: 80,
     routeSourceDetailLimit: 16,
     sort: data.get("sort"),
@@ -132,7 +132,6 @@ function loadSettings() {
     sort: "price",
     limit: 50,
     optionsPerDestination: 5,
-    routeSource: "flightsfrom",
   };
 
   try {
@@ -163,7 +162,6 @@ function applySettings(settings) {
   document.querySelector("#optionsPerDestination").value = String(
     settings.optionsPerDestination ?? 5
   );
-  document.querySelector("#routeSource").value = settings.routeSource || "flightsfrom";
 }
 
 function stripHtml(raw) {
