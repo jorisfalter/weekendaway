@@ -7,6 +7,44 @@ const eyebrow = document.querySelector("#eyebrow");
 const sourceLink = document.querySelector("#source-link");
 const mapEl = document.querySelector("#map");
 const storageKey = "flaneurs:anywhere-settings:v6";
+const originInput = document.querySelector("#origin");
+const originCodeInput = document.querySelector("#originCode");
+const originSuggestionsEl = document.querySelector("#origin-suggestions");
+const originDisplayNames = {
+  AMS: "Amsterdam",
+  EIN: "Eindhoven",
+  RTM: "Rotterdam",
+  DUS: "Düsseldorf",
+  CGN: "Cologne",
+  BRU: "Brussels",
+  CRL: "Charleroi",
+  BER: "Berlin",
+  LON: "London",
+  PAR: "Paris",
+  MIL: "Milan",
+  BKK: "Bangkok",
+  DMK: "Bangkok Don Mueang",
+  TYO: "Tokyo",
+  SEL: "Seoul",
+  SHA: "Shanghai",
+  BJS: "Beijing",
+  TPE: "Taipei",
+  JKT: "Jakarta",
+  KUL: "Kuala Lumpur",
+  DXB: "Dubai",
+  NYC: "New York",
+  LAX: "Los Angeles",
+  CHI: "Chicago",
+  WAS: "Washington",
+  SFO: "San Francisco",
+  MIA: "Miami",
+  YTO: "Toronto",
+  YMQ: "Montreal",
+  SAO: "São Paulo",
+  RIO: "Rio de Janeiro",
+  BUE: "Buenos Aires",
+  MEL: "Melbourne",
+};
 
 function formatLocalDate(date) {
   const year = date.getFullYear();
@@ -48,8 +86,10 @@ function setStatus(message, tone = "") {
 
 function formPayload() {
   const data = new FormData(form);
+  const originLabel = originInput.value.trim();
   return {
-    origin: data.get("origin"),
+    origin: originCodeInput.value || originLabel,
+    originLabel,
     departureDate: data.get("departureDate"),
     returnDate: data.get("returnDate"),
     maxStops: Number(data.get("maxStops")),
@@ -145,7 +185,9 @@ function loadSettings() {
 }
 
 function applySettings(settings) {
-  document.querySelector("#origin").value = settings.origin || "Amsterdam";
+  const origin = settings.origin || "AMS";
+  originInput.value = settings.originLabel || originDisplayNames[origin] || origin || "Amsterdam";
+  originCodeInput.value = /^[A-Z0-9]{3}$/.test(origin) ? origin : "";
   document.querySelector("#departureDate").value = settings.departureDate || "";
   document.querySelector("#returnDate").value = settings.returnDate || "";
   document.querySelector("#maxStops").value = String(settings.maxStops ?? 0);
@@ -279,9 +321,114 @@ function enhanceSelects() {
   });
 }
 
+let originSuggestions = [];
+let activeOriginSuggestion = -1;
+let originRequestId = 0;
+
+function closeOriginSuggestions() {
+  originSuggestionsEl.hidden = true;
+  originInput.setAttribute("aria-expanded", "false");
+  activeOriginSuggestion = -1;
+}
+
+function setActiveOriginSuggestion(index) {
+  activeOriginSuggestion = index;
+  originSuggestionsEl.querySelectorAll(".autocomplete-option").forEach((option, optionIndex) => {
+    const active = optionIndex === activeOriginSuggestion;
+    option.classList.toggle("is-active", active);
+    option.setAttribute("aria-selected", String(active));
+  });
+}
+
+function chooseOriginSuggestion(suggestion) {
+  originInput.value = suggestion.label;
+  originCodeInput.value = suggestion.code;
+  closeOriginSuggestions();
+  saveSettings(formPayload());
+  originInput.focus();
+}
+
+function renderOriginSuggestions(suggestions) {
+  originSuggestions = suggestions;
+  originSuggestionsEl.replaceChildren();
+
+  if (!suggestions.length) {
+    const empty = document.createElement("div");
+    empty.className = "autocomplete-empty";
+    empty.textContent = "No airport found. A 3-letter IATA code still works.";
+    originSuggestionsEl.append(empty);
+    originSuggestionsEl.hidden = false;
+    originInput.setAttribute("aria-expanded", "true");
+    return;
+  }
+
+  suggestions.forEach((suggestion, index) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "autocomplete-option";
+    option.setAttribute("role", "option");
+    option.setAttribute("aria-selected", "false");
+    const label = document.createElement("strong");
+    label.textContent = suggestion.label;
+    const detail = document.createElement("span");
+    detail.textContent = suggestion.detail || suggestion.code;
+    option.append(label, detail);
+    option.addEventListener("mousedown", (event) => event.preventDefault());
+    option.addEventListener("click", () => chooseOriginSuggestion(suggestion));
+    option.addEventListener("mouseenter", () => setActiveOriginSuggestion(index));
+    originSuggestionsEl.append(option);
+  });
+
+  originSuggestionsEl.hidden = false;
+  originInput.setAttribute("aria-expanded", "true");
+  setActiveOriginSuggestion(-1);
+}
+
+async function fetchOriginSuggestions(query) {
+  const requestId = ++originRequestId;
+  const response = await fetch(`/api/origins?q=${encodeURIComponent(query)}`);
+  if (!response.ok || requestId !== originRequestId) return;
+  const payload = await response.json();
+  if (requestId !== originRequestId) return;
+  renderOriginSuggestions(payload.suggestions || []);
+}
+
+function enhanceOriginAutocomplete() {
+  originInput.addEventListener("focus", () => {
+    fetchOriginSuggestions(originInput.value);
+  });
+  originInput.addEventListener("input", () => {
+    originCodeInput.value = "";
+    fetchOriginSuggestions(originInput.value);
+  });
+  originInput.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (originSuggestionsEl.hidden) {
+        fetchOriginSuggestions(originInput.value);
+        return;
+      }
+      setActiveOriginSuggestion(
+        Math.min(activeOriginSuggestion + 1, originSuggestions.length - 1)
+      );
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveOriginSuggestion(Math.max(activeOriginSuggestion - 1, 0));
+    } else if (event.key === "Enter" && !originSuggestionsEl.hidden && activeOriginSuggestion >= 0) {
+      event.preventDefault();
+      chooseOriginSuggestion(originSuggestions[activeOriginSuggestion]);
+    } else if (event.key === "Escape") {
+      closeOriginSuggestions();
+    }
+  });
+}
+
 document.addEventListener("click", (event) => {
   if (!event.target.closest(".custom-select")) {
     closeCustomSelects();
+  }
+  if (!event.target.closest("#origin-autocomplete")) {
+    closeOriginSuggestions();
   }
 });
 
@@ -467,7 +614,8 @@ function renderResults(payload) {
   grid.classList.toggle("empty", results.length === 0);
   grid.innerHTML = "";
 
-  eyebrow.textContent = `${payload.origin} · ${payload.departure_date} to ${payload.return_date}`;
+  const originLabel = payload.origin_label || payload.origin;
+  eyebrow.textContent = `${originLabel} · ${payload.departure_date} to ${payload.return_date}`;
   title.textContent = payload.loading
     ? `Hunting exits${results.length ? ` (${results.length} found)` : ""}`
     : `${results.length} escape routes`;
@@ -543,6 +691,7 @@ form.addEventListener("submit", async (event) => {
   submit.disabled = true;
   const partialPayload = {
     origin: payload.origin,
+    origin_label: payload.originLabel,
     departure_date: payload.departureDate,
     return_date: payload.returnDate,
     url: "",
@@ -593,6 +742,7 @@ form.addEventListener("submit", async (event) => {
 
 applySettings(loadSettings());
 enhanceSelects();
+enhanceOriginAutocomplete();
 
 function syncDateConstraints() {
   const departure = document.querySelector("#departureDate");

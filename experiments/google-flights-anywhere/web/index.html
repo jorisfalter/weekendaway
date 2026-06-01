@@ -20,37 +20,22 @@
             <span>No fixed destination. Only flights that fit.</span>
           </div>
 
-          <label>
+          <label class="origin-field">
             Origin
-            <input
-              id="origin"
-              name="origin"
-              value="Amsterdam"
-              list="origin-options"
-              autocomplete="off"
-            />
-            <datalist id="origin-options">
-              <option value="Amsterdam"></option>
-              <option value="Eindhoven"></option>
-              <option value="Rotterdam"></option>
-              <option value="Düsseldorf"></option>
-              <option value="Cologne"></option>
-              <option value="Brussels"></option>
-              <option value="Charleroi"></option>
-              <option value="London"></option>
-              <option value="Paris"></option>
-              <option value="Milan"></option>
-              <option value="AMS"></option>
-              <option value="EIN"></option>
-              <option value="RTM"></option>
-              <option value="DUS"></option>
-              <option value="CGN"></option>
-              <option value="BRU"></option>
-              <option value="CRL"></option>
-              <option value="LON"></option>
-              <option value="PAR"></option>
-              <option value="MIL"></option>
-            </datalist>
+            <div class="autocomplete" id="origin-autocomplete">
+              <input
+                id="origin"
+                name="originDisplay"
+                value="Amsterdam"
+                autocomplete="off"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded="false"
+                aria-controls="origin-suggestions"
+              />
+              <input id="originCode" name="origin" type="hidden" value="AMS" />
+              <div id="origin-suggestions" class="autocomplete-menu" role="listbox" hidden></div>
+            </div>
           </label>
 
           <label>

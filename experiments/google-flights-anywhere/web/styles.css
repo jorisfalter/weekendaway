@@ -76,6 +76,11 @@ select {
   grid-column: 1 / -1;
 }
 
+.autocomplete {
+  position: relative;
+  min-width: 0;
+}
+
 .brand p,
 .toolbar p,
 .status {
@@ -264,6 +269,78 @@ button.select-option span:last-child {
 
 button.select-option.is-selected span:last-child {
   opacity: 1;
+}
+
+.autocomplete-menu {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 3px;
+  max-height: min(360px, calc(100vh - 120px));
+  overflow-y: auto;
+  padding: 6px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  background: #fffefa;
+  box-shadow: 4px 4px 0 var(--ink);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.autocomplete-menu[hidden] {
+  display: none;
+}
+
+button.autocomplete-option {
+  min-height: 40px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 0;
+  border-radius: 4px;
+  padding: 7px 9px;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: none;
+  font-size: 14px;
+  text-align: left;
+}
+
+button.autocomplete-option:hover:not(:disabled),
+button.autocomplete-option:focus-visible,
+button.autocomplete-option.is-active {
+  transform: none;
+  background: var(--surface-hot);
+  box-shadow: none;
+  outline: 0;
+}
+
+button.autocomplete-option strong,
+button.autocomplete-option span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.autocomplete-option strong {
+  font-weight: 850;
+}
+
+button.autocomplete-option span,
+.autocomplete-empty {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.autocomplete-empty {
+  padding: 10px;
 }
 
 input[type="date"],

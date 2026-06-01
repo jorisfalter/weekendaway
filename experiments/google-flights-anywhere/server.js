@@ -24,6 +24,45 @@ const coordinateFallbacks = {
   LON: { code: "LON", name: "London", lat: 51.5074, lng: -0.1278 },
   MIL: { code: "MIL", name: "Milan", lat: 45.4642, lng: 9.19 },
 };
+
+const preferredOriginSuggestions = [
+  { label: "Amsterdam", code: "AMS" },
+  { label: "Eindhoven", code: "EIN" },
+  { label: "Rotterdam", code: "RTM" },
+  { label: "Düsseldorf", code: "DUS" },
+  { label: "Cologne", code: "CGN" },
+  { label: "Brussels", code: "BRU" },
+  { label: "Charleroi", code: "CRL" },
+  { label: "Berlin", code: "BER" },
+  { label: "London", code: "LON" },
+  { label: "Paris", code: "PAR" },
+  { label: "Milan", code: "MIL" },
+  { label: "Barcelona", code: "BCN" },
+  { label: "Rome", code: "ROM" },
+  { label: "Bangkok", code: "BKK" },
+  { label: "Bangkok Don Mueang", code: "DMK" },
+  { label: "Tokyo", code: "TYO" },
+  { label: "Seoul", code: "SEL" },
+  { label: "Shanghai", code: "SHA" },
+  { label: "Beijing", code: "BJS" },
+  { label: "Taipei", code: "TPE" },
+  { label: "Jakarta", code: "JKT" },
+  { label: "Kuala Lumpur", code: "KUL" },
+  { label: "Dubai", code: "DXB" },
+  { label: "New York", code: "NYC" },
+  { label: "Los Angeles", code: "LAX" },
+  { label: "Chicago", code: "CHI" },
+  { label: "Washington", code: "WAS" },
+  { label: "San Francisco", code: "SFO" },
+  { label: "Miami", code: "MIA" },
+  { label: "Toronto", code: "YTO" },
+  { label: "Montreal", code: "YMQ" },
+  { label: "São Paulo", code: "SAO" },
+  { label: "Rio de Janeiro", code: "RIO" },
+  { label: "Buenos Aires", code: "BUE" },
+  { label: "Melbourne", code: "MEL" },
+];
+
 const originAliases = {
   AMSTERDAM: "AMS",
   AMS: "AMS",
@@ -52,7 +91,72 @@ const originAliases = {
   PAR: "PAR",
   MILAN: "MIL",
   MIL: "MIL",
+  BERLIN: "BER",
+  BER: "BER",
+  BANGKOK: "BKK",
+  "BANGKOK SUVARNABHUMI": "BKK",
+  "BANGKOK DON MUEANG": "DMK",
+  DMK: "DMK",
+  TOKYO: "TYO",
+  TYO: "TYO",
+  SEOUL: "SEL",
+  SEL: "SEL",
+  SHANGHAI: "SHA",
+  SHA: "SHA",
+  BEIJING: "BJS",
+  BJS: "BJS",
+  TAIPEI: "TPE",
+  TPE: "TPE",
+  JAKARTA: "JKT",
+  JKT: "JKT",
+  "KUALA LUMPUR": "KUL",
+  KUL: "KUL",
+  DUBAI: "DXB",
+  DXB: "DXB",
+  "NEW YORK": "NYC",
+  NYC: "NYC",
+  "LOS ANGELES": "LAX",
+  LAX: "LAX",
+  CHICAGO: "CHI",
+  CHI: "CHI",
+  WASHINGTON: "WAS",
+  WAS: "WAS",
+  "SAN FRANCISCO": "SFO",
+  SFO: "SFO",
+  MIAMI: "MIA",
+  MIA: "MIA",
+  TORONTO: "YTO",
+  YTO: "YTO",
+  MONTREAL: "YMQ",
+  YMQ: "YMQ",
+  "SAO PAULO": "SAO",
+  "SÃO PAULO": "SAO",
+  SAO: "SAO",
+  "RIO DE JANEIRO": "RIO",
+  RIO: "RIO",
+  "BUENOS AIRES": "BUE",
+  BUE: "BUE",
+  MELBOURNE: "MEL",
+  MEL: "MEL",
 };
+
+function normalizeSearchKey(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, " ")
+    .trim();
+}
+
+const normalizedOriginAliases = Object.fromEntries(
+  Object.entries(originAliases).map(([name, code]) => [normalizeSearchKey(name), code])
+);
+
+preferredOriginSuggestions.forEach((suggestion) => {
+  normalizedOriginAliases[normalizeSearchKey(suggestion.label)] = suggestion.code;
+  normalizedOriginAliases[suggestion.code] = suggestion.code;
+});
 
 app.use(express.json());
 app.use(express.static(publicDir));
@@ -77,6 +181,90 @@ function findAirportCoordinates(code) {
     lat: airport[2],
     lng: airport[3],
   };
+}
+
+function validAirport(entry) {
+  return (
+    entry &&
+    /^[A-Z0-9]{3}$/.test(String(entry[0] || "")) &&
+    String(entry[1] || "").trim()
+  );
+}
+
+function airportSuggestion(entry) {
+  return {
+    label: entry[1],
+    code: entry[0],
+    detail: entry[0],
+  };
+}
+
+function originSearchScore(suggestion, queryKey) {
+  const codeKey = normalizeSearchKey(suggestion.code);
+  const labelKey = normalizeSearchKey(suggestion.label);
+  if (codeKey === queryKey) return 0;
+  if (labelKey === queryKey) return 1;
+  if (suggestion.preferred && labelKey.startsWith(queryKey)) return 2;
+  if (labelKey.startsWith(queryKey)) return 3;
+  if (codeKey.startsWith(queryKey)) return 4;
+  if (labelKey.includes(` ${queryKey}`)) return 4;
+  if (labelKey.includes(queryKey)) return 5;
+  return 99;
+}
+
+function searchOrigins(query, limit = 12) {
+  const queryKey = normalizeSearchKey(query);
+  if (!queryKey) {
+    return preferredOriginSuggestions.slice(0, limit).map((suggestion) => ({
+      ...suggestion,
+      detail: suggestion.detail || suggestion.code,
+    }));
+  }
+
+  const suggestions = [
+    ...preferredOriginSuggestions.map((suggestion, index) => ({
+      ...suggestion,
+      preferred: true,
+      rank: index,
+    })),
+    ...airports.filter(validAirport).map((entry, index) => ({
+      ...airportSuggestion(entry),
+      preferred: false,
+      rank: preferredOriginSuggestions.length + index,
+    })),
+  ]
+    .map((suggestion) => ({
+      ...suggestion,
+      detail: suggestion.detail || suggestion.code,
+      score: originSearchScore(suggestion, queryKey),
+    }))
+    .filter((suggestion) => suggestion.score < 99)
+    .sort((a, b) => a.score - b.score || a.rank - b.rank || a.label.localeCompare(b.label));
+
+  const seen = new Set();
+  return suggestions
+    .filter((suggestion) => {
+      const key = `${suggestion.label}:${suggestion.code}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit)
+    .map(({ score, preferred, rank, ...suggestion }) => suggestion);
+}
+
+function findOriginCode(value) {
+  const raw = String(value || "AMS").trim();
+  const key = normalizeSearchKey(raw);
+  if (normalizedOriginAliases[key]) return normalizedOriginAliases[key];
+  if (/^[A-Z0-9]{3}$/.test(key)) return key;
+
+  const exactAirport = airports
+    .filter(validAirport)
+    .find((entry) => normalizeSearchKey(entry[1]) === key);
+  if (exactAirport) return exactAirport[0];
+
+  return null;
 }
 
 function addCoordinates(payload) {
@@ -121,10 +309,8 @@ function isDate(value) {
 }
 
 function normalizeOrigin(value) {
-  const raw = String(value || "AMS").trim();
-  const key = raw.toUpperCase();
-  if (originAliases[key]) return originAliases[key];
-  if (/^[A-Z]{3}$/.test(key)) return key;
+  const origin = findOriginCode(value);
+  if (origin) return origin;
   throw new Error("Origin must be a known city or a 3-letter IATA code.");
 }
 
@@ -192,6 +378,7 @@ function buildScriptArgs(params) {
 
 function requestParams(body) {
   const origin = normalizeOrigin(body.origin);
+  const originLabel = String(body.originLabel || body.origin || origin).trim();
   const departureDate = String(body.departureDate || "");
   const returnDate = String(body.returnDate || "");
   const maxStops = Number(body.maxStops ?? 0);
@@ -231,6 +418,7 @@ function requestParams(body) {
     maxPrice: Math.max(0, maxPrice),
     sort,
     includeDetails,
+    originLabel,
     detailLimit: Number(body.detailLimit || 50),
     optionsPerDestination: Math.max(1, Math.min(optionsPerDestination, 10)),
     routeSource,
@@ -258,6 +446,7 @@ function finalizePayload(payload, params) {
 
   payload.max_duration_minutes = params.maxDurationMinutes || null;
   payload.max_price = params.maxPrice || null;
+  payload.origin_label = params.originLabel || payload.origin;
   payload.results = results.slice(0, Math.max(5, Math.min(params.limit, 50)));
   payload.result_count = payload.results.length;
   return addCoordinates(payload);
@@ -318,6 +507,12 @@ app.post("/api/search", async (req, res) => {
       error: error.message,
     });
   }
+});
+
+app.get("/api/origins", (req, res) => {
+  res.json({
+    suggestions: searchOrigins(req.query.q || ""),
+  });
 });
 
 app.post("/api/search-stream", (req, res) => {
