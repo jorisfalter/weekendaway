@@ -6,7 +6,7 @@ const title = document.querySelector("#result-title");
 const eyebrow = document.querySelector("#eyebrow");
 const sourceLink = document.querySelector("#source-link");
 const mapEl = document.querySelector("#map");
-const storageKey = "flaneurs:anywhere-settings:v5";
+const storageKey = "flaneurs:anywhere-settings:v6";
 
 function formatLocalDate(date) {
   const year = date.getFullYear();
@@ -30,13 +30,6 @@ function nextWeekend() {
     departure: formatLocalDate(friday),
     returnDate: formatLocalDate(sunday),
   };
-}
-
-function datePlusDays(value, days) {
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  date.setDate(date.getDate() + days);
-  return formatLocalDate(date);
 }
 
 function formatDuration(minutes) {
@@ -481,17 +474,22 @@ form.addEventListener("submit", async (event) => {
 
 applySettings(loadSettings());
 
-function keepReturnAfterDeparture() {
+function syncDateConstraints() {
   const departure = document.querySelector("#departureDate");
   const returnDate = document.querySelector("#returnDate");
+  returnDate.min = departure.value || "";
   if (departure.value && (!returnDate.value || returnDate.value < departure.value)) {
-    returnDate.value = datePlusDays(departure.value, 1);
+    returnDate.value = departure.value;
   }
 }
 
-document.querySelector("#departureDate").addEventListener("change", keepReturnAfterDeparture);
+document.querySelector("#departureDate").addEventListener("change", syncDateConstraints);
 
-form.addEventListener("change", () => {
-  keepReturnAfterDeparture();
+function persistCurrentSettings() {
+  syncDateConstraints();
   saveSettings(formPayload());
-});
+}
+
+syncDateConstraints();
+form.addEventListener("change", persistCurrentSettings);
+form.addEventListener("input", persistCurrentSettings);

@@ -138,6 +138,27 @@ select {
   font-weight: 760;
 }
 
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 34px;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--ink) 50%) calc(100% - 17px) 50% / 6px 6px no-repeat,
+    linear-gradient(135deg, var(--ink) 50%, transparent 50%) calc(100% - 12px) 50% / 6px 6px no-repeat,
+    #fffefa;
+  cursor: pointer;
+}
+
+select:hover {
+  background-color: var(--surface-hot);
+}
+
+select option {
+  background: #fffefa;
+  color: var(--ink);
+  font-weight: 760;
+}
+
 input[type="date"],
 input[type="time"],
 input[type="number"] {
@@ -411,6 +432,14 @@ button:disabled {
   select {
     min-height: 44px;
     padding-inline: 10px;
+  }
+
+  select {
+    padding-right: 36px;
+    background-position:
+      calc(100% - 18px) 50%,
+      calc(100% - 13px) 50%,
+      0 0;
   }
 
   .toolbar {
