@@ -565,10 +565,72 @@ def selected_one_way_filter(option: dict):
     return flight_filter
 
 
+def itinerary_data(itinerary) -> list[dict]:
+    return [
+        {
+            "departure_airport": leg.departure_airport,
+            "arrival_airport": leg.arrival_airport,
+            "departure_date": (
+                f"{leg.departure_date[0]}-"
+                f"{leg.departure_date[1]:02d}-"
+                f"{leg.departure_date[2]:02d}"
+            ),
+            "flight_code": leg.airline,
+            "flight_number": leg.flight_number,
+        }
+        for leg in itinerary.flights
+    ]
+
+
+def selected_round_trip_filter_from_one_way_pair(outbound_option: dict, return_option: dict):
+    outbound_data = outbound_option["filter"].flight_data[0]
+    return_data = return_option["filter"].flight_data[0]
+    max_stops = outbound_option["filter"].max_stops
+
+    flight_filter = create_filter(
+        flight_data=[
+            FlightData(
+                date=outbound_data.date,
+                from_airport=outbound_data.from_airport,
+                to_airport=outbound_data.to_airport,
+            ),
+            FlightData(
+                date=return_data.date,
+                from_airport=return_data.from_airport,
+                to_airport=return_data.to_airport,
+            ),
+        ],
+        trip="round-trip",
+        passengers=Passengers(adults=1),
+        seat="economy",
+        max_stops=max_stops,
+    )
+    flight_filter.flight_data[0].itin_data = itinerary_data(outbound_option["flight"])
+    flight_filter.flight_data[1].itin_data = itinerary_data(return_option["flight"])
+    return flight_filter
+
+
 def one_way_booking_url(option: dict, *, currency: str, language: str) -> str | None:
     try:
         return get_booking_url(
             selected_one_way_filter(option),
+            currency=currency,
+            language=language,
+        )
+    except Exception:
+        return None
+
+
+def round_trip_booking_url_from_one_way_pair(
+    outbound_option: dict,
+    return_option: dict,
+    *,
+    currency: str,
+    language: str,
+) -> str | None:
+    try:
+        return get_booking_url(
+            selected_round_trip_filter_from_one_way_pair(outbound_option, return_option),
             currency=currency,
             language=language,
         )
@@ -838,16 +900,26 @@ def enrich_result_with_details(
         option_result.return_departure_time = format_time(return_flight.departure_time)
         option_result.return_arrival_time = format_time(return_flight.arrival_time)
         if selected.get("outbound_one_way") and selected.get("return_one_way"):
-            option_result.booking_url = one_way_booking_url(
-                selected["outbound_one_way"],
-                currency=currency,
-                language=language,
-            )
-            option_result.return_booking_url = one_way_booking_url(
-                selected["return_one_way"],
-                currency=currency,
-                language=language,
-            )
+            if outbound.arrival_airport == return_flight.departure_airport:
+                option_result.booking_url = round_trip_booking_url_from_one_way_pair(
+                    selected["outbound_one_way"],
+                    selected["return_one_way"],
+                    currency=currency,
+                    language=language,
+                )
+                option_result.return_booking_url = None
+
+            if not option_result.booking_url:
+                option_result.booking_url = one_way_booking_url(
+                    selected["outbound_one_way"],
+                    currency=currency,
+                    language=language,
+                )
+                option_result.return_booking_url = one_way_booking_url(
+                    selected["return_one_way"],
+                    currency=currency,
+                    language=language,
+                )
         else:
             option_result.booking_url = selected.get("url")
             option_result.return_booking_url = selected.get("return_url")
