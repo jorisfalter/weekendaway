@@ -10,6 +10,9 @@ const storageKey = "flaneurs:anywhere-settings:v6";
 const originInput = document.querySelector("#origin");
 const originCodeInput = document.querySelector("#originCode");
 const originSuggestionsEl = document.querySelector("#origin-suggestions");
+const defaultSubmitLabel = submit.textContent;
+let activeSearch = null;
+let nextSearchId = 0;
 const originDisplayNames = {
   AMS: "Amsterdam",
   EIN: "Eindhoven",
@@ -84,6 +87,24 @@ function setStatus(message, tone = "") {
   statusEl.dataset.tone = tone;
 }
 
+function resetSubmitButton() {
+  submit.disabled = false;
+  submit.textContent = defaultSubmitLabel;
+}
+
+function setSearchingButton() {
+  submit.disabled = true;
+  submit.textContent = "Searching...";
+}
+
+function markSearchInputsChanged() {
+  if (!activeSearch || activeSearch.controller.signal.aborted) return;
+  activeSearch.dirty = true;
+  submit.disabled = false;
+  submit.textContent = "New search";
+  setStatus("Search settings changed. Start a new search when ready.");
+}
+
 function formPayload() {
   const data = new FormData(form);
   const originLabel = originInput.value.trim();
@@ -124,13 +145,13 @@ function loadingMessages(payload) {
   ];
 }
 
-function startFallbackProgress(payload) {
+function startFallbackProgress(payload, shouldUpdate = () => true) {
   const messages = loadingMessages(payload);
   let index = 0;
-  setStatus(messages[index]);
+  if (shouldUpdate()) setStatus(messages[index]);
   return setInterval(() => {
     index = Math.min(index + 1, messages.length - 1);
-    setStatus(messages[index]);
+    if (shouldUpdate()) setStatus(messages[index]);
   }, 9000);
 }
 
@@ -345,6 +366,7 @@ function chooseOriginSuggestion(suggestion) {
   originCodeInput.value = suggestion.code;
   closeOriginSuggestions();
   saveSettings(formPayload());
+  markSearchInputsChanged();
   originInput.focus();
 }
 
@@ -685,10 +707,22 @@ function renderResults(payload) {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (activeSearch && !activeSearch.controller.signal.aborted) {
+    activeSearch.controller.abort();
+  }
+
+  const controller = new AbortController();
+  const search = {
+    id: ++nextSearchId,
+    controller,
+    dirty: false,
+  };
+  activeSearch = search;
+
   const payload = formPayload();
   saveSettings(payload);
 
-  submit.disabled = true;
+  setSearchingButton();
   const partialPayload = {
     origin: payload.origin,
     origin_label: payload.originLabel,
@@ -699,7 +733,10 @@ form.addEventListener("submit", async (event) => {
     results: [],
   };
   renderResults(partialPayload);
-  const fallbackTimer = startFallbackProgress(payload);
+  const fallbackTimer = startFallbackProgress(
+    payload,
+    () => activeSearch?.id === search.id && !search.dirty
+  );
 
   try {
     let finalPayload;
@@ -707,6 +744,7 @@ form.addEventListener("submit", async (event) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -715,8 +753,9 @@ form.addEventListener("submit", async (event) => {
     }
 
     await readNdjson(response, (event) => {
+      if (activeSearch?.id !== search.id) return;
       if (event.type === "progress") {
-        setStatus(event.message);
+        if (!search.dirty) setStatus(event.message);
       } else if (event.type === "partial-result") {
         partialPayload.results = payloadWithPartialResult(partialPayload, event.result).results;
         partialPayload.result_count = partialPayload.results.length;
@@ -733,10 +772,14 @@ form.addEventListener("submit", async (event) => {
     renderResults(finalPayload);
     setStatus("Board loaded.");
   } catch (error) {
+    if (error.name === "AbortError" || activeSearch?.id !== search.id) return;
     setStatus(error.message, "error");
   } finally {
     clearInterval(fallbackTimer);
-    submit.disabled = false;
+    if (activeSearch?.id === search.id) {
+      activeSearch = null;
+      resetSubmitButton();
+    }
   }
 });
 
@@ -758,6 +801,7 @@ document.querySelector("#departureDate").addEventListener("change", syncDateCons
 function persistCurrentSettings() {
   syncDateConstraints();
   saveSettings(formPayload());
+  markSearchInputsChanged();
 }
 
 syncDateConstraints();
