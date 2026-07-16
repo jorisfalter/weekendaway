@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 const { spawn } = require("child_process");
 const airports = require("../../airportsv2.js");
 
@@ -162,6 +163,35 @@ app.use(express.json());
 app.use(express.static(publicDir));
 app.use("/vendor/maplibre-gl", express.static(maplibreDist));
 
+function loadCsvCoordinates() {
+  const map = new Map();
+  try {
+    const csvPath = path.join(repoRoot, "iata-icao.csv");
+    const lines = fs.readFileSync(csvPath, "utf8").split("\n").slice(1);
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const [iata, , airport, latitude, longitude] = line.split(",");
+      const code = String(iata || "").trim();
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+      if (!/^[A-Z0-9]{3}$/.test(code)) continue;
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+      if (map.has(code)) continue;
+      map.set(code, {
+        code,
+        name: String(airport || "").trim() || code,
+        lat,
+        lng,
+      });
+    }
+  } catch (error) {
+    console.warn("Could not load iata-icao.csv coordinates:", error.message);
+  }
+  return map;
+}
+
+const csvCoordinates = loadCsvCoordinates();
+
 function findAirportCoordinates(code) {
   if (coordinateFallbacks[code]) {
     return coordinateFallbacks[code];
@@ -174,13 +204,16 @@ function findAirportCoordinates(code) {
       Number.isFinite(entry[3])
   );
 
-  if (!airport) return null;
-  return {
-    code: airport[0],
-    name: airport[1],
-    lat: airport[2],
-    lng: airport[3],
-  };
+  if (airport) {
+    return {
+      code: airport[0],
+      name: airport[1],
+      lat: airport[2],
+      lng: airport[3],
+    };
+  }
+
+  return csvCoordinates.get(code) || null;
 }
 
 function validAirport(entry) {

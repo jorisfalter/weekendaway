@@ -195,14 +195,26 @@ function loadSettings() {
     optionsPerDestination: 5,
   };
 
+  let settings;
   try {
-    return {
+    settings = {
       ...fallback,
       ...JSON.parse(localStorage.getItem(storageKey) || "{}"),
     };
   } catch {
     return fallback;
   }
+
+  // Keep remembered fields, but never restore dates that already lie in the past.
+  const today = formatLocalDate(new Date());
+  if (!settings.departureDate || settings.departureDate < today) {
+    settings.departureDate = defaults.departure;
+    settings.returnDate = defaults.returnDate;
+  } else if (!settings.returnDate || settings.returnDate < today) {
+    settings.returnDate = defaults.returnDate;
+  }
+
+  return settings;
 }
 
 function applySettings(settings) {
@@ -581,6 +593,22 @@ function setLineLayer(origin, destinations) {
   map.getSource("routes").setData({ type: "FeatureCollection", features });
 }
 
+function resultPrice(result) {
+  return Math.round(result.detail_price || result.price);
+}
+
+function cheapestPerCity(results) {
+  const cheapest = new Map();
+  results.forEach((result) => {
+    const key = result.destination;
+    const current = cheapest.get(key);
+    if (!current || resultPrice(result) < resultPrice(current)) {
+      cheapest.set(key, result);
+    }
+  });
+  return [...cheapest.values()];
+}
+
 function renderMap(payload) {
   initMap();
   if (!map) {
@@ -591,7 +619,9 @@ function renderMap(payload) {
   const draw = () => {
     clearMapMarkers();
     const origin = payload.origin_coordinates;
-    const destinations = (payload.results || []).filter((result) => result.coordinates);
+    const destinations = cheapestPerCity(
+      (payload.results || []).filter((result) => result.coordinates)
+    );
     setLineLayer(origin, destinations);
 
     const bounds = new maplibregl.LngLatBounds();
