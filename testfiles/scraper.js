@@ -1,37 +1,35 @@
-const request = require("request");
 const cheerio = require("cheerio");
 
-function scrapeArrivals() {
+async function scrapeArrivals() {
   const baseUrl = "https://www.flightradar24.com/airport/";
   const airportCode = "FRA";
   const movementType = "arrivals";
+  const response = await fetch(`${baseUrl}${airportCode}${movementType}`);
 
-  request(
-    `${baseUrl}${airportCode}${movementType}`,
-    (error, response, html) => {
-      if (error) {
-        console.log(error);
-      } else if (!error && response.statusCode == 200) {
-        const $ = cheerio.load(html);
-        console.log($);
+  if (!response.ok) {
+    throw new Error(`FlightRadar24 returned HTTP ${response.status}`);
+  }
 
-        const arrivals = [];
-        $(".arr-dep").each((i, element) => {
-          //   const flightNumber = $(element).find(".PM").text().trim();
-          const from = $(element).find(".sub-content-area").text().trim();
-          //   const expectedTime = $(element).find(".PM").text().trim();
+  const html = await response.text();
+  const $ = cheerio.load(html);
+  const arrivals = [];
 
-          arrivals.push({
-            // flightNumber,
-            from,
-            // expectedTime,
-          });
-        });
+  $(".arr-dep").each((i, element) => {
+    // const flightNumber = $(element).find(".PM").text().trim();
+    const from = $(element).find(".sub-content-area").text().trim();
+    // const expectedTime = $(element).find(".PM").text().trim();
 
-        console.log(arrivals);
-      }
-    }
-  );
+    arrivals.push({
+      // flightNumber,
+      from,
+      // expectedTime,
+    });
+  });
+
+  console.log(arrivals);
 }
 
-scrapeArrivals();
+scrapeArrivals().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
