@@ -1,2 +1,7 @@
 google-flights==0.0.7
 playwright==1.58.0
+# Transitive deps of google-flights, pinned to the last known-good versions.
+# primp 2.0.1 rejects impersonate="chrome_126" with BuilderError, which made
+# every detail lookup fail after the 2026-10-03 rebuild.
+primp==2.0.0
+selectolax==0.4.11
