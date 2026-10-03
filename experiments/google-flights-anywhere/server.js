@@ -5,6 +5,9 @@ const { spawn } = require("child_process");
 const airports = require("../../airportsv2.js");
 
 const app = express();
+// Long-haul origins such as JNB need one-way fallbacks per destination,
+// which can push a full search past four minutes.
+const SEARCH_TIMEOUT_MS = 420_000;
 const experimentDir = __dirname;
 const repoRoot = path.resolve(experimentDir, "../..");
 const publicDir = path.join(experimentDir, "web");
@@ -499,7 +502,7 @@ function runSearch(params) {
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
       reject(new Error("Search timed out. Try fewer detailed results."));
-    }, 240_000);
+    }, SEARCH_TIMEOUT_MS);
 
     child.stdout.on("data", (chunk) => {
       stdout += chunk.toString();
@@ -586,7 +589,7 @@ app.post("/api/search-stream", (req, res) => {
       error: "Search timed out. Try fewer detailed results.",
     });
     res.end();
-  }, 240_000);
+  }, SEARCH_TIMEOUT_MS);
 
   child.stdout.on("data", (chunk) => {
     stdout += chunk.toString();

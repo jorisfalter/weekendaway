@@ -526,7 +526,9 @@ def option_passes_time_filters(
 
 
 def option_total_price(option: dict) -> float:
-    if option.get("price") is not None:
+    # Google reports 0.0 when it has no fare for a flight (seen for Airlink),
+    # so a falsy price means "unknown", never "free".
+    if option.get("price"):
         return option["price"]
     return option["outbound"].itinerary_summary.price or 10_000_000
 
@@ -785,6 +787,8 @@ def enrich_result_with_details(
 
         for outbound_code in pair_codes:
             outbound_options = get_one_way(origin, outbound_code, departure_date)
+            if not outbound_options:
+                continue
             for return_code in pair_codes:
                 return_options = get_one_way(return_code, origin, return_date)
                 for outbound_option in outbound_options:
@@ -793,12 +797,13 @@ def enrich_result_with_details(
                         return_flight = return_option["flight"]
                         outbound_price = outbound.itinerary_summary.price
                         return_price = return_flight.itinerary_summary.price
-                        if outbound_price is None or return_price is None:
+                        # None or 0.0 means Google has no fare for this flight.
+                        if not outbound_price or not return_price:
                             continue
                         combined = {
                             "outbound": outbound,
                             "return": return_flight,
-                            "price": outbound_price + return_price,
+                            "price": round(outbound_price + return_price, 2),
                             "outbound_one_way": outbound_option,
                             "return_one_way": return_option,
                             "mixed_airports": outbound_code != return_code,
@@ -839,7 +844,14 @@ def enrich_result_with_details(
     else:
         for code in codes[:4]:
             collect_matching_options([code], [code])
-            if departure_date == return_date:
+            # Google often cannot pair a return for carriers sold as one-way
+            # fares (e.g. JNB-CPT on Airlink, LIFT, FlySafair), so fall back
+            # to combining two one-way searches.
+            # Skip it when Google has no outbound flight at all; two one-way
+            # searches cannot find one either and only cost time.
+            if departure_date == return_date or (
+                not matching_options and last_error != "No outbound flights found"
+            ):
                 collect_one_way_pair_options([code])
 
     if not matching_options:
