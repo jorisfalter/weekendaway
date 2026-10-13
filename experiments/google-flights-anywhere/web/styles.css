@@ -649,3 +649,16 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+.site-footer {
+  width: calc(100vw - 28px);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 0 32px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.site-footer a {
+  color: var(--ink);
+}
