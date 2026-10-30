@@ -12,3 +12,7 @@ services:
     ports:
       - "127.0.0.1:${FLANEURS_HOST_PORT:-8102}:3000"
     restart: unless-stopped
+    # 2026-10-30 audit A-17: public search launches headless Chromium; cap resources.
+    mem_limit: 1g
+    pids_limit: 256
+    cpus: 1.0
