@@ -137,6 +137,7 @@ CITY_AIRPORT_GROUPS = {
     "MEL": ["MEL", "AVV"],
 }
 ONE_WAY_PAIR_OPTION_LIMIT = 24
+EXPLORE_RETRIES = 3
 
 
 def emit_progress(enabled: bool, message: str) -> None:
@@ -1079,6 +1080,18 @@ def run(args: argparse.Namespace) -> dict:
         update_google_http_cookies(page.context.cookies())
         emit_progress(args.progress, "Waiting for Explore results")
         lines = body_lines(page, args.wait_ms)
+        # Explore intermittently renders "Oops, something went wrong." with no
+        # destinations; a reload almost always recovers it.
+        for attempt in range(1, EXPLORE_RETRIES + 1):
+            if extract_results(lines, 1, "page"):
+                break
+            emit_progress(
+                args.progress,
+                f"Google Explore returned nothing, retrying ({attempt}/{EXPLORE_RETRIES})",
+            )
+            page.reload(wait_until="domcontentloaded", timeout=60_000)
+            accept_google_consent(page)
+            lines = body_lines(page, args.wait_ms)
 
         screenshot_path = None
         if args.screenshot:
